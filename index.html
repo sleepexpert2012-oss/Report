@@ -485,7 +485,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <div class="ptxt">Kỳ chọn: <b id="pCur">—</b> · So với: <b id="pPrev">—</b><span id="lenWarn" style="color:var(--down);font-weight:700"></span></div>
     </div>
     <div class="track"><canvas id="spark"></canvas></div><div id="sparkTip"></div>
-    <div class="note">Thanh trên: cột <b style="color:var(--ink)">đen</b> = kỳ chính · cột <b style="color:var(--accent2)">xám</b> = kỳ so sánh (đồng bộ màu với mọi biểu đồ). Đơn vị: tỷ đồng trừ khi ghi khác. Khi 2 kỳ khác số tháng, Δ/%Δ quy đổi TB/tháng.</div>
+    <div class="note">Thanh trên: cột <b style="color:var(--ink)">đen</b> = kỳ chính · cột <b style="color:var(--accent2)">xám</b> = kỳ so sánh (đồng bộ màu với mọi biểu đồ). Đơn vị: triệu trừ khi ghi khác. Khi 2 kỳ khác số tháng, Δ/%Δ quy đổi TB/tháng.</div>
   </div>
 
   <section class="page on" id="pg-intro">
@@ -526,14 +526,14 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <div class="grid">
       <div class="card"><h2>Xu hướng theo tháng</h2><div class="sub" id="ovTrendS">—</div><div class="ch"><canvas id="ovTrend"></canvas></div></div>
       <div class="card"><h2>Ngành hàng — chọn (đen) vs SS (xám)</h2><div class="sub" id="ovIndS">—</div><div class="ch"><canvas id="ovInd"></canvas></div></div>
-      <div class="card"><h2>Cơ cấu nhóm brand — kỳ SS vs kỳ chọn</h2><div class="sub">Bar ngang: xám = kỳ SS, đen = kỳ chọn · nhãn kèm % tỷ trọng + mũi tên (kỳ chọn) · tỷ đồng</div><div class="ch"><canvas id="ovPie"></canvas></div></div>
-      <div class="card"><h2>Cơ cấu NGÀNH theo KÊNH</h2><div class="sub">Cột chồng mỗi kênh tách theo ngành (tỷ đồng). "Ecommerce" = brand Goodnight (bán độc quyền online). Luôn hiện cả 2 kênh bất kể bộ lọc.</div><div class="ch"><canvas id="ovKenh"></canvas></div></div>
-      <div class="card"><h2>Chi tiết Ngành × Kênh</h2><div class="sub">DT & tỷ trọng theo kênh (kỳ chọn) · đơn vị tỷ đồng</div><div class="twrap"><table id="ovKenhTbl" style="font-size:11px"></table></div></div>
-      <div class="card"><h2>HOUSE BRAND — kỳ SS vs kỳ chọn</h2><div class="sub">Comfy, Goodnight, Amando, Doona, Arena, Faith, Gummi, Spring Air · loại DT kỳ chọn < 200tr · tỷ đồng · bấm cột để mở bảng brand</div><div class="ch"><canvas id="ovHB"></canvas></div></div>
-      <div class="card"><h2>EXCLUSIVE BRAND — kỳ SS vs kỳ chọn</h2><div class="sub">Dunlopillo, Tempur, Bedgear · loại DT kỳ chọn < 200tr · tỷ đồng</div><div class="ch"><canvas id="ovExc"></canvas></div></div>
-      <div class="card"><h2>LEADING BRAND — kỳ SS vs kỳ chọn</h2><div class="sub">Dreamland, Giang Sơn, Everon, Everhome, Liên Á, Kim Cương... · loại DT kỳ chọn < 200tr · tỷ đồng</div><div class="ch"><canvas id="ovLead"></canvas></div></div>
+      <div class="card"><h2>Cơ cấu nhóm brand — kỳ SS vs kỳ chọn</h2><div class="sub">Bar ngang: xám = kỳ SS, đen = kỳ chọn · nhãn kèm % tỷ trọng + mũi tên (kỳ chọn) · triệu</div><div class="ch"><canvas id="ovPie"></canvas></div></div>
+      <div class="card"><h2>Cơ cấu NGÀNH theo KÊNH</h2><div class="sub">Cột chồng mỗi kênh tách theo ngành (triệu). "Ecommerce" = brand Goodnight (bán độc quyền online). Luôn hiện cả 2 kênh bất kể bộ lọc.</div><div class="ch"><canvas id="ovKenh"></canvas></div></div>
+      <div class="card"><h2>Chi tiết Ngành × Kênh</h2><div class="sub">DT & tỷ trọng theo kênh (kỳ chọn) · đơn vị triệu</div><div class="twrap"><table id="ovKenhTbl" style="font-size:11px"></table></div></div>
+      <div class="card"><h2>HOUSE BRAND — kỳ SS vs kỳ chọn</h2><div class="sub">Comfy, Goodnight, Amando, Doona, Arena, Faith, Gummi, Spring Air · loại DT kỳ chọn < 200tr · triệu · bấm cột để mở bảng brand</div><div class="ch"><canvas id="ovHB"></canvas></div></div>
+      <div class="card"><h2>EXCLUSIVE BRAND — kỳ SS vs kỳ chọn</h2><div class="sub">Dunlopillo, Tempur, Bedgear · loại DT kỳ chọn < 200tr · triệu</div><div class="ch"><canvas id="ovExc"></canvas></div></div>
+      <div class="card"><h2>LEADING BRAND — kỳ SS vs kỳ chọn</h2><div class="sub">Dreamland, Giang Sơn, Everon, Everhome, Liên Á, Kim Cương... · loại DT kỳ chọn < 200tr · triệu</div><div class="ch"><canvas id="ovLead"></canvas></div></div>
       <div class="card w2" id="ovBrandCard"><h2>Bảng tổng hợp brand</h2><div class="sub">DT kỳ SS vs kỳ chọn · GM% · tăng trưởng · nhóm House/Exclusive/Leading · sắp theo DT kỳ chọn</div><div class="twrap"><table id="ovBrandTbl" style="font-size:11px"><thead><tr><th></th><th>Brand</th><th>Nhóm</th><th>DT SS (tỷ)</th><th>DT chọn (tỷ)</th><th>% Sale</th><th>↑DT</th><th>GM% SS</th><th>GM% chọn</th><th>↑GM (đ%)</th><th>Unit</th></tr></thead><tbody></tbody></table></div></div>
-      <div class="card"><h2>Top 10 tăng / 10 giảm — theo tên class</h2><div class="sub">Δ doanh thu vs kỳ so sánh (tỷ đồng) · click dòng xem chi tiết</div>
+      <div class="card"><h2>Top 10 tăng / 10 giảm — theo tên class</h2><div class="sub">Δ doanh thu vs kỳ so sánh (triệu) · click dòng xem chi tiết</div>
         <div class="twrap" style="max-height:290px"><table id="ovTop"><thead><tr><th>Class (Brand)</th><th>Ngành</th><th class="num">Kỳ SS (tỷ)</th><th class="num">Kỳ chọn (tỷ)</th><th class="num">Δ (tỷ)</th><th class="num">GM%</th></tr></thead><tbody></tbody></table></div></div>
     </div>
   </section>
@@ -545,7 +545,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <div class="sub" style="margin-bottom:6px">Chỉ hiện brand có <b>DT ≥ 100 triệu</b> trong kỳ chọn (mặc định 6 tháng đầu 2026) · sắp theo DT giảm dần · <b>% lũy kế</b> cho thấy mức độ tập trung (bao nhiêu brand chiếm 80% DT) · chọn nhóm ngành để lọc</div>
     <div class="tools noprint" style="margin:4px 0"><label style="font-weight:600">Nhóm ngành: <select id="brdShareNg" style="padding:5px 10px;font-size:13px;min-width:180px"></select></label></div>
     <div class="grid" style="margin-bottom:14px">
-      <div class="card"><h2 style="font-size:15px">Tỉ trọng DOANH THU (top 15 brand)</h2><div class="sub">màu theo nhóm: đen = House · xám = Exclusive · xám = Leading/Khác · số = tỷ đồng</div><div class="ch tall"><canvas id="brdShareCh"></canvas></div></div>
+      <div class="card"><h2 style="font-size:15px">Tỉ trọng DOANH THU (top 15 brand)</h2><div class="sub">màu theo nhóm: đen = House · xám = Exclusive · xám = Leading/Khác · số = triệu</div><div class="ch tall"><canvas id="brdShareCh"></canvas></div></div>
       <div class="card"><h2 style="font-size:15px">GM% theo brand (top 15)</h2><div class="sub">cùng thứ tự với biểu đồ tỉ trọng · đường đứt đỏ = GM% bình quân</div><div class="ch tall"><canvas id="brdShareGm"></canvas></div></div>
       <div class="card w2"><h2 style="font-size:15px">Bảng chi tiết brand</h2><div id="brdShareTbl" style="max-height:440px;overflow:auto"></div></div>
     </div>
@@ -580,7 +580,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <div class="card"><h2>Phân khúc giá</h2><div class="sub" id="indSegS">—</div><div class="ch"><canvas id="indSeg"></canvas></div></div>
       <div class="card"><h2 id="indXT">—</h2><div class="sub" id="indXS">—</div><div class="ch"><canvas id="indX"></canvas></div></div>
       <div class="card w2"><h2>Top 15 class theo tên sản phẩm</h2><div class="sub" id="indTopS">—</div><div class="ch tall"><canvas id="indTopCls"></canvas></div></div>
-      <div class="card w2"><h2>Toàn bộ class trong ngành</h2><div class="sub">Click tiêu đề cột để sắp xếp · click dòng xem chi tiết · đơn vị tỷ đồng</div>
+      <div class="card w2"><h2>Toàn bộ class trong ngành</h2><div class="sub">Click tiêu đề cột để sắp xếp · click dòng xem chi tiết · đơn vị triệu</div>
         <div class="tools"><input type="search" id="indSearch" aria-label="Tìm class hoặc brand trong ngành" placeholder="Tìm tên class / brand..."><label style="font-weight:700;font-size:12px;color:#3E5170">Hiển thị <select id="indGrp"><option value="1">Nhóm: Loại hình → Brand</option><option value="0">Danh sách phẳng (sort cột)</option></select></label></div>
         <div class="twrap"><table id="indTbl"><thead></thead><tbody></tbody></table></div>
         <div class="note" id="indTblNote"></div></div>
@@ -595,16 +595,16 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <div class="f" id="rrViewBox" style="display:none"><label>Góc nhìn chăn ga</label><div class="mtoggle"><button id="rrV1" class="on">Loại hình × Phân khúc</button><button id="rrV2">Theo Class (gộp loại hình)</button></div></div>
       <div class="note" id="rrTierNote">—</div>
     </div>
-    <div class="card w2" style="margin-bottom:12px"><h2>Tổng quan theo NGÀNH HÀNG — kỳ chọn</h2><div class="sub">DT/GP tỷ đồng · %DT trên toàn công ty · <b>tổng ĐẦY ĐỦ mọi class</b> (gồm cả clearance, KHÔNG áp bộ lọc/chip vòng đời) · Active = class Mới/In-line · click 1 ngành để mở review chi tiết</div>
+    <div class="card w2" style="margin-bottom:12px"><h2>Tổng quan theo NGÀNH HÀNG — kỳ chọn</h2><div class="sub">DT/GP triệu · %DT trên toàn công ty · <b>tổng ĐẦY ĐỦ mọi class</b> (gồm cả clearance, KHÔNG áp bộ lọc/chip vòng đời) · Active = class Mới/In-line · click 1 ngành để mở review chi tiết</div>
       <div class="twrap"><table id="rrOv"><thead></thead><tbody></tbody></table></div></div>
     <div class="card w2" style="margin-bottom:12px" id="rrMxCard"><div class="twrap" style="max-height:520px"><table class="mx" id="rrMx"></table></div></div>
-    <div class="card w2" style="margin-bottom:12px"><h2 id="rrSelT">—</h2><div class="sub">Đơn vị: DT tỷ đồng · ASP & COGS/unit triệu đồng · click dòng xem chi tiết</div>
+    <div class="card w2" style="margin-bottom:12px"><h2 id="rrSelT">—</h2><div class="sub">Đơn vị: DT triệu · ASP & COGS/unit triệu đồng · click dòng xem chi tiết</div>
       <div class="twrap"><table id="rrTbl"><thead></thead><tbody></tbody></table></div><div class="note" id="rrNote"></div></div>
-    <div class="card w2" style="margin-bottom:12px" id="rrChanCard" style="display:none"><h2>Chăn lẻ — mùa vụ & loại chăn</h2><div class="sub">Cố định 12 tháng gần nhất (07/2025–06/2026) để thấy trọn chu kỳ mùa. Mùa lạnh = T10–T2, mùa nóng = T3–T9. Đơn vị tỷ đồng.</div>
+    <div class="card w2" style="margin-bottom:12px" id="rrChanCard" style="display:none"><h2>Chăn lẻ — mùa vụ & loại chăn</h2><div class="sub">Cố định 12 tháng gần nhất (07/2025–06/2026) để thấy trọn chu kỳ mùa. Mùa lạnh = T10–T2, mùa nóng = T3–T9. Đơn vị triệu.</div>
       <div class="twrap"><table id="rrChan"><thead></thead><tbody></tbody></table></div><div class="note" id="rrChanNote"></div></div>
     <div class="card w2" style="margin-bottom:12px"><h2>GOOD – BETTER – BEST theo DÒNG SẢN PHẨM</h2><div class="sub">Dòng nhận diện từ tên class theo ma trận (Cloud 1.0→Good, 2.0→Better, 3.0→Best...; chăn ga theo hệ Collection thật). Bậc CỐ ĐỊNH theo dòng — hiệu chỉnh trong file SleepExpert_GBB_Input.xlsx rồi gửi lại. Click chip xem chi tiết.</div>
       <div id="rrGBB"></div></div>
-    <div class="card w2"><h2>KẾT LUẬN & HÀNH ĐỘNG — nhóm trọng tâm của ngành</h2><div class="sub">Gồm: class thuộc <b>top 80% doanh thu (Pareto)</b> kỳ chọn + toàn bộ <b>SP mới 2025/2026</b> đang bán. Action theo rule: <b>YoY −5% → điều tra · ΔGM −3đ% → cảnh báo</b> (xem Giới thiệu) — anh thẩm định trước khi thực thi. Đơn vị tỷ đồng.</div>
+    <div class="card w2"><h2>KẾT LUẬN & HÀNH ĐỘNG — nhóm trọng tâm của ngành</h2><div class="sub">Gồm: class thuộc <b>top 80% doanh thu (Pareto)</b> kỳ chọn + toàn bộ <b>SP mới 2025/2026</b> đang bán. Action theo rule: <b>YoY −5% → điều tra · ΔGM −3đ% → cảnh báo</b> (xem Giới thiệu) — anh thẩm định trước khi thực thi. Đơn vị triệu.</div>
       <div class="twrap" style="max-height:560px"><table id="rrAct"><thead></thead><tbody></tbody></table></div><div class="note" id="rrActNote"></div></div>
   </section>
 
@@ -629,8 +629,8 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <h1 class="pt">Phân tích Chăn</h1>
     <div class="kpis" id="chKpis"></div>
     <div class="grid">
-      <div class="card"><h2>Doanh thu chăn theo tháng — kỳ chọn</h2><div class="sub">Tách theo loại chăn (tỷ đồng)</div><div class="ch"><canvas id="chTrend"></canvas></div></div>
-      <div class="card"><h2>Cơ cấu loại chăn — kỳ chọn</h2><div class="sub">% doanh thu (tỷ đồng)</div><div class="ch"><canvas id="chPie"></canvas></div></div>
+      <div class="card"><h2>Doanh thu chăn theo tháng — kỳ chọn</h2><div class="sub">Tách theo loại chăn (triệu)</div><div class="ch"><canvas id="chTrend"></canvas></div></div>
+      <div class="card"><h2>Cơ cấu loại chăn — kỳ chọn</h2><div class="sub">% doanh thu (triệu)</div><div class="ch"><canvas id="chPie"></canvas></div></div>
       <div class="card w2"><h2>Danh sách class chăn</h2><div class="sub">Loại chăn tự phân theo quy tắc: Trẻ em (collection) · Chăn hè = chất liệu cooling · Chăn đông = Polyester (chăn đông)/Fleece/Warm · còn lại 4 mùa. Nhánh = Collection (Mùa vụ / Good-Better-Best / Ecommerce). % mùa lạnh tính trên 12T gần nhất cố định.</div>
         <div style="margin:6px 0"><label style="font-size:11.5px;font-weight:700">Lọc bậc GBB: </label><select id="chGBBSel"><option value="">Tất cả</option><option>Good</option><option>Better</option><option>Best</option></select>
         <span class="note" style="margin-left:10px">Bậc CỐ ĐỊNH theo DÒNG sản phẩm (Cloud 1.0=Good, 2.0=Better, 3.0=Best...; chăn ga theo hệ Collection). Hiệu chỉnh: file SleepExpert_GBB_Input.xlsx</span></div>
@@ -654,9 +654,9 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <div class="twrap" style="margin-top:8px"><table id="nwCov" style="font-size:11.5px;width:100%"></table></div>
     </div>
     <div class="grid">
-      <div class="card"><h2>Ramp-up theo lớp năm ra mắt</h2><div class="sub">Doanh thu SP mới theo tháng, trong kỳ chọn (tỷ đồng)</div><div class="ch"><canvas id="nwTrend"></canvas></div></div>
-      <div class="card"><h2>Ngành × vai trò SP mới</h2><div class="sub">Doanh thu SP mới kỳ chọn (tỷ đồng, chồng lớp theo vai trò)</div><div class="ch"><canvas id="nwInd"></canvas></div></div>
-      <div class="card w2"><h2>Danh sách class mới — theo tên sản phẩm</h2><div class="sub">Sort & tìm kiếm · click dòng xem chi tiết · đơn vị tỷ đồng</div>
+      <div class="card"><h2>Ramp-up theo lớp năm ra mắt</h2><div class="sub">Doanh thu SP mới theo tháng, trong kỳ chọn (triệu)</div><div class="ch"><canvas id="nwTrend"></canvas></div></div>
+      <div class="card"><h2>Ngành × vai trò SP mới</h2><div class="sub">Doanh thu SP mới kỳ chọn (triệu, chồng lớp theo vai trò)</div><div class="ch"><canvas id="nwInd"></canvas></div></div>
+      <div class="card w2"><h2>Danh sách class mới — theo tên sản phẩm</h2><div class="sub">Sort & tìm kiếm · click dòng xem chi tiết · đơn vị triệu</div>
         <div class="tools"><input type="search" id="nwSearch" aria-label="Tìm sản phẩm mới" placeholder="Tìm tên class / brand...">
           <div class="f"><label for="nwYear">Năm ra mắt</label><select id="nwYear"><option value="0">Tất cả</option><option>2024</option><option>2025</option><option>2026</option></select></div></div>
         <div class="twrap"><table id="nwTbl"><thead></thead><tbody></tbody></table></div><div class="note" id="nwNote"></div></div>
@@ -720,7 +720,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <div class="stabs noprint" style="align-items:center"><button class="stab on" data-t="t1"><svg class="tsvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10m5.3 10V4m5.4 16v-9m5.3 9V7"/></svg> Tổng quan tồn kho</button><button class="stab" data-t="t3"><svg class="tsvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg> Chi tiết Class &amp; SKU + độ phủ</button><button class="stab" data-t="t5"><svg class="tsvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9M4 9v11h16V9M4 9c0 1.5 1.3 2.5 2.8 2.5S9.7 10.5 9.7 9c0 1.5 1.3 2.5 2.8 2.5s2.7-1 2.7-2.5c0 1.5 1.3 2.5 2.8 2.5S21 10.5 21 9M9 20v-6h6v6"/></svg> Tồn theo cửa hàng</button><button class="stab" data-t="t6"><svg class="tsvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-8a2 2 0 012-2h14a2 2 0 012 2v8M3 18h18M5 8V6a2 2 0 012-2h10a2 2 0 012 2v2"/></svg> Trưng bày Nệm (giá trị)</button><button id="globalExport" class="noprint" style="margin-left:auto;margin-bottom:6px;padding:5px 14px;background:#1B1C4C;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px">📤 ⬇ Xuất chỉnh sửa (Excel)</button></div>
     <div class="stkpane on" id="stkT1">
       <div class="grid">
-        <div class="card"><h2>GIÁ VỐN tồn kho theo ngành (tỷ đồng)</h2><div class="sub">phân bổ theo kho · thanh ngang thể hiện tỷ trọng giá vốn giữa các ngành</div><div id="stkValTbl" style="margin-top:4px"></div></div>
+        <div class="card"><h2>GIÁ VỐN tồn kho theo ngành (triệu)</h2><div class="sub">phân bổ theo kho · thanh ngang thể hiện tỷ trọng giá vốn giữa các ngành</div><div id="stkValTbl" style="margin-top:4px"></div></div>
         <div class="card"><h2>SỐ LƯỢNG tồn kho theo ngành (unit)</h2><div class="sub">phân bổ theo kho · thanh ngang thể hiện tỷ trọng số lượng giữa các ngành</div><div id="stkUnitTbl" style="margin-top:4px"></div></div>
         <div class="card"><h2>Cơ cấu tồn theo KHO (unit)</h2><div class="sub">Kho tổng · Cửa hàng · Ecommerce</div><div class="ch"><canvas id="stkKho"></canvas></div></div>
         <div class="card"><h2>Tồn theo KÊNH bán (unit)</h2><div class="sub">Omni vs Ecommerce · top brand</div><div class="ch"><canvas id="stkKenhC"></canvas></div></div>
@@ -791,9 +791,9 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <div class="tools noprint" style="margin-bottom:8px"><label style="font-weight:700;font-size:12px;color:#3E5170">Ngành hàng <select id="supCat1"><option value="-1">Tất cả ngành</option></select></label><label style="font-weight:700;font-size:12px;color:#3E5170" title="NCC ngừng giao dịch = PO gần nhất cách kỳ mới nhất ≥12 tháng (theo data PO theo kỳ; NCC không rõ kỳ xét theo trạng thái class). Bỏ tick để hiện lại."><input type="checkbox" id="supInact1" checked> Ẩn NCC ngừng giao dịch ≥12T</label><label style="font-weight:700;font-size:12px;color:#3E5170">Năm <select id="supYr"><option value="-1">Toàn kỳ (PO đầy đủ)</option><option value="0">Toàn kỳ (nguồn theo kỳ)</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option></select></label><span class="mut" style="font-size:11px" id="supSrcNote"></span></div>
       <div class="supkpi" id="supKpi"></div>
       <div class="grid">
-        <div class="card w2"><h2>Top NCC theo giá trị PO</h2><div class="sub" id="supTopS">tổng giá trị đặt hàng 2024-01 → 2026-07 · tỷ đồng</div><div class="ch"><canvas id="supTop"></canvas></div></div>
-        <div class="card"><h2>PO value theo ngành hàng</h2><div class="sub">phân bổ tổng giá trị PO theo ngành · tỷ đồng</div><div class="ch"><canvas id="supByCat"></canvas></div></div>
-        <div class="card"><h2>Nhịp đặt hàng PO theo tháng</h2><div class="sub">Σ PO amount các class có PO theo kỳ · thấy độ "tươi" của giao dịch · tỷ đồng</div><div class="ch"><canvas id="supMonth"></canvas></div></div>
+        <div class="card w2"><h2>Top NCC theo giá trị PO</h2><div class="sub" id="supTopS">tổng giá trị đặt hàng 2024-01 → 2026-07 · triệu</div><div class="ch"><canvas id="supTop"></canvas></div></div>
+        <div class="card"><h2>PO value theo ngành hàng</h2><div class="sub">phân bổ tổng giá trị PO theo ngành · triệu</div><div class="ch"><canvas id="supByCat"></canvas></div></div>
+        <div class="card"><h2>Nhịp đặt hàng PO theo tháng</h2><div class="sub">Σ PO amount các class có PO theo kỳ · thấy độ "tươi" của giao dịch · triệu</div><div class="ch"><canvas id="supMonth"></canvas></div></div>
         <div class="card w2"><h2>Danh sách NCC</h2><div class="sub">bấm dòng NCC → xem các class đang cung cấp, giá mua, GM · bấm tên class → Class dashboard</div>
           <div class="tools noprint"><input type="search" id="supSearch" aria-label="Tìm nhà cung cấp" placeholder="Tìm tên NCC..."></div>
           <div class="twrap"><table id="supTbl" style="width:100%;font-size:11.5px"></table></div></div>
@@ -956,8 +956,8 @@ const LAB_SHORT=['Mới','In-line','Phase-out','Suy giảm','Ngưng bán'];
 const CLASSIF_LABELS=['Mới phát triển','Đang tăng trưởng','Đang suy giảm','Đang dừng'];
 const _clIdx={'Mới phát triển':0,'Đang tăng trưởng':1,'Đang suy giảm':2,'Đang dừng':3};
 function lcClassOf(k){const g=RAW.stkV?RAW.stkV[k]:null;if(g==null||!RAW.cls3||!RAW.cls3[g])return null;const cl=(S.stkClassif&&S.stkClassif[g])||RAW.cls3[g][1];return _clIdx[cl];}
-const fmT=v=>(v/1000).toLocaleString('vi-VN',{maximumFractionDigits:1});
-const fmT2=v=>(v/1000).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1});
+const fmT=v=>Math.round(v).toLocaleString('vi-VN')+' triệu';
+const fmT2=v=>Math.round(v).toLocaleString('vi-VN')+' triệu';
 const fmI=v=>Math.round(v).toLocaleString('vi-VN');
 const fmM=v=>v.toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2});
 const pc=v=>(v*100).toFixed(1).replace('.',',')+'%';
@@ -1049,7 +1049,7 @@ Chart.defaults.color='#5A6B80';
 Chart.defaults.plugins.legend.labels.boxWidth=12;
 Chart.defaults.plugins.tooltip.callbacks.label=function(ctx){
  const ch=ctx.chart,t=ch.config.type;
- if(t==='doughnut'||t==='pie'){const tot=ctx.dataset.data.reduce((a,b)=>a+Math.abs(b||0),0);return (ctx.label?ctx.label+': ':'')+(+ctx.parsed).toLocaleString('vi-VN',{maximumFractionDigits:2})+' tỷ đồng'+(tot?' ('+(Math.abs(ctx.parsed)/tot*100).toFixed(1).replace('.',',')+'%)':'');}
+ if(t==='doughnut'||t==='pie'){const tot=ctx.dataset.data.reduce((a,b)=>a+Math.abs(b||0),0);return (ctx.label?ctx.label+': ':'')+(+ctx.parsed).toLocaleString('vi-VN',{maximumFractionDigits:2})+' triệu'+(tot?' ('+(Math.abs(ctx.parsed)/tot*100).toFixed(1).replace('.',',')+'%)':'');}
  const hz=ch.options.indexAxis==='y',sc=ch.options.scales||{};
  let unit='';
  if(ctx.dataset&&ctx.dataset.yAxisID==='y1'&&sc.y1&&sc.y1.title)unit=sc.y1.title.text||'';
@@ -1062,11 +1062,12 @@ Chart.defaults.plugins.tooltip.callbacks.label=function(ctx){
  return out;
 };
 const hexLum=c=>{if(typeof c!=='string'||c[0]!=='#')return .35;let h=c.slice(1);if(h.length===3)h=h.split('').map(x=>x+x).join('');const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return(.299*r+.587*g+.114*b)/255;};
+function fmAxV(ch,v){var s=(ch&&ch.options&&ch.options.scales)||{};var t=((s.y&&s.y.title&&s.y.title.text)||(s.x&&s.x.title&&s.x.title.text)||'');return t.indexOf('triệu')>=0?(Math.round(v*1000).toLocaleString('vi-VN')+' tr'):(Math.abs(v)>=100?Math.round(v).toLocaleString('vi-VN'):(+v).toLocaleString('vi-VN',{maximumFractionDigits:1}));}
 const valPlugin={id:'vals',afterDatasetsDraw(chart){
  if(!chart.config)return;
  if(chart.options.plugins&&chart.options.plugins.noVal)return;
  if(chart.config.type==='doughnut'||chart.config.type==='pie'){const meta=chart.getDatasetMeta(0);if(!meta||!meta.data)return;const tot=chart.data.datasets[0].data.reduce((a,b)=>a+Math.abs(b||0),0);if(!tot)return;const ctx=chart.ctx;ctx.save();ctx.font='bold 12px Segoe UI, Arial';ctx.textAlign='center';ctx.textBaseline='middle';meta.data.forEach((arc,i)=>{const v=chart.data.datasets[0].data[i];if(!v||Math.abs(v)/tot<0.03)return;const p=arc.tooltipPosition();ctx.fillStyle='#fff';ctx.fillText(Math.round(Math.abs(v)/tot*100)+'%',p.x,p.y);});ctx.restore();return;}
- if(chart.config.type==='line'){const ctx=chart.ctx;ctx.save();ctx.font='bold 8.5px Segoe UI, Arial';ctx.textAlign='center';ctx.textBaseline='bottom';const ds=chart.data.datasets[0];const meta=chart.getDatasetMeta(0);if(meta&&meta.data){const bc=(typeof ds.borderColor==='string')?ds.borderColor:'#1B1C4C';meta.data.forEach((pt,i)=>{const v=ds.data[i];if(v==null)return;ctx.fillStyle=bc;ctx.fillText(Math.abs(v)>=100?Math.round(v).toLocaleString('vi-VN'):(+v).toLocaleString('vi-VN',{maximumFractionDigits:1}),pt.x,pt.y-3);});}ctx.restore();return;}
+ if(chart.config.type==='line'){const ctx=chart.ctx;ctx.save();ctx.font='bold 8.5px Segoe UI, Arial';ctx.textAlign='center';ctx.textBaseline='bottom';const ds=chart.data.datasets[0];const meta=chart.getDatasetMeta(0);if(meta&&meta.data){const bc=(typeof ds.borderColor==='string')?ds.borderColor:'#1B1C4C';meta.data.forEach((pt,i)=>{const v=ds.data[i];if(v==null)return;ctx.fillStyle=bc;ctx.fillText(fmAxV(chart,v),pt.x,pt.y-3);});}ctx.restore();return;}
  if(chart.config.type!=='bar')return;
  const horiz=chart.options.indexAxis==='y';
  const stacked=chart.options.scales&&((chart.options.scales.y&&chart.options.scales.y.stacked)||(chart.options.scales.x&&chart.options.scales.x.stacked));
@@ -1077,10 +1078,10 @@ const valPlugin={id:'vals',afterDatasetsDraw(chart){
   const bgC=ds.backgroundColor;
   meta.data.forEach((el,i)=>{
    const v=ds.data[i];if(v==null||v===0)return;
-   if(ds.type==='line'){const p=el.tooltipPosition();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle=(typeof ds.borderColor==='string')?ds.borderColor:'#8A6D00';ctx.fillText((+v).toLocaleString('vi-VN',{maximumFractionDigits:1}),p.x,p.y-3);return;}
+   if(ds.type==='line'){const p=el.tooltipPosition();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle=(typeof ds.borderColor==='string')?ds.borderColor:'#8A6D00';ctx.fillText(fmAxV(chart,v),p.x,p.y-3);return;}
    if(gmx&&Math.abs(v)<gmx*(stacked?0.05:0.035))return;
    const pos=el.tooltipPosition();const bg=Array.isArray(bgC)?bgC[i]:bgC;
-   let txt=Math.abs(v)>=100?Math.round(v).toLocaleString('vi-VN'):(+v).toLocaleString('vi-VN',{maximumFractionDigits:1});
+   let txt=fmAxV(chart,v);
    {const pctP=chart.options.plugins&&chart.options.plugins.pct;if(pctP&&pctP.on){const tt=ds.data.reduce((a,b)=>a+Math.abs(b||0),0);if(tt){let ex=' ('+Math.round(Math.abs(v)/tt*100)+'%';if(di===chart.data.datasets.length-1&&chart.data.datasets.length>=2){const ss=chart.data.datasets[0].data,tS=ss.reduce((a,b)=>a+Math.abs(b||0),0);if(tS){const pS=Math.abs(ss[i]||0)/tS,pC=Math.abs(v)/tt;ex+=pC>pS+0.002?' ▲':(pC<pS-0.002?' ▼':'');}}ex+=')';txt+=ex;}}}
    if(horiz){ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#1B1C4C';ctx.fillText(txt,pos.x+5,pos.y);}
    else{
@@ -1098,22 +1099,22 @@ const valPlugin={id:'vals',afterDatasetsDraw(chart){
 if(Chart.register)Chart.register(valPlugin);
 const gmLinePlugin={id:'gmline',afterDatasetsDraw(chart){const cfg=chart.options.plugins&&chart.options.plugins.gmLine;if(!cfg||!chart.scales||!chart.scales.x||!chart.chartArea)return;const x=chart.scales.x.getPixelForValue(cfg.v);const ctx=chart.ctx;ctx.save();ctx.strokeStyle='#C0392B';ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,chart.chartArea.top);ctx.lineTo(x,chart.chartArea.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#C0392B';ctx.font='bold 9.5px Segoe UI';ctx.textAlign='left';ctx.fillText('TB '+cfg.v.toFixed(1)+'%',x+3,chart.chartArea.top+10);ctx.restore();}};
 if(Chart.register)Chart.register(gmLinePlugin);
-const YLBL=()=>S.metric==='U'?'nghìn cái':S.metric==='G'?'GM %':S.metric==='P'?'tỷ đồng (GP)':'tỷ đồng';
-const MNAME=()=>({S:'Doanh thu (tỷ đồng)',U:'Số lượng (nghìn cái)',P:'GP (tỷ đồng)',G:'GM %'})[S.metric];
+const YLBL=()=>S.metric==='U'?'nghìn cái':S.metric==='G'?'GM %':S.metric==='P'?'triệu (GP)':'triệu';
+const MNAME=()=>({S:'Doanh thu (triệu)',U:'Số lượng (nghìn cái)',P:'GP (triệu)',G:'GM %'})[S.metric];
 const mvo=o=>!o?0:(S.metric==='U'?o.U:S.metric==='P'?o.P:S.metric==='G'?(o.S>0.001?o.P/o.S*100:0):o.S);
 
 function mkLine(id,series,cols,dash){return new Chart(document.getElementById(id),{type:'line',
  data:{labels:[],datasets:series.map((t,i)=>({label:t,data:[],borderColor:(cols||PAL)[i],backgroundColor:(cols||PAL)[i],borderDash:dash&&dash[i]?[6,4]:[],tension:.25,pointRadius:2,spanGaps:false}))},
- options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{title:{display:true,text:'tỷ đồng'}}}}});}
+ options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{title:{display:true,text:'triệu'},ticks:{callback:function(v){return fmAxV(this.chart,v);}}}}}});}
 function mkBar(id,horiz,stack,names,colors){return new Chart(document.getElementById(id),{type:'bar',
  data:{labels:[],datasets:(names||['Kỳ so sánh','Kỳ chọn']).map((t,i)=>({label:t,data:[],backgroundColor:(colors||[GOLD,NAVY])[i]}))},
  options:{indexAxis:horiz?'y':'x',maintainAspectRatio:false,layout:{padding:horiz?{right:52}:{top:18}},plugins:{legend:{position:'bottom'}},
-  scales:{[horiz?'x':'y']:{stacked:!!stack,title:{display:true,text:'tỷ đồng'}},[horiz?'y':'x']:{stacked:!!stack}}}});}
+  scales:{[horiz?'x':'y']:{stacked:!!stack,title:{display:true,text:'triệu'},ticks:{callback:function(v){return fmAxV(this.chart,v);}}},[horiz?'y':'x']:{stacked:!!stack}}}});}
 function mkPie(id){return new Chart(document.getElementById(id),{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:PAL}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right'}}}});}
 const CH={
  ovTrend:mkLine('ovTrend',['Kỳ chọn — tổng','Riêng SP mới'],[NAVY,SPNEW],[0,1]),
  ovInd:mkBar('ovInd'),ovPie:mkBar('ovPie',true,false,['Kỳ so sánh','Kỳ chọn'],[GOLD,NAVY]),
- ovKenh:new Chart(document.getElementById('ovKenh'),{type:'bar',data:{labels:['Omni','Ecommerce'],datasets:[]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{filter:it=>!/\(SS\)/.test(it.text)}},noVal:true},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,title:{display:true,text:'tỷ đồng'}}}}}),
+ ovKenh:new Chart(document.getElementById('ovKenh'),{type:'bar',data:{labels:['Omni','Ecommerce'],datasets:[]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{filter:it=>!/\(SS\)/.test(it.text)}},noVal:true},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,title:{display:true,text:'triệu'}}}}}),
 
 
  stkKho:mkPie('stkKho'),
@@ -1122,8 +1123,8 @@ const CH={
  ovExc:mkBar('ovExc',true,false,['Kỳ so sánh','Kỳ chọn'],[GOLD,NAVY]),
  ovLead:mkBar('ovLead',true,false,['Kỳ so sánh','Kỳ chọn'],[GOLD,NAVY]),
  indTrend:mkLine('indTrend',['Ngành — tổng','Riêng SP mới'],[NAVY,SPNEW],[0,1]),
- indGmCogs:new Chart(document.getElementById('indGmCogs'),{type:'bar',data:{labels:[],datasets:[{label:'COGS (tỷ)',data:[],backgroundColor:NAVY,yAxisID:'y'},{label:'GM%',type:'line',data:[],borderColor:GOLD,backgroundColor:GOLD,yAxisID:'y1',pointRadius:2,tension:.2,fill:false}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,position:'left',title:{display:true,text:'tỷ đồng'}},y1:{position:'right',title:{display:true,text:'GM %'},grid:{drawOnChartArea:false}}}}}),
- indBrand:new Chart(document.getElementById('indBrand'),{type:'bar',data:{labels:[],datasets:[{label:'Doanh thu (tỷ)',data:[],backgroundColor:NAVY,yAxisID:'y'},{label:'Số lượng (nghìn cái)',data:[],backgroundColor:GOLD,yAxisID:'y1'}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'},pct:{on:true}},scales:{y:{beginAtZero:true,position:'left',title:{display:true,text:'tỷ đồng'}},y1:{beginAtZero:true,position:'right',title:{display:true,text:'nghìn cái'},grid:{drawOnChartArea:false}}}}}),
+ indGmCogs:new Chart(document.getElementById('indGmCogs'),{type:'bar',data:{labels:[],datasets:[{label:'COGS (tỷ)',data:[],backgroundColor:NAVY,yAxisID:'y'},{label:'GM%',type:'line',data:[],borderColor:GOLD,backgroundColor:GOLD,yAxisID:'y1',pointRadius:2,tension:.2,fill:false}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,position:'left',title:{display:true,text:'triệu'}},y1:{position:'right',title:{display:true,text:'GM %'},grid:{drawOnChartArea:false}}}}}),
+ indBrand:new Chart(document.getElementById('indBrand'),{type:'bar',data:{labels:[],datasets:[{label:'Doanh thu (tỷ)',data:[],backgroundColor:NAVY,yAxisID:'y'},{label:'Số lượng (nghìn cái)',data:[],backgroundColor:GOLD,yAxisID:'y1'}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'},pct:{on:true}},scales:{y:{beginAtZero:true,position:'left',title:{display:true,text:'triệu'}},y1:{beginAtZero:true,position:'right',title:{display:true,text:'nghìn cái'},grid:{drawOnChartArea:false}}}}}),
  indType:mkBar('indType'),indSeg:mkBar('indSeg'),indX:mkBar('indX'),indTopCls:mkBar('indTopCls',true),
  nwTrend:mkLine('nwTrend',['Lớp 2024','Lớp 2025','Lớp 2026'],[NAVY2,NAVY,GOLD]),
  nwInd:mkBar('nwInd',false,true,['Lấp phân khúc trống','Thay thế SP cũ','Bổ sung cạnh tranh'],[GOLD,NAVY,NAVY2]),
@@ -1146,10 +1147,10 @@ function stdKpis(a,extra){
 
  const asp=a.U?a.S/a.U:0,aspp=a.Up?a.Sp/a.Up:0;
  return [
-  {t:'Doanh thu',v:fmT(a.S),u:'tỷ đồng',raw:a.S,prev:has?a.SpA:null,pv:has?fmT(a.SpA)+' tỷ':null},
-  {t:'Lợi nhuận gộp (GP)',v:fmT(a.P),u:'tỷ đồng',raw:a.P,prev:has?a.PpA:null,pv:has?fmT(a.PpA)+' tỷ':null},
+  {t:'Doanh thu',v:fmT(a.S),u:'',raw:a.S,prev:has?a.SpA:null,pv:has?fmT(a.SpA):null},
+  {t:'Lợi nhuận gộp (GP)',v:fmT(a.P),u:'',raw:a.P,prev:has?a.PpA:null,pv:has?fmT(a.PpA):null},
   {t:'GM %',v:pc(gm),u:'GP ÷ Doanh thu',v2:gm*100,pp:1,prev:has?gmp*100:null,pv:has?pc(gmp):null},
-  {t:'COGS (giá vốn)',v:fmT(a.Cg),u:'tỷ đồng (cột COGS)',raw:a.Cg,prev:has?a.Cgp*kf():null,pv:has?fmT(a.Cgp*kf())+' tỷ':null},
+  {t:'COGS (giá vốn)',v:fmT(a.Cg),u:'cột COGS',raw:a.Cg,prev:has?a.Cgp*kf():null,pv:has?fmT(a.Cgp*kf()):null},
   {t:'Số lượng bán',v:fmI(a.U),u:'cái/bộ (unit)',raw:a.U,prev:has?a.UpA:null,pv:has?fmI(a.UpA):null},
   {t:'AOV — giá bán BQ',v:fmM(asp),u:'triệu đồng/unit (ASP proxy)',raw:asp,prev:has&&aspp?aspp:null,pv:has&&aspp?fmM(aspp)+' tr':null},
   {t:'% DT từ SP mới',v:a.S?pc(a.Sn/a.S):'—',u:'SP ra mắt 2024–26',v2:a.S?a.Sn/a.S*100:0,pp:1,prev:has?a.Snp/a.Sp*100:null,pv:has&&a.Sp?pc(a.Snp/a.Sp):null}].concat(extra||[]);
@@ -1286,7 +1287,7 @@ function renderBrandShare(){
  h+='</tbody><tfoot><tr style="background:#EEF2F7;font-weight:800"><td colspan="3" style="padding:5px 8px">TỔNG '+bis.length+' brand (≥100tr)</td><td style="text-align:right">'+fmT2(totS)+'</td><td style="text-align:right">100%</td><td colspan="3"></td></tr></tfoot></table>';
  const el=document.getElementById('brdShareTbl');if(el)el.innerHTML=h;
  // chart top 15
- if(!CH.brdShareCh){CH.brdShareCh=new Chart(document.getElementById('brdShareCh'),{type:'bar',data:{labels:[],datasets:[{label:'DT (tỷ)',data:[],backgroundColor:[],borderRadius:5}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,title:{display:true,text:'tỷ đồng'},grid:{color:'#EDF1F7'}},y:{ticks:{autoSkip:false,font:{size:11,weight:'600'}},grid:{display:false}}}}});
+ if(!CH.brdShareCh){CH.brdShareCh=new Chart(document.getElementById('brdShareCh'),{type:'bar',data:{labels:[],datasets:[{label:'DT (tỷ)',data:[],backgroundColor:[],borderRadius:5}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,title:{display:true,text:'triệu'},grid:{color:'#EDF1F7'}},y:{ticks:{autoSkip:false,font:{size:11,weight:'600'}},grid:{display:false}}}}});
   CH.brdShareGm=new Chart(document.getElementById('brdShareGm'),{type:'bar',data:{labels:[],datasets:[{label:'GM%',data:[],backgroundColor:[],borderRadius:5}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,max:100,title:{display:true,text:'GM %'},grid:{color:'#EDF1F7'}},y:{ticks:{autoSkip:false,font:{size:11,weight:'600'}},grid:{display:false}}}}});}
  const t15=bis.slice(0,15);
  const nbOf=bi=>nbNorm(CAT['NhómBrand'][+Object.keys(acc[bi].nbc).sort((x,y)=>acc[bi].nbc[y]-acc[bi].nbc[x])[0]]||'');
@@ -1349,10 +1350,10 @@ function renderBrandDeep(bi){
  if(kb)kb.innerHTML='<div class="kpi"><div class="l">DT kỳ chọn</div><div class="v">'+fmT2(o.S)+' tỷ</div></div><div class="kpi"><div class="l">↑DT vs kỳ SS</div><div class="v" style="font-size:16px">'+_gArrow(o.S,o.Sp)+'</div></div><div class="kpi"><div class="l">GM% (SS→chọn)</div><div class="v" style="font-size:16px">'+(gmP!=null?pc(gmP):'—')+'→'+(gm!=null?pc(gm):'—')+'</div></div><div class="kpi"><div class="l">Unit kỳ chọn</div><div class="v">'+fmI(o.U)+' '+_gArrow(o.U,o.Up)+'</div></div><div class="kpi"><div class="l">% DT toàn công ty</div><div class="v">'+pc(o.S/totS)+'</div></div><div class="kpi"><div class="l">Số class</div><div class="v">'+Object.keys(clsA).length+'</div></div>';
  // tạo chart lazily
  if(!CH.brdTrend){
-  CH.brdTrend=new Chart(document.getElementById('brdTrend'),{type:'line',data:{labels:[],datasets:[{label:'DT (tỷ)',data:[],borderColor:NAVY,backgroundColor:NAVY,tension:.25,pointRadius:2,fill:false}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'tỷ đồng'}}}}});
+  CH.brdTrend=new Chart(document.getElementById('brdTrend'),{type:'line',data:{labels:[],datasets:[{label:'DT (tỷ)',data:[],borderColor:NAVY,backgroundColor:NAVY,tension:.25,pointRadius:2,fill:false}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'triệu'}}}}});
   CH.brdCat=new Chart(document.getElementById('brdCat'),{type:'bar',data:{labels:[],datasets:[{label:'DT (tỷ)',data:[],backgroundColor:NAVY,yAxisID:'y'},{label:'GM%',type:'line',data:[],borderColor:GOLD,backgroundColor:GOLD,yAxisID:'y1',pointRadius:3,tension:.2,fill:false}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,position:'left',title:{display:true,text:'tỷ'}},y1:{position:'right',title:{display:true,text:'GM%'},grid:{drawOnChartArea:false}}}}});
-  CH.brdClsRev=new Chart(document.getElementById('brdClsRev'),{type:'bar',data:{labels:[],datasets:[{label:'DT (tỷ)',data:[],backgroundColor:NAVY}]},options:{indexAxis:'y',maintainAspectRatio:false,onClick:ocCls,plugins:{legend:{display:false},noVal:true},scales:{x:{beginAtZero:true,title:{display:true,text:'tỷ đồng'}}}}});
-  CH.brdClsGP=new Chart(document.getElementById('brdClsGP'),{type:'bar',data:{labels:[],datasets:[{label:'GP (tỷ)',data:[],backgroundColor:'#2E8B57'}]},options:{indexAxis:'y',maintainAspectRatio:false,onClick:ocCls,plugins:{legend:{display:false},noVal:true},scales:{x:{beginAtZero:true,title:{display:true,text:'tỷ đồng lợi nhuận'}}}}});
+  CH.brdClsRev=new Chart(document.getElementById('brdClsRev'),{type:'bar',data:{labels:[],datasets:[{label:'DT (tỷ)',data:[],backgroundColor:NAVY}]},options:{indexAxis:'y',maintainAspectRatio:false,onClick:ocCls,plugins:{legend:{display:false},noVal:true},scales:{x:{beginAtZero:true,title:{display:true,text:'triệu'}}}}});
+  CH.brdClsGP=new Chart(document.getElementById('brdClsGP'),{type:'bar',data:{labels:[],datasets:[{label:'GP (tỷ)',data:[],backgroundColor:'#2E8B57'}]},options:{indexAxis:'y',maintainAspectRatio:false,onClick:ocCls,plugins:{legend:{display:false},noVal:true},scales:{x:{beginAtZero:true,title:{display:true,text:'triệu lợi nhuận'}}}}});
   CH.brdClsStore=new Chart(document.getElementById('brdClsStore'),{type:'bar',data:{labels:[],datasets:[{label:'Số CH',data:[],backgroundColor:'#4A7AB5'}]},options:{indexAxis:'y',maintainAspectRatio:false,onClick:ocCls,plugins:{legend:{display:false},noVal:true},scales:{x:{beginAtZero:true,title:{display:true,text:'số cửa hàng'}}}}});
   CH.brdClsSell=new Chart(document.getElementById('brdClsSell'),{type:'bar',data:{labels:[],datasets:[{label:'Bán/CH',data:[],backgroundColor:'#5761AC'}]},options:{indexAxis:'y',maintainAspectRatio:false,onClick:ocCls,plugins:{legend:{display:false},noVal:true},scales:{x:{beginAtZero:true,title:{display:true,text:'u/CH/tháng'}}}}});
  }
@@ -1382,7 +1383,7 @@ const I18N=[["Tổng quan","Overview"],["Phân tích Brand","Brand Analysis"],["
 ["Đang kinh doanh","Active"],["Đang thanh lý","Clearance"],["Đã ngừng KD","Discontinued"],["Mới phát triển","Newly developed"],["Đang tăng trưởng","Growing"],["Đang suy giảm","Declining"],["Đang dừng","Paused"],["Hàng thông thường","Regular goods"],["Hàng mùa vụ","Seasonal goods"],["Hàng khác","Other goods"],
 ["🔴 Thiếu hàng gấp","🔴 Urgent shortage"],["🟢 Đủ & khoẻ","🟢 Healthy"],["⚪ Ổn định","⚪ Stable"],["📦 Tồn dư — luân chuyển chậm","📦 Overstock — slow turn"],["KHẨN CẤP","URGENT"],["Bổ sung","Replenish"],["CH ít SKU","Stores low SKU"],["CH tồn dư (>12th)","Overstock stores (>12mo)"],["Ít SKU","Low SKU"],["thiếu SKU","missing SKUs"],["sắp hết","running out"],["bán tốt — bổ sung gấp","best-seller — replenish now"],
 ["Tổng SP trưng bày Nệm/Giường","Total mattress/bed display units"],["Size đang trưng (SL)","Sizes on display (qty)"],["SL trưng","Display qty"],["Giá trị (tr)","Value (m)"],["Tên class","Class name"],["Tất cả brand","All brands"],["Tất cả ngành","All categories"],["Tìm class...","Search class..."],["Tìm mã / tên cửa hàng...","Search store code / name..."],
-["DT (tỷ)","Rev (bn)"],["DT SS (TỶ)","Prev rev (BN)"],["DT CHỌN (TỶ)","Rev (BN)"],["DT SS (tỷ)","Prev rev (bn)"],["DT chọn (tỷ)","Rev (bn)"],["% Sale","% Sales"],["GM% SS","Prev GM%"],["GM% chọn","GM%"],["↑GM (đ)","↑GM (pts)"],["Bán T6 (u)","Jun sales (u)"],["Bán/CH T6","Sales/store Jun"],["Bán/CH H1","Sales/store H1"],["Tháng còn","Months left"],["Phủ CH","Store coverage"],["CH thiếu SKU","Stores missing SKU"],["Trưng bày (u)","Display (u)"],["Tồn","Stock"],["tỷ đồng","bn VND"],["triệu đồng","m VND"],["u/tháng","u/month"],["u/th","u/mo"],[" tháng"," months"],["Tháng bán còn","Months of cover"],
+["DT (tỷ)","Rev (bn)"],["DT SS (TỶ)","Prev rev (BN)"],["DT CHỌN (TỶ)","Rev (BN)"],["DT SS (tỷ)","Prev rev (bn)"],["DT chọn (tỷ)","Rev (bn)"],["% Sale","% Sales"],["GM% SS","Prev GM%"],["GM% chọn","GM%"],["↑GM (đ)","↑GM (pts)"],["Bán T6 (u)","Jun sales (u)"],["Bán/CH T6","Sales/store Jun"],["Bán/CH H1","Sales/store H1"],["Tháng còn","Months left"],["Phủ CH","Store coverage"],["CH thiếu SKU","Stores missing SKU"],["Trưng bày (u)","Display (u)"],["Tồn","Stock"],["triệu","bn VND"],["triệu đồng","m VND"],["u/tháng","u/month"],["u/th","u/mo"],[" tháng"," months"],["Tháng bán còn","Months of cover"],
 ["BẢNG ĐÁNH GIÁ SP MỚI THEO NGÀNH × NĂM RA MẮT","NEW PRODUCT SCORECARD BY CATEGORY × LAUNCH YEAR"],["Ra mắt 2026","Launched 2026"],["Ra mắt 2025","Launched 2025"],["Ra mắt 2024","Launched 2024"],["bán tốt","selling well"],["class","class"],["Đệm","Mattress"],["Giường","Bed"],["Phụ kiện ngủ","Sleep accessories"],["Nội thất","Furniture"],["Giường điều chỉnh","Adjustable bed"],
 ["ĐỘ PHỦ & HIỆU QUẢ TẠI CỬA HÀNG — SP MỚI THEO NĂM RA MẮT","STORE COVERAGE & PERFORMANCE — NEW PRODUCTS BY LAUNCH YEAR"],["Sản phẩm mới ra mắt 2024 – 2026","New products launched 2024 – 2026"],["CLASS MỚI ĐANG BÁN","NEW CLASSES SELLING"],["DT SP MỚI KỲ CHỌN","NEW PRODUCT REVENUE"],["% DT TOÀN CTY TỪ SP MỚI","% COMPANY REV FROM NEW"],["GM SP MỚI","NEW PRODUCT GM"],
 ["PHÂN TÍCH CHUYÊN SÂU 1 BRAND","SINGLE BRAND DEEP-DIVE"],["Bảng tổng hợp brand theo nhóm","Brand summary by group"],["Biểu đồ tỉ trọng DT (top 15 brand)","Revenue share chart (top 15 brands)"],["Bảng chi tiết brand","Brand detail table"],["% tỉ trọng","% share"],["% lũy kế","% cumulative"],["Nhóm","Group"],["DT & GM% theo ngành (nhóm hàng)","Revenue & GM% by category"],["HOẠCH ĐỊNH CUNG ỨNG","SUPPLY PLANNING"],["KẾ HOẠCH ĐẶT HÀNG","ORDER PLAN"],["Mở tất cả","Expand all"],["Đóng tất cả","Collapse all"],["Theo giao diện đang mở","As currently displayed"],["Thu gọn","Collapsed"],["Toàn bộ data","All data"],["TỔNG","TOTAL"],["Tổng","Total"],["tỷ trọng","share"],[" tỷ"," bn"],["Số class đang trưng","Classes on display"],["Giá trị trưng bày Nệm & Giường","Mattress & bed display value"],["Kế hoạch đặt hàng theo Class","Order plan by class"],["Hoạch định cung ứng H2-2026","Supply planning H2-2026"],["Độ phủ & hiệu quả cửa hàng — SP mới","Store coverage & performance — new products"],["Scorecard SP mới — Ngành × Năm ra mắt","New product scorecard — Category × Launch year"],["Phân tích chuyên sâu brand","Brand deep-dive"],["Bảng tổng hợp brand","Brand summary"],["Kết luận & hành động","Conclusions & actions"],["Insight nhanh — Ngành","Quick insights — Category"],["Số brand","Brands"],["Class đang KD","Active classes"],["Ngành phụ (loại hình)","Sub-categories (type)"],["Class mới 2026","New classes 2026"],["% DT từ class mới 2026","% revenue from new 2026 classes"],["Ngành phụ dẫn đầu","Top sub-category"],["Phân bổ DT theo ngành phụ (loại hình):","Revenue split by sub-category (type):"],["TỔNG QUAN DỰ BÁO CẢ NĂM 2026","FULL-YEAR 2026 FORECAST OVERVIEW"],["Doanh thu cả năm 2026 theo ngành (tỷ)","Full-year 2026 revenue by category (bn)"],["Tăng trưởng H2-2026 vs H2-2025 theo ngành","H2-2026 vs H2-2025 growth by category"],["Doanh thu bán theo tháng — cả năm 2026 (tỷ)","Monthly revenue — full year 2026 (bn)"],["⬇ Xuất chỉnh sửa (Excel)","⬇ Export edits (Excel)"],["Mở dashboard","Open dashboard"],["Mật khẩu nội bộ","Internal password"],["Vận hành & Kế hoạch","Operations & Planning"],["Tra cứu & Khác","Lookup & More"],["Quản lý Nhà cung cấp (NCC)","Supplier Management"],["Quản lý NCC","Suppliers"],["Tổng quan NCC","Supplier overview"],["So sánh giá theo class","Price comparison by class"],["Top NCC theo giá trị PO","Top suppliers by PO value"],["Danh sách NCC","Supplier list"],["Class cung cấp","Classes supplied"],["Giá mua/u (tr)","Buy price/u (m)"],["Giá TB/u (tr)","Avg price/u (m)"],["GM sổ sách","Book GM"],["GM sổ sách class","Class book GM"],["% share trong class","% share in class"],["Chỉ class đang KD","Active classes only"],["Hiện NCC cũ","Show old suppliers"],["Brand chính","Main brand"],["NHÀ CUNG CẤP CỦA CLASS","CLASS SUPPLIERS"],["Xem so sánh NCC của class này","Compare suppliers for this class"],["Đã nhận (u)","Received (u)"],["Nhóm: Loại hình → Brand","Grouped: Type → Brand"],["Danh sách phẳng (sort cột)","Flat list (sortable)"],["Loại hình / Brand / Class","Type / Brand / Class"],["Hiển thị","View"],["PO value theo ngành hàng","PO value by category"],["Nhịp đặt hàng PO theo tháng","PO ordering rhythm by month"],["Ngành hàng","Category"],["PO gần nhất","Latest PO"],["báo giá có thể outdate","quote may be outdated"],["cập nhật giá","update price"],["TẤT CẢ SKU TRONG CLASS","ALL SKUS IN CLASS"],["NCC theo từng ngành chính","Suppliers by main category"],["Toàn kỳ 24–26","Full period 24–26"],["Năm","Year"],["Liên tục 24→26","Continuous 24→26"],["Tách theo năm","Split by year"],["PO mua của NCC nào theo tháng","Monthly PO by supplier"],["Giá theo size bán chạy nhất","Price by best-selling sizes"],["Ẩn NCC ngừng giao dịch ≥12T","Hide inactive suppliers ≥12M"],["Hiện NCC ngừng giao dịch","Show inactive suppliers"],["Toàn kỳ (PO đầy đủ)","Full period (all PO)"],["Toàn kỳ (nguồn theo kỳ)","Full period (periodic source)"],["Nhóm SP mới","New-product group"],["Theo data","From data"],["Không phải SP mới","Not a new product"],["NCC đang hiển thị","Suppliers shown"],["Top 5 NCC tập trung","Top-5 supplier concentration"],["Class cần cập nhật giá","Classes needing price update"],["Bỏ lọc","Clear filter"]];
@@ -1434,10 +1435,10 @@ function scanXBtns(){
   anchor.appendChild(b);});
 }
 const TIPS={
-'DT (tỷ)':'Doanh thu thuần trong kỳ · đơn vị: tỷ đồng',
-'DT (TỶ)':'Doanh thu thuần trong kỳ · đơn vị: tỷ đồng',
-'DT SS (tỷ)':'Doanh thu kỳ so sánh (kỳ trước) · tỷ đồng',
-'DT chọn (tỷ)':'Doanh thu kỳ đang chọn · tỷ đồng',
+'DT (tỷ)':'Doanh thu thuần trong kỳ · đơn vị: triệu',
+'DT (TỶ)':'Doanh thu thuần trong kỳ · đơn vị: triệu',
+'DT SS (tỷ)':'Doanh thu kỳ so sánh (kỳ trước) · triệu',
+'DT chọn (tỷ)':'Doanh thu kỳ đang chọn · triệu',
 'GM%':'Biên lợi nhuận gộp = Lợi nhuận gộp ÷ Doanh thu · %',
 'GM% SS':'GM% của kỳ so sánh',
 'GM% chọn':'GM% của kỳ đang chọn',
@@ -1469,8 +1470,8 @@ const TIPS={
 'SL H2-26 (dự kiến)':'Dự báo SL bán H2-2026 (phương pháp YoY: hệ số 2026/2025 × mùa vụ 2025) · u',
 'Bán TB /tháng':'SL H2-26 dự kiến ÷ 6 · u/tháng',
 '↑ vs H2-25':'Tăng trưởng dự báo H2-2026 so với thực tế H2-2025 · %',
-'DT bán H2-26 (tỷ)':'Doanh thu dự kiến H2 = SL × giá bán BQ (giữ GM H1-2026) · tỷ đồng',
-'Nhập COGS (tỷ)':'Giá trị nhập hàng theo giá vốn cần cho H2 · tỷ đồng',
+'DT bán H2-26 (tỷ)':'Doanh thu dự kiến H2 = SL × giá bán BQ (giữ GM H1-2026) · triệu',
+'Nhập COGS (tỷ)':'Giá trị nhập hàng theo giá vốn cần cho H2 · triệu',
 'NCC (u/th)':'Năng lực cung cấp nhà cung cấp cần đáp ứng = SL H2 ÷ 6 × 1,15 (đệm 15%) · u/tháng',
 'Vel/th':'Velocity — tốc độ bán trung bình/tháng (12 tháng gần nhất) · u',
 'Vel 3th':'Tốc độ bán trung bình 3 tháng gần nhất · u/tháng',
@@ -1487,7 +1488,7 @@ const TIPS={
 'Bán/CH T6':'SL bán tháng 6 ÷ số CH có hàng · u/CH',
 'Bán/CH H1':'SL bán TB/tháng H1-2026 ÷ số CH · u/CH',
 'Vòng đời':'Giai đoạn vòng đời class: Mới · Tăng trưởng · Ổn định · Suy giảm · Ngưng',
-'PO value (tỷ)':'Tổng giá trị đặt hàng (PO) 2024-01 → 2026-07 · tỷ đồng',
+'PO value (tỷ)':'Tổng giá trị đặt hàng (PO) 2024-01 → 2026-07 · triệu',
 'PO qty (u)':'Tổng số lượng đặt theo PO · đơn vị',
 'Đã nhận (u)':'Số lượng đã nhận về kho · đơn vị',
 'Giá TB/u (tr)':'ΣPO value ÷ ΣPO qty · triệu đồng/unit',
@@ -1504,8 +1505,8 @@ const TIPS={
 'SL H2-26(dự kiến)':'Dự báo SL bán H2-2026 (YoY: hệ số 2026/2025 × mùa vụ 2025) · u',
 'Bán TB/tháng':'SL H2-26 dự kiến ÷ 6 · u/tháng',
 '↑ vsH2-25':'Tăng trưởng dự báo H2-2026 so với thực tế H2-2025 · %',
-'DT bán H2-26(tỷ)':'Doanh thu dự kiến H2 = SL × giá bán BQ (giữ GM H1-2026) · tỷ đồng',
-'Nhập COGS(tỷ)':'Giá trị nhập hàng theo giá vốn cần cho H2-2026 · tỷ đồng',
+'DT bán H2-26(tỷ)':'Doanh thu dự kiến H2 = SL × giá bán BQ (giữ GM H1-2026) · triệu',
+'Nhập COGS(tỷ)':'Giá trị nhập hàng theo giá vốn cần cho H2-2026 · triệu',
 'NCC(u/th)':'Năng lực nhà cung cấp cần = SL H2 ÷ 6 × 1,15 · u/tháng',
 'Ngành / Brand / Class':'Cây drill-down: bấm ▶ để mở Brand → Class → SKU',
 'Ngành / Brand / Class / SKU':'Cây drill-down: bấm ▶ để mở từng cấp đến SKU',
@@ -1727,7 +1728,7 @@ function renderStock(){
  {let tW=0,tS=0,tE=0,tV=0;const cnt=[0,0,0,0,0,0];
   rows.forEach(r=>{tW+=r.wh;tS+=r.st;tE+=r.ec;tV+=r.val;if(inLc(r))cnt[r.stt]++;});
   const blk=(t,v,u,bg)=>`<div style="flex:1;min-width:120px;background:${bg||'#F3F6FA'};border:1px solid #E1E8F0;border-radius:6px;padding:8px 12px"><div style="font-size:10.5px;color:#5A6B80">${t}</div><div style="font-size:18px;font-weight:800;color:#1B1C4C">${v}</div><div style="font-size:10px;color:#8494A8">${u}</div></div>`;
-  let h='<div style="display:flex;gap:8px;flex-wrap:wrap">'+blk('Tồn TỔNG',fmI(tW+tS+tE),'unit')+blk('Giá vốn tồn kho',fmT(tV)+' tỷ','đồng vốn đọng','#F5F5F7')+blk('Kho tổng',fmI(tW),'HNIKT + HMIKT')+blk('Cửa hàng',fmI(tS),'170+ cửa hàng')+blk('Ecommerce (TM)',fmI(tE),'unit')+'</div>';
+  let h='<div style="display:flex;gap:8px;flex-wrap:wrap">'+blk('Tồn TỔNG',fmI(tW+tS+tE),'unit')+blk('Giá vốn tồn kho',fmT(tV),'đồng vốn đọng','#F5F5F7')+blk('Kho tổng',fmI(tW),'HNIKT + HMIKT')+blk('Cửa hàng',fmI(tS),'170+ cửa hàng')+blk('Ecommerce (TM)',fmI(tE),'unit')+'</div>';
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px">'+STT_DEF.map((d,i)=>`<div style="flex:1;min-width:92px;background:${d[3]};color:${d[2]};padding:6px;border-radius:6px;text-align:center"><div style="font-size:10.5px;line-height:1.25">${d[1]}</div><div style="font-size:17px;font-weight:800">${cnt[i]}</div></div>`).join('')+'</div>';
   document.getElementById('stkSum').innerHTML=h;}
  // Tab1: charts
@@ -1759,7 +1760,7 @@ function renderStock(){
   STT_DEF.forEach((d,i)=>{const a=g[i];h+=`<tr><td style="padding:5px 8px;border:1px solid #E1E8F0;font-weight:700;background:${d[3]};color:${d[2]}">${d[1]}</td><td style="padding:5px 8px;border:1px solid #E1E8F0;text-align:center;font-weight:700">${a.n}</td><td style="padding:5px 8px;border:1px solid #E1E8F0;text-align:right">${fmI(a.ton)}</td><td style="padding:5px 8px;border:1px solid #E1E8F0;text-align:right">${fmT(a.val)}</td><td style="padding:5px 8px;border:1px solid #E1E8F0;text-align:right;font-weight:700">${a.need>0?fmI(a.need):'—'}</td><td style="padding:5px 8px;border:1px solid #E1E8F0">${desc[i]}</td></tr>`;});
   let totNeed=0,clearVal=0,clearU=0;rows.filter(inLc).forEach(r=>{totNeed+=r.need;if(r.lab===4||r.stt>=4){clearVal+=r.val;clearU+=r.ton;}});
   h+=`<tr style="background:#EEF2F7;font-weight:700"><td colspan="4" style="padding:6px 8px;border:1px solid #E1E8F0">📦 TỔNG CẦN ĐẶT (SP active, vel≥10)</td><td style="padding:6px 8px;border:1px solid #E1E8F0;text-align:right;color:#B23B3B">${fmI(totNeed)} u</td><td style="padding:6px 8px;border:1px solid #E1E8F0">Chi tiết ở tab "Kế hoạch đặt hàng".</td></tr>`;
-  h+=`<tr style="background:#F6E9E9;font-weight:700"><td colspan="4" style="padding:6px 8px;border:1px solid #E1E8F0">⛔ GIÁ VỐN CẦN CLEAR (EOL + Slow + Báo động)</td><td style="padding:6px 8px;border:1px solid #E1E8F0;text-align:right">${fmT(clearVal)} tỷ</td><td style="padding:6px 8px;border:1px solid #E1E8F0">${fmI(clearU)} unit vốn đọng.</td></tr>`;
+  h+=`<tr style="background:#F6E9E9;font-weight:700"><td colspan="4" style="padding:6px 8px;border:1px solid #E1E8F0">⛔ GIÁ VỐN CẦN CLEAR (EOL + Slow + Báo động)</td><td style="padding:6px 8px;border:1px solid #E1E8F0;text-align:right">${fmT(clearVal)}</td><td style="padding:6px 8px;border:1px solid #E1E8F0">${fmI(clearU)} unit vốn đọng.</td></tr>`;
   document.getElementById('stkAct').innerHTML=h;}
  // Tab2: order plan Category -> Sub-cat -> class
  {const ord=rows.filter(r=>r.need>0);
@@ -1778,7 +1779,7 @@ function renderStock(){
      h+=`<tr data-tp="o${pg}-t${tp}-c${r.gid}" data-k="${r.ci}|${r.biX}" style="cursor:pointer"><td style="padding:4px 8px 4px 30px;border-bottom:1px solid #EEF2F7"><span class="ordexp" data-sg="${r.gid}" data-o="0" style="cursor:pointer;color:#1B1C4C;font-weight:700">▶</span> ${r.nm}</td><td style="border-bottom:1px solid #EEF2F7">${CAT.Brand[r.biX]}</td><td style="text-align:right;border-bottom:1px solid #EEF2F7">${r.vel3.toLocaleString('vi-VN')}</td><td style="text-align:right;border-bottom:1px solid #EEF2F7">${fmI(r.ton)}</td><td style="text-align:right;border-bottom:1px solid #EEF2F7">${fmI(r.rop)}</td><td style="text-align:right;font-weight:700;color:#B23B3B;border-bottom:1px solid #EEF2F7">${fmI(r.need)}</td><td style="text-align:right;border-bottom:1px solid #EEF2F7">${fmI(Math.round(r.need*r.cgU))}</td><td style="border-bottom:1px solid #EEF2F7"><span class="spill" style="background:${d[3]};color:${d[2]}">${r.stt===0?'GẤP':'Kỳ này'}</span>${r.weak?' ⚠':''}</td></tr>`;});
    });
   });
-  h+=`<tr style="background:#EEF2F7;font-weight:800"><td style="padding:7px 8px" colspan="5">TỔNG KẾ HOẠCH ĐẶT</td><td style="padding:7px 8px;text-align:right;color:#B23B3B">${fmI(gN)} u</td><td style="padding:7px 8px;text-align:right">${fmI(Math.round(gV))} tr (≈ ${fmT(gV)} tỷ)</td><td></td></tr>`;
+  h+=`<tr style="background:#EEF2F7;font-weight:800"><td style="padding:7px 8px" colspan="5">TỔNG KẾ HOẠCH ĐẶT</td><td style="padding:7px 8px;text-align:right;color:#B23B3B">${fmI(gN)} u</td><td style="padding:7px 8px;text-align:right">${fmI(Math.round(gV))} tr (≈ ${fmT(gV)})</td><td></td></tr>`;
   document.getElementById('stkOrd').innerHTML=ord.length?h:'<tr><td style="padding:10px">Không có SP nào cần đặt theo bộ lọc hiện tại.</td></tr>';}
  // Tab3: detail
  {const view=document.getElementById('stkView').value,fstt=document.getElementById('stkStt').value,q=(document.getElementById('stkQ').value||'').toLowerCase();
@@ -1820,9 +1821,9 @@ function renderFcOverview(){
  const pgs=Object.keys(ng).map(Number).filter(p=>ng[p].h1dt+ng[p].h2dt>50).sort((a,b)=>(ng[b].h1dt+ng[b].h2dt)-(ng[a].h1dt+ng[a].h2dt));
  // chart tạo lazily
  if(!CH.fcRevNg){
-  CH.fcRevNg=new Chart(document.getElementById('fcRevNg'),{type:'bar',data:{labels:[],datasets:[{label:'H1 thực',data:[],backgroundColor:NAVY},{label:'H2 dự báo',data:[],backgroundColor:GOLD}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,title:{display:true,text:'tỷ đồng'}}}}});
+  CH.fcRevNg=new Chart(document.getElementById('fcRevNg'),{type:'bar',data:{labels:[],datasets:[{label:'H1 thực',data:[],backgroundColor:NAVY},{label:'H2 dự báo',data:[],backgroundColor:GOLD}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,title:{display:true,text:'triệu'}}}}});
   CH.fcGrNg=new Chart(document.getElementById('fcGrNg'),{type:'bar',data:{labels:[],datasets:[{label:'↑ H2-26 vs H2-25',data:[],backgroundColor:[]}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'% tăng/giảm'}},y:{ticks:{autoSkip:false,font:{weight:'600'}}}}}});
-  CH.fcMonth=new Chart(document.getElementById('fcMonth'),{type:'bar',data:{labels:['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'],datasets:[{label:'2026 (thực + dự báo)',data:[],backgroundColor:[]},{label:'2025 cùng kỳ',type:'line',data:[],borderColor:'#8A94A6',backgroundColor:'#8A94A6',pointRadius:2,fill:false,tension:.25}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,title:{display:true,text:'tỷ đồng'}}}}});
+  CH.fcMonth=new Chart(document.getElementById('fcMonth'),{type:'bar',data:{labels:['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'],datasets:[{label:'2026 (thực + dự báo)',data:[],backgroundColor:[]},{label:'2025 cùng kỳ',type:'line',data:[],borderColor:'#8A94A6',backgroundColor:'#8A94A6',pointRadius:2,fill:false,tension:.25}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,title:{display:true,text:'triệu'}}}}});
  }
  CH.fcRevNg.data.labels=pgs.map(p=>CAT.PGshort[p]);
  CH.fcRevNg.data.datasets[0].data=pgs.map(p=>+(ng[p].h1dt/1000).toFixed(2));
@@ -1854,7 +1855,7 @@ function renderSupply(){
   const pk=(n,d)=>d>0?((n/d-1>=0?'+':'')+Math.round((n/d-1)*100)+'%'):'—';
   const pct=(n,d)=>{if(d<=0)return '<span class="mut">—</span>';const v=n/d-1;return `<span style="color:${v>=0?'#1a7a3a':'#c0392b'};font-weight:600">${(v>=0?'+':'')+Math.round(v*100)}%</span>`;};
   const kb=(t,v,su)=>`<div style="flex:1;min-width:150px;background:#F3F6FA;border:1px solid #E1E8F0;border-radius:6px;padding:8px 12px"><div style="font-size:11px;color:#5A6B80">${t}</div><div style="font-size:18px;font-weight:800;color:#1B1C4C">${v}</div><div style="font-size:10px;color:#8494A8">${su||''}</div></div>`;
-  document.getElementById('stkSupKPI').innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap">'+kb('SL bán dự kiến H2-2026',fmI(TFC)+' u','cần cung ứng')+kb('DT bán dự kiến H2-2026',fmT2(TREV)+' tỷ','theo giá bán (GM H1-26)')+kb('Nhập COGS H2-2026',fmT2(TCOG)+' tỷ','giá vốn')+kb('↑ SL vs H2-2025',pk(TFC,TH25),'cùng kỳ năm ngoái')+'</div>';
+  document.getElementById('stkSupKPI').innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap">'+kb('SL bán dự kiến H2-2026',fmI(TFC)+' u','cần cung ứng')+kb('DT bán dự kiến H2-2026',fmT2(TREV),'theo giá bán (GM H1-26)')+kb('Nhập COGS H2-2026',fmT2(TCOG),'giá vốn')+kb('↑ SL vs H2-2025',pk(TFC,TH25),'cùng kỳ năm ngoái')+'</div>';
   const byPg={};G.forEach(g=>{(byPg[g.pg]=byPg[g.pg]||{});(byPg[g.pg][g.bi]=byPg[g.pg][g.bi]||[]).push(g);});
   const sumF=o=>Object.values(o).reduce((a,arr)=>a+arr.reduce((x,g)=>x+g.fc,0),0);
   const cols=['Ngành / Brand / Class','SL H2-25','SL H1-26','SL H2-26<br>(dự kiến)','Bán TB<br>/tháng','↑ vs<br>H2-25','DT bán H2-26<br>(tỷ)','Nhập COGS<br>(tỷ)','NCC<br>(u/th)'];
@@ -2174,7 +2175,7 @@ function renderNewCov(){
   const good={};Object.keys(agg).forEach(k=>{const a=agg[k];const s2=a.bch.slice().sort((x,y)=>x-y);const med=s2[Math.floor(s2.length/2)]||0;a.med=med;a.nGood=a.bch.filter(v=>v>=med&&v>0&&med>0).length;a.avgPct=a.pct.length?a.pct.reduce((x,y)=>x+y,0)/a.pct.length:0;});
   const pgs=[...new Set(Object.keys(agg).map(k=>+k.split('|')[0]))].sort((a,b)=>{const t=p=>[2024,2025,2026].reduce((x,y)=>x+((agg[p+'|'+y]||{}).rev||0),0);return t(b)-t(a);});
   const yrs=[2024,2025,2026];
-  const fmT=v=>(v/1000).toLocaleString('vi-VN',{maximumFractionDigits:1});
+  const fmT=v=>Math.round(v).toLocaleString('vi-VN')+' triệu';
   let h='<table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr style="background:#1B1C4C;color:#fff"><th style="padding:6px 8px;text-align:left" rowspan="2">Ngành</th>';
   yrs.forEach(y=>h+='<th colspan="3" style="padding:5px 8px;text-align:center;border-left:2px solid #2B4A70">Ra mắt '+y+'</th>');
   h+='<th style="padding:6px 8px;text-align:left;border-left:2px solid #2B4A70" rowspan="2">Đánh giá hiệu quả</th></tr><tr style="background:#1F4E79;color:#fff;font-size:10px">';
@@ -2207,13 +2208,13 @@ function renderNew(){
  }
  document.getElementById('nwKpis').innerHTML=kpiHTML([
   {t:'Class mới đang bán',v:fmI(nset.size),u:'kỳ chọn',prev:null},
-  {t:'DT SP mới kỳ chọn',v:fmT(sN),u:'tỷ đồng',raw:sN,prev:cmpRange()&&tot.Snp?tot.SnpA:null},
+  {t:'DT SP mới kỳ chọn',v:fmT(sN),u:'',raw:sN,prev:cmpRange()&&tot.Snp?tot.SnpA:null},
   {t:'% DT toàn cty từ SP mới',v:tot.S?pc(sN/tot.S):'—',u:'',v2:tot.S?sN/tot.S*100:0,pp:1,prev:cmpRange()&&tot.Sp?tot.Snp/tot.Sp*100:null},
   {t:'GM SP mới',v:sN?pc(pN/sN):'—',u:'kỳ chọn',prev:null},
-  {t:'DT lấp phân khúc trống',v:fmT(sGap),u:'tỷ đồng · '+(sN?pc(sGap/sN):'—')+' DT SP mới',prev:null}]);
+  {t:'DT lấp phân khúc trống',v:fmT(sGap),u:''+(sN?pc(sGap/sN):'—')+' DT SP mới',prev:null}]);
  const by={2024:new Array(N).fill(0),2025:new Array(N).fill(0),2026:new Array(N).fill(0)};
  for(const r of RAW.rows){const y=r[C['SPMớiNăm']];if(y&&pass(r))by[y][r[C.MonthIdx]]+=r[C.SalesTr];}
- lineUpd(CH.nwTrend,[by[2024],by[2025],by[2026]],'tỷ đồng');
+ lineUpd(CH.nwTrend,[by[2024],by[2025],by[2026]],'triệu');
  const mp={};
  for(const r of RAW.rows){const y=r[C['SPMớiNăm']];if(!y||!pass(r)||!inR(r[C.MonthIdx]))continue;
   const l=lcOf(r);const role=l?l.role:0;if(!role)continue;
@@ -2303,7 +2304,7 @@ function renderRange(){
   const colTot={},rowTot={};let grand={S:0,P:0,Sp:0,n:0,nAct:0};
   tiers.forEach(t=>colTot[t]={S:0,P:0,Sp:0,n:0,nAct:0});
   tks.forEach(tp=>{rowTot[tp]={S:0,P:0,Sp:0,n:0,nAct:0};tiers.forEach(t=>{const o=cell[tp+'_'+t];if(o)['S','P','Sp','n','nAct'].forEach(k=>{rowTot[tp][k]+=o[k];colTot[t][k]+=o[k];grand[k]+=o[k];});});});
-  const totCell=o=>(o.S||o.Sp)?`<div class="cv">${fmT2(o.S)} tỷ</div><div class="cs">GM ${o.S?pc(o.P/o.S):'—'} · ${o.n} cls·<b>${o.nAct}</b>a</div>`:'—';
+  const totCell=o=>(o.S||o.Sp)?`<div class="cv">${fmT2(o.S)}</div><div class="cs">GM ${o.S?pc(o.P/o.S):'—'} · ${o.n} cls·<b>${o.nAct}</b>a</div>`:'—';
   let html='<tr><th>Loại hình \\ Phân khúc</th>'+tiers.map(t=>`<th>${TIER_NAME[t]}${rangeArr&&t<4?`<span class="rg">${rangeArr[t]}</span>`:''}</th>`).join('')+'<th>Tổng loại hình</th></tr>';
   for(const tp of tks){
    html+=`<tr><td class="rowh">${CAT['TypeTên'][tp]}</td>`;
@@ -2312,7 +2313,7 @@ function renderRange(){
     if(!o||(!o.S&&!o.Sp)){html+='<td>—</td>';continue;}
     const sel=S.rrSel&&S.rrSel[0]===tp&&S.rrSel[1]===t?' sel':'';
     const dcls=o.Sp?((o.S-o.Sp)>=0?'pos':'neg'):'';
-    html+=`<td class="cell${sel}" data-tp="${tp}" data-t="${t}"><div class="cv">${fmT2(o.S)} tỷ</div><div class="cs">GM ${o.S?pc(o.P/o.S):'—'} · ${o.n} class (<b>${o.nAct}</b> active)</div><div class="cs ${dcls}">${o.Sp?((o.S-o.Sp>=0?'+':'')+fmT2(o.S-o.Sp)+' vs SS'):''}</div></td>`;
+    html+=`<td class="cell${sel}" data-tp="${tp}" data-t="${t}"><div class="cv">${fmT2(o.S)}</div><div class="cs">GM ${o.S?pc(o.P/o.S):'—'} · ${o.n} class (<b>${o.nAct}</b> active)</div><div class="cs ${dcls}">${o.Sp?((o.S-o.Sp>=0?'+':'')+fmT2(o.S-o.Sp)+' vs SS'):''}</div></td>`;
    }
    html+=`<td style="background:#F3F6FA;font-weight:600;padding:6px">${totCell(rowTot[tp])}</td></tr>`;
   }
@@ -2545,7 +2546,7 @@ function openModal(ci,bi){
    {label:'Lợi nhuận gộp (tỷ)',data:[],borderColor:GOLD,backgroundColor:GOLD,tension:.25,pointRadius:2,yAxisID:'y'},
    {label:'GM %',data:[],borderColor:'#C6403D',backgroundColor:'#C6403D',tension:.25,pointRadius:2,yAxisID:'y1'},
    {label:'Mục tiêu GM% (thiết kế)',data:[],borderColor:'#5761AC',borderDash:[6,4],borderWidth:1.5,pointRadius:0,yAxisID:'y1'}]},
-   options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{title:{display:true,text:'tỷ đồng'}},y1:{position:'right',ticks:{callback:v=>v+'%'},grid:{drawOnChartArea:false},title:{display:true,text:'GM %'}}}}});
+   options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{title:{display:true,text:'triệu'}},y1:{position:'right',ticks:{callback:v=>v+'%'},grid:{drawOnChartArea:false},title:{display:true,text:'GM %'}}}}});
   CH.cdRank=new Chart(document.getElementById('cdRank'),{type:'line',data:{labels:M,datasets:[
    {label:'Hạng trong Ngành chính',data:[],borderColor:GOLD,backgroundColor:GOLD,tension:.2,pointRadius:2,spanGaps:false},
    {label:'Hạng toàn Công ty',data:[],borderColor:NAVY,backgroundColor:NAVY,tension:.2,pointRadius:2,spanGaps:false}]},
@@ -2562,9 +2563,9 @@ function openModal(ci,bi){
    options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{title:{display:true,text:'triệu đồng'}}}}});
   CH.cdStoreCh=new Chart(document.getElementById('cdStoreCh'),{type:'bar',data:{labels:['T1','T2','T3','T4','T5','T6'],datasets:[{label:'2026 (u/CH)',data:[],backgroundColor:NAVY},{label:'2025 cùng kỳ (tham khảo)',data:[],backgroundColor:'#C3CEDD'}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,title:{display:true,text:'u/CH'}}}}});
   CH.cdUnit=new Chart(document.getElementById('cdUnit'),{type:'bar',data:{labels:M,datasets:[]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,title:{display:true,text:'Unit'}}}}});
-  CH.cdFcCogs=new Chart(document.getElementById('cdFcCogs'),{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'DT nhập (tỷ)',data:[],backgroundColor:[]}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'tỷ đồng'}}}}});
+  CH.cdFcCogs=new Chart(document.getElementById('cdFcCogs'),{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'DT nhập (tỷ)',data:[],backgroundColor:[]}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'triệu'}}}}});
   CH.cdFcQU=new Chart(document.getElementById('cdFcQU'),{type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'SL bán (u)',data:[],backgroundColor:[]}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'unit'}}}}});
-  CH.cdFcM=new Chart(document.getElementById('cdFcM'),{type:'bar',data:{labels:[],datasets:[{label:'2026 (thực T1-6 + dự báo T7-12)',data:[],backgroundColor:[]},{label:'2025 (cùng kỳ)',data:[],backgroundColor:'#C3CEDD'}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'},noVal:true},scales:{y:{beginAtZero:true,title:{display:true,text:'tỷ đồng'}}}}});
+  CH.cdFcM=new Chart(document.getElementById('cdFcM'),{type:'bar',data:{labels:[],datasets:[{label:'2026 (thực T1-6 + dự báo T7-12)',data:[],backgroundColor:[]},{label:'2025 (cùng kỳ)',data:[],backgroundColor:'#C3CEDD'}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'},noVal:true},scales:{y:{beginAtZero:true,title:{display:true,text:'triệu'}}}}});
  }
  const plC=PLAN[key];
  CH.cdC1.data.datasets[0].data=s.map(v=>v/1000);
@@ -2743,17 +2744,17 @@ function openModal(ci,bi){
   if(PSEL.has('pgc')&&pg!==null&&pgT.S>0.05){rows2.push([`Ngành chính ${CAT.PGshort[pg]}`,fT(pgT.S),pc(mS/pgT.S),fT(pgT.P),pgT.P>0?pc(mP/pgT.P):'—',gmCell(pgT.S,pgT.P),rlink(mPg,mS,'pg',pg)]);}
   if(PSEL.has('co')){rows2.push(['Toàn công ty',fT(coT.S),coT.S?pc(mS/coT.S):'—',fT(coT.P),coT.P>0?pc(mP/coT.P):'—',gmCell(coT.S,coT.P),rlink(mCo,mS,'co',-1)]);}
   const chTot=chO.S+chN.S;
-  const chBlock=chTot>0.001?`<div style="margin-top:8px;font-size:12px"><b>Kênh bán của class (kỳ này):</b> Omni <b>${fT(chO.S)} tỷ</b> (${pc(chO.S/chTot)}, GM ${chO.S>0.005?pc(chO.P/chO.S):'—'}) · Ecommerce <b>${fT(chN.S)} tỷ</b> (${pc(chN.S/chTot)}, GM ${chN.S>0.005?pc(chN.P/chN.S):'—'}) <span class="note">Omni = cửa hàng/omnichannel; Ecommerce = kênh trực tuyến</span></div>`:'';
+  const chBlock=chTot>0.001?`<div style="margin-top:8px;font-size:12px"><b>Kênh bán của class (kỳ này):</b> Omni <b>${fT(chO.S)}</b> (${pc(chO.S/chTot)}, GM ${chO.S>0.005?pc(chO.P/chO.S):'—'}) · Ecommerce <b>${fT(chN.S)}</b> (${pc(chN.S/chTot)}, GM ${chN.S>0.005?pc(chN.P/chN.S):'—'}) <span class="note">Omni = cửa hàng/omnichannel; Ecommerce = kênh trực tuyến</span></div>`:'';
   const nwNote=newOnly?` <b style="color:#B23B3B">· mẫu số CHỈ gồm SP mới 2025/26${clsNew?'':' — LƯU Ý: class này KHÔNG phải SP mới'}</b>`:'';
-  document.getElementById('cdPos').innerHTML=`<div class="note" style="margin-bottom:5px">${WINLBL} (${qL}) · DT class = <b>${fT(mS)} tỷ</b> · GP class = <b>${fT(mP)} tỷ</b> · GM class = <b>${gmClass!=null?pc(gmClass):'—'}</b>. Cột "GM TB phạm vi (Δ)" = GM bình quân phạm vi, trong ngoặc là chênh của class so với TB.${nwNote}</div>
+  document.getElementById('cdPos').innerHTML=`<div class="note" style="margin-bottom:5px">${WINLBL} (${qL}) · DT class = <b>${fT(mS)}</b> · GP class = <b>${fT(mP)}</b> · GM class = <b>${gmClass!=null?pc(gmClass):'—'}</b>. Cột "GM TB phạm vi (Δ)" = GM bình quân phạm vi, trong ngoặc là chênh của class so với TB.${nwNote}</div>
    <table style="width:100%;border-collapse:collapse;font-size:11.5px">
    <tr style="background:#1B1C4C;color:#fff"><th style="padding:4px 6px;text-align:left">Phạm vi</th><th style="padding:4px 6px">Tổng DT phạm vi (tỷ)</th><th style="padding:4px 6px">% DT (class)</th><th style="padding:4px 6px">Tổng GP phạm vi (tỷ)</th><th style="padding:4px 6px">% GP</th><th style="padding:4px 6px">GM TB phạm vi (Δ class)</th><th style="padding:4px 6px">Hạng DT</th></tr>
    ${rows2.length?rows2.map(r2=>`<tr>${r2.map((c2,j)=>`<td style="padding:4px 6px;border:1px solid #E1E8F0;${j>0?'text-align:center':''}">${c2}</td>`).join('')}</tr>`).join(''):'<tr><td colspan="7" style="padding:8px;text-align:center;color:#888">Chọn ít nhất 1 phạm vi ở trên.</td></tr>'}</table>${chBlock}`;
   document.querySelectorAll('#cdPos .rklink').forEach(a=>a.addEventListener('click',()=>gotoRank(a.dataset.t,+a.dataset.v,key)));
   // --- Kết luận theo quý ---
   const lines=[];
-  lines.push(`<b>${WINLBL} (${qL}):</b> DT <b>${fmT2(S2)} tỷ</b> — so kỳ trước ${fg(g(S2,S1))} (kỳ trước ${fmT2(S1||0)} tỷ), YoY ${SY!=null&&SY>0.05?fg(g(S2,SY)):'<i>chưa đủ cùng kỳ</i>'}.`);
-  lines.push(`<b>Lợi nhuận gộp:</b> <b>${fmT2(P2)} tỷ</b> — kỳ trước ${fg(g(P2,P1))}, YoY ${PY!=null&&PY>0.05?fg(g(P2,PY)):'—'} · <b>GM ${gm2!=null?pc(gm2):'—'}</b> (kỳ trước ${fd(gm2,gm1)}, YoY ${fd(gm2,gmy)}).`);
+  lines.push(`<b>${WINLBL} (${qL}):</b> DT <b>${fmT2(S2)}</b> — so kỳ trước ${fg(g(S2,S1))} (kỳ trước ${fmT2(S1||0)}), YoY ${SY!=null&&SY>0.05?fg(g(S2,SY)):'<i>chưa đủ cùng kỳ</i>'}.`);
+  lines.push(`<b>Lợi nhuận gộp:</b> <b>${fmT2(P2)}</b> — kỳ trước ${fg(g(P2,P1))}, YoY ${PY!=null&&PY>0.05?fg(g(P2,PY)):'—'} · <b>GM ${gm2!=null?pc(gm2):'—'}</b> (kỳ trước ${fd(gm2,gm1)}, YoY ${fd(gm2,gmy)}).`);
   if(pg!==null&&pgT.S>0.05){const v=mPg.get(key)||{S:0,P:0};const[rk,tt]=rank(mPg,v.S);lines.push(`<b>Vị trí:</b> #${rk}/${tt} theo DT trong ngành ${CAT.PGshort[pg]} kỳ này, chiếm ${pc(v.S/pgT.S)} DT ngành${(function(){var _g=RAW.stkV[key];return _g!=null?` · phân loại <b>${getClassif(_g)}</b> · tình trạng <b>${getStatus(_g)}</b>`:(l&&l.role?` · vai trò ${ROLES[l.role]}`:'');})()}.`);}
   if(cpu2!=null){
    const dc1=g(cpu2,cpu1),dcy=g(cpu2,cpuy),da1=g(asp2,asp1),day=g(asp2,aspy);
@@ -2932,12 +2933,12 @@ function renderChan(){
  }
  const has=cmpRange()&&Sp1>0,k=kf();
  document.getElementById('chKpis').innerHTML=kpiHTML([
-  {t:'DT Chăn kỳ chọn',v:fmT(S1),u:'tỷ đồng',raw:S1,prev:has?Sp1*k:null},
+  {t:'DT Chăn kỳ chọn',v:fmT(S1),u:'',raw:S1,prev:has?Sp1*k:null},
   {t:'GM Chăn',v:S1?pc(P1/S1):'—',u:'',v2:S1?P1/S1*100:0,pp:1,prev:has?Pp1/Sp1*100:null},
   {t:'% mùa lạnh (12T)',v:(()=>{let a=0,b=0;clsMap.forEach(o=>{a+=o.Sc;b+=o.S12;});return b?pc(a/b):'—';})(),u:'DT T10–T2 / 12T',prev:null},
   {t:'Số class chăn đang bán',v:fmI([...clsMap.values()].filter(o=>o.S>0.01).length),u:'kỳ chọn',prev:null}]);
  if(!CH.chTrend){
-  CH.chTrend=new Chart(document.getElementById('chTrend'),{type:'bar',data:{labels:[],datasets:kinds.map((kk,i)=>({label:kk,data:[],backgroundColor:[GOLD,NAVY,NAVY2,'#B9C7DA'][i]}))},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true},y:{stacked:true,title:{display:true,text:'tỷ đồng'}}}}});
+  CH.chTrend=new Chart(document.getElementById('chTrend'),{type:'bar',data:{labels:[],datasets:kinds.map((kk,i)=>({label:kk,data:[],backgroundColor:[GOLD,NAVY,NAVY2,'#B9C7DA'][i]}))},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true},y:{stacked:true,title:{display:true,text:'triệu'}}}}});
   CH.chPie=mkPie('chPie');
  }
  const lbl=[];const ds=kinds.map(()=>[]);
@@ -2963,7 +2964,7 @@ function renderChan(){
   const chanTot12=[...allCls.values()].reduce((a,b)=>a+b.S12,0);
   const fgg=v=>v==null?'—':`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${pc(v)}</span>`;
   const block=(sg)=>{
-   const kpi=`<div style="font-size:12px;margin-bottom:6px">DT 12T: <b>${fmT2(sg.S12)} tỷ</b> · YoY ${fgg(sg.yoy)} · GM <b>${sg.gm!=null?pc(sg.gm):'—'}</b> · chiếm <b>${chanTot12?pc(sg.S12/chanTot12):'—'}</b> tổng chăn · <b>${CG12.S?pc(sg.S12/CG12.S):'—'}</b> ngành Chăn ga · cao điểm: ${sg.peak.join(', ')}</div>`;
+   const kpi=`<div style="font-size:12px;margin-bottom:6px">DT 12T: <b>${fmT2(sg.S12)}</b> · YoY ${fgg(sg.yoy)} · GM <b>${sg.gm!=null?pc(sg.gm):'—'}</b> · chiếm <b>${chanTot12?pc(sg.S12/chanTot12):'—'}</b> tổng chăn · <b>${CG12.S?pc(sg.S12/CG12.S):'—'}</b> ngành Chăn ga · cao điểm: ${sg.peak.join(', ')}</div>`;
    const rowsH=sg.list.slice(0,8).map(o=>{
     const yo=o.S12p>50?o.S12/o.S12p-1:null;
     const gmc=o.S12>5?o.P12/o.S12:null;
@@ -2988,9 +2989,9 @@ function renderChan(){
   // ===== INSIGHT tự sinh =====
   const sg4=seg('Chăn 4 mùa / khác'),sgK=seg('Trẻ em');
   const L=[];
-  L.push(`<b>Quy mô:</b> tổng CHĂN 12T = <b>${fmT2(chanTot12)} tỷ</b>, chiếm <b>${CG12.S?pc(chanTot12/CG12.S):'—'}</b> ngành Chăn ga (12T = ${fmT2(CG12.S)} tỷ). Cơ cấu: chăn lạnh ${pc(sgS.S12/chanTot12)} · chăn đông ${pc(sgW.S12/chanTot12)} · 4 mùa/khác ${pc(sg4.S12/chanTot12)} · trẻ em ${pc(sgK.S12/chanTot12)}.`);
-  L.push(`<b>Chăn lạnh:</b> ${fmT2(sgS.S12)} tỷ (YoY ${fgg(sgS.yoy)}), GM ${pc(sgS.gm)} — cao điểm ${sgS.peak.join('/')}${sgS.list[0]?` · dẫn dắt bởi ${sgS.list[0].cls} (${pc(sgS.list[0].S12/sgS.S12)} mảng)${sgS.list[0].S12/sgS.S12>0.5?' → <b>phụ thuộc 1 class</b>, cần thêm lựa chọn bậc Better/Best':''}`:''}.`);
-  L.push(`<b>Chăn đông:</b> ${fmT2(sgW.S12)} tỷ (YoY ${fgg(sgW.yoy)}), GM ${pc(sgW.gm)} — cao điểm ${sgW.peak.join('/')}${sgW.yoy!=null&&sgW.yoy<0?' · <b>đang giảm</b>: rà lại dải sản phẩm & giá trước mùa lạnh tới':''}${sgW.list[0]?` · lớn nhất: ${sgW.list[0].cls}`:''}.`);
+  L.push(`<b>Quy mô:</b> tổng CHĂN 12T = <b>${fmT2(chanTot12)}</b>, chiếm <b>${CG12.S?pc(chanTot12/CG12.S):'—'}</b> ngành Chăn ga (12T = ${fmT2(CG12.S)}). Cơ cấu: chăn lạnh ${pc(sgS.S12/chanTot12)} · chăn đông ${pc(sgW.S12/chanTot12)} · 4 mùa/khác ${pc(sg4.S12/chanTot12)} · trẻ em ${pc(sgK.S12/chanTot12)}.`);
+  L.push(`<b>Chăn lạnh:</b> ${fmT2(sgS.S12)} (YoY ${fgg(sgS.yoy)}), GM ${pc(sgS.gm)} — cao điểm ${sgS.peak.join('/')}${sgS.list[0]?` · dẫn dắt bởi ${sgS.list[0].cls} (${pc(sgS.list[0].S12/sgS.S12)} mảng)${sgS.list[0].S12/sgS.S12>0.5?' → <b>phụ thuộc 1 class</b>, cần thêm lựa chọn bậc Better/Best':''}`:''}.`);
+  L.push(`<b>Chăn đông:</b> ${fmT2(sgW.S12)} (YoY ${fgg(sgW.yoy)}), GM ${pc(sgW.gm)} — cao điểm ${sgW.peak.join('/')}${sgW.yoy!=null&&sgW.yoy<0?' · <b>đang giảm</b>: rà lại dải sản phẩm & giá trước mùa lạnh tới':''}${sgW.list[0]?` · lớn nhất: ${sgW.list[0].cls}`:''}.`);
   const bad=[...sgS.list,...sgW.list].filter(o=>{const gmc=o.S12>5?o.P12/o.S12:null;const yo=o.S12p>50?o.S12/o.S12p-1:null;return (gmc!=null&&gmc<0)||(yo!=null&&yo<=-0.05);}).slice(0,4);
   if(bad.length)L.push(`<b>Cần xử lý:</b> ${bad.map(o=>o.cls).join(', ')} (GM âm hoặc DT giảm ≥5% — mở chi tiết class để xem kết luận quý).`);
   L.push(`<b>Định hướng năm sau (gợi ý tự động):</b> (1) chốt PO chăn đông trước cao điểm ${sgW.peak[0]||'T11'} tối thiểu 2–3 tháng, chăn lạnh trước ${sgS.peak[0]||'T5'}; (2) mỗi mảng duy trì ladder Good–Better–Best đủ 3 bậc (hiện chăn lạnh ${sgS.list.length} class hoạt động, chăn đông ${sgW.list.length}); (3) class GM thấp hơn GM mảng ≥5đ% → đàm phán NCC hoặc thay thế; (4) dùng nút Import nạp data tháng mới để các con số này tự cập nhật khi lên kế hoạch 2027. <span class="note">Đây là phân tích rule-based từ data — anh thẩm định trước khi đưa vào plan.</span>`);
@@ -3020,7 +3021,7 @@ function renderSeriesLadder(hostId,arr){
  let h='<table style="width:100%">';
  for(const g of groups){
   h+=`<tr class="ladrow"><td style="white-space:nowrap;font-weight:700;font-size:11.5px;width:220px">${g.title}</td><td><div class="lad">`+
-   g.items.map(it=>`<a class="stepG" data-k="${it.ci}|${it.br}"><span class="tier">${it.t.toUpperCase()}</span><b>${it.cls}</b><span>${it.asp>=1?it.asp.toFixed(1).replace('.',',')+'M':Math.round(it.asp*1000)+'K'} · GM ${Math.round(it.gm*100)}% · ${fmT2(it.S)} tỷ</span></a>`).join('')+
+   g.items.map(it=>`<a class="stepG" data-k="${it.ci}|${it.br}"><span class="tier">${it.t.toUpperCase()}</span><b>${it.cls}</b><span>${it.asp>=1?it.asp.toFixed(1).replace('.',',')+'M':Math.round(it.asp*1000)+'K'} · GM ${Math.round(it.gm*100)}% · ${fmT2(it.S)}</span></a>`).join('')+
    '</div></td></tr>';
  }
  h+='</table>';
@@ -3341,18 +3342,18 @@ function renderSupOverview(){
   const a=vpoAgg(i,cat1,-1);const lp=a?a.last:(function(){let m=-1;rows.forEach(e=>{const f=RAW.lastPO[e[1]+'|'+e[3]];if(f!=null&&f>m)m=f;});return m;})();
   return {i,name:v[0],full:v[1],old:v[2],val,q,qr,nCls:cls.size,nPg:pgs.size,avg:q>0?val/q:null,lp};}).sort((a,b)=>b.val-a.val);
  // chart PO theo ngành
- if(!CH.supByCat){const el=document.getElementById('supByCat');if(el)CH.supByCat=new Chart(el,{type:'bar',data:{labels:[],datasets:[{label:'PO value (tỷ)',data:[],backgroundColor:NAVY}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'tỷ đồng'}}}}});}
+ if(!CH.supByCat){const el=document.getElementById('supByCat');if(el)CH.supByCat=new Chart(el,{type:'bar',data:{labels:[],datasets:[{label:'PO value (tỷ)',data:[],backgroundColor:NAVY}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'triệu'}}}}});}
  {const bc={};
   if(useVpo){Object.keys(RAW.vpo||{}).forEach(vi=>{RAW.vpo[vi].forEach(e=>{if(yr1>0&&yrOf(e[2])!==yr1)return;bc[e[0]]=(bc[e[0]]||0)+e[3];});});}
   else RAW.vcl.forEach(e=>{bc[e[1]]=(bc[e[1]]||0)+e[6];});
   const ks=Object.keys(bc).map(Number).sort((a,b)=>bc[b]-bc[a]);
   if(CH.supByCat){CH.supByCat.data.labels=ks.map(p=>CAT.PGshort[p]);CH.supByCat.data.datasets[0].data=ks.map(p=>+(bc[p]/1e9).toFixed(2));CH.supByCat.data.datasets[0].backgroundColor=ks.map(p=>p===cat1?GOLD:NAVY);CH.supByCat.update();}}
  // chart nhịp PO theo tháng (từ cpo — cấp class; lọc theo ngành nếu chọn)
- if(!CH.supMonth){const el=document.getElementById('supMonth');if(el)CH.supMonth=new Chart(el,{type:'line',data:{labels:M,datasets:[{label:'PO amount (tỷ)',data:[],borderColor:NAVY,backgroundColor:'rgba(20,49,92,.08)',fill:true,tension:.25,pointRadius:2}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'tỷ đồng'}}}}});}
+ if(!CH.supMonth){const el=document.getElementById('supMonth');if(el)CH.supMonth=new Chart(el,{type:'line',data:{labels:M,datasets:[{label:'PO amount (tỷ)',data:[],borderColor:NAVY,backgroundColor:'rgba(20,49,92,.08)',fill:true,tension:.25,pointRadius:2}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'triệu'}}}}});}
  {const mm=new Array(N).fill(0);Object.keys(RAW.cpo).forEach(k=>{const pg=+k.split('|')[0];if(cat1>=0&&pg!==cat1)return;RAW.cpo[k].forEach(e=>{mm[e[0]]+=e[1]*e[2];});});
   if(CH.supMonth){CH.supMonth.data.datasets[0].data=mm.map(v=>+(v/1e9).toFixed(2));CH.supMonth.update();}}
- document.getElementById('supTopS').textContent=(cat1>=0?'ngành '+CAT.PGshort[cat1]+' · ':'')+(yr1>0?'năm '+yr1:(useVpo?'toàn kỳ (nguồn theo kỳ)':'toàn kỳ 2024-01 → 2026-07'))+' · tỷ đồng';
- if(!CH.supTop){const el=document.getElementById('supTop');if(el)CH.supTop=new Chart(el,{type:'bar',data:{labels:[],datasets:[{label:'PO value (tỷ)',data:[],backgroundColor:NAVY}]},options:{maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,title:{display:true,text:'tỷ đồng'}}}}});}
+ document.getElementById('supTopS').textContent=(cat1>=0?'ngành '+CAT.PGshort[cat1]+' · ':'')+(yr1>0?'năm '+yr1:(useVpo?'toàn kỳ (nguồn theo kỳ)':'toàn kỳ 2024-01 → 2026-07'))+' · triệu';
+ if(!CH.supTop){const el=document.getElementById('supTop');if(el)CH.supTop=new Chart(el,{type:'bar',data:{labels:[],datasets:[{label:'PO value (tỷ)',data:[],backgroundColor:NAVY}]},options:{maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,title:{display:true,text:'triệu'}}}}});}
  const top=V.filter(v=>v.val>0).slice(0,12);
  if(CH.supTop){CH.supTop.data.labels=top.map(v=>v.name);CH.supTop.data.datasets[0].data=top.map(v=>+(v.val/1e9).toFixed(2));CH.supTop.update();}
  const q=(document.getElementById('supSearch').value||'').toLowerCase();
@@ -3385,7 +3386,7 @@ function renderSupOverview(){
    const totPO=V.reduce((x,v)=>x+v.val,0),top5=V.slice(0,5).reduce((x,v)=>x+v.val,0);
    const cm2={};RAW.vcl.forEach(e=>{if(hideInact&&vendInactive(e[0]))return;if(cat1>=0&&e[1]!==cat1)return;const kk=e[1]+'|'+e[2]+'|'+e[3];(cm2[kk]=cm2[kk]||[]).push(e);});
    let nUpd=0;Object.keys(cm2).forEach(kk=>{const pr=kk.split('|');if(classNeedsUpd(+pr[0],+pr[2],cm2[kk]))nUpd++;});
-   kp.innerHTML=`<div class="kc"><div class="kt">Σ PO value${cat1>=0?' · '+CAT.PGshort[cat1]:''}${yr1>0?' · '+yr1:''}</div><div class="kv">${(totPO/1e9).toLocaleString('vi-VN',{maximumFractionDigits:1})} tỷ</div><div class="ks">${useVpo?'nguồn theo kỳ ~92%':'PO đầy đủ'}</div></div>`+
+   kp.innerHTML=`<div class="kc"><div class="kt">Σ PO value${cat1>=0?' · '+CAT.PGshort[cat1]:''}${yr1>0?' · '+yr1:''}</div><div class="kv">${(totPO/1e9).toLocaleString('vi-VN',{maximumFractionDigits:1})}</div><div class="ks">${useVpo?'nguồn theo kỳ ~92%':'PO đầy đủ'}</div></div>`+
     `<div class="kc"><div class="kt">NCC đang hiển thị</div><div class="kv">${list.length}</div><div class="ks">đã ẩn NCC ngừng giao dịch</div></div>`+
     `<div class="kc"><div class="kt">Top 5 NCC tập trung</div><div class="kv">${totPO>0?pc(top5/totPO):'—'}</div><div class="ks">%PO của 5 NCC lớn nhất</div></div>`+
     `<div class="kc act" id="supKpiUpd"><div class="kt">Class cần cập nhật giá</div><div class="kv">${nUpd} ⚠</div><div class="ks">NCC rẻ nhất >6 tháng chưa đặt · bấm để lọc</div></div>`;
@@ -3460,7 +3461,7 @@ function renderSupMatrix(){
   let crev=0,cgm=0,cgmw=0,multi=0;
   ks.forEach(k=>{const cn=CN[k];if(cn){crev+=cn.rev;if(cn.gm!=null){cgm+=cn.gm*cn.rev;cgmw+=cn.rev;}}if(clsMap[k].length>=2)multi++;});
   const catOpen=!S.supCatClosed.has(pg);
-  h+=`<tr class="catrow" data-cat="${pg}"><td class="stickyL">${catOpen?'▾':'▸'} 📁 ${CAT.PGshort[pg]} <span class="mut">(${ks.length})</span></td><td></td><td colspan="4" style="text-align:left">DT hiện tại ${crev.toLocaleString('vi-VN',{maximumFractionDigits:1})} tỷ · GM ${cgmw>0?pc(cgm/cgmw):'—'} · ${multi}/${ks.length} class ≥2 NCC</td><td colspan="${main.length+(other.length?1:0)}"></td></tr>`;
+  h+=`<tr class="catrow" data-cat="${pg}"><td class="stickyL">${catOpen?'▾':'▸'} 📁 ${CAT.PGshort[pg]} <span class="mut">(${ks.length})</span></td><td></td><td colspan="4" style="text-align:left">DT hiện tại ${crev.toLocaleString('vi-VN',{maximumFractionDigits:1})} · GM ${cgmw>0?pc(cgm/cgmw):'—'} · ${multi}/${ks.length} class ≥2 NCC</td><td colspan="${main.length+(other.length?1:0)}"></td></tr>`;
   if(catOpen)ks.forEach(k=>{const pr=k.split('|');const pgk=+pr[0],bik=+pr[1],ci=+pr[2];const cn=CN[k];const ents=clsMap[k];
    const tot=ents.reduce((x,e)=>x+e[6],0);
    const pos=ents.filter(e=>e[7]>0);
@@ -3694,7 +3695,7 @@ function fillType(){
   if(i<0||i>=N){tip.style.display='none';return;}
   const s=SPARK.byM[i],p=SPARK.byMP[i],gm=s>0.005?p/s:null;
   const role=(i>=S.m0&&i<=S.m1)?'kỳ chính':(inP(i)?'kỳ so sánh':'ngoài kỳ');
-  tip.innerHTML=`<b>${M[i]}</b> · ${role}<br>Doanh thu: <b>${fmT2(s)} tỷ</b><br>GP: <b>${fmT2(p)} tỷ</b> · GM: <b>${gm===null?'—':pc(gm)}</b>`;
+  tip.innerHTML=`<b>${M[i]}</b> · ${role}<br>Doanh thu: <b>${fmT2(s)}</b><br>GP: <b>${fmT2(p)}</b> · GM: <b>${gm===null?'—':pc(gm)}</b>`;
   tip.style.display='block';
   const tw=tip.offsetWidth||160;
   tip.style.left=Math.min(Math.max(clientX-tw/2,6),window.innerWidth-tw-6)+'px';
