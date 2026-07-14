@@ -911,7 +911,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-import">
     <div class="eyebrow">Nội bộ · Dữ liệu chung trên Supabase</div>
     <h1 class="pt">Import dữ liệu</h1>
-    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-14 14:49</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
+    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-14 14:55</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
     <div class="card w2">
       <h2>Cập nhật dữ liệu mới nhất lên Supabase</h2>
       <div class="sub">Chọn file Excel → hệ thống đọc + tính toán ngay trong trình duyệt → đẩy bản mới nhất lên Supabase. Mọi người mở dashboard sẽ tự thấy bản mới (có banner "Tải bản mới").</div>
@@ -4073,6 +4073,9 @@ var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 function _supaH(extra){var h={apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'};if(extra)for(var k in extra)h[k]=extra[k];return h;}
 function _supaInsert(table,row){return fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:_supaH({Prefer:'return=minimal'}),body:JSON.stringify(row)});}
 function _supaLatest(){return fetch(SUPA_URL+'/rest/v1/snapshot?select=payload,created_at,uploaded_by&order=created_at.desc&limit=1',{headers:_supaH()}).then(function(r){return r.ok?r.json():[];});}
+function _supaLatestDataset(kind){return fetch(SUPA_URL+'/rest/v1/dataset?kind=eq.'+encodeURIComponent(kind)+'&select=payload&order=created_at.desc&limit=1',{headers:_supaH()}).then(function(r){return r.ok?r.json():[];});}
+function _u8ToB64(u8){var s='',CH=0x8000;for(var i=0;i<u8.length;i+=CH){s+=String.fromCharCode.apply(null,u8.subarray(i,i+CH));}return btoa(s);}
+function _b64ToU8(b64){var s=atob(b64),u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u;}
 
 /* Kiểm tra có snapshot mới hơn bản đang xem → hiện banner Tải lại */
 function _supaCheckLatest(){
@@ -4128,11 +4131,13 @@ function _supaDoImport(){
  var mainU8=null, adsU8=null;
  Promise.resolve()
  .then(function(){return fMain?_readBytes(fMain):null;})
- .then(function(u){if(u){mainU8=u;_impLog('Đọc file chính: '+fMain.name+' ('+Math.round(fMain.size/1024)+'KB)');return _supaInsert('dataset',{kind:'main',payload:_xlsxToJson(u),uploaded_by:who,note:fMain.name}).then(function(r){_impLog(r.ok?'✔ Lưu dữ liệu chính lên Supabase':'⚠ Lỗi lưu chính: '+r.status, r.ok?'#1D9E75':'#E24B4A');});}})
+ .then(function(u){if(u){mainU8=u;_impLog('Đọc file chính: '+fMain.name+' ('+Math.round(fMain.size/1024)+'KB)');return _supaInsert('dataset',{kind:'main',payload:{b64:_u8ToB64(u),name:fMain.name},uploaded_by:who,note:fMain.name}).then(function(r){_impLog(r.ok?'✔ Lưu dữ liệu chính lên Supabase':'⚠ Lỗi lưu chính: '+r.status, r.ok?'#1D9E75':'#E24B4A');});}})
  .then(function(){return fAds?_readBytes(fAds):null;})
- .then(function(u){if(u){adsU8=u;_impLog('Đọc file ads: '+fAds.name+' ('+Math.round(fAds.size/1024)+'KB)');return _supaInsert('dataset',{kind:'ads',payload:_xlsxToJson(u),uploaded_by:who,note:fAds.name}).then(function(r){_impLog(r.ok?'✔ Lưu dữ liệu ads lên Supabase':'⚠ Lỗi lưu ads: '+r.status, r.ok?'#1D9E75':'#E24B4A');});}})
+ .then(function(u){if(u){adsU8=u;_impLog('Đọc file ads: '+fAds.name+' ('+Math.round(fAds.size/1024)+'KB)');return _supaInsert('dataset',{kind:'ads',payload:{b64:_u8ToB64(u),name:fAds.name},uploaded_by:who,note:fAds.name}).then(function(r){_impLog(r.ok?'✔ Lưu dữ liệu ads lên Supabase':'⚠ Lỗi lưu ads: '+r.status, r.ok?'#1D9E75':'#E24B4A');});}})
+ .then(function(){if(mainU8)return;_impLog('Chưa chọn file chính → lấy bản chính mới nhất trên Supabase để tính đủ…');return _supaLatestDataset('main').then(function(a){if(a&&a[0]&&a[0].payload&&a[0].payload.b64){mainU8=_b64ToU8(a[0].payload.b64);_impLog('✔ Đã lấy dữ liệu chính từ Supabase');}else{_impLog('⚠ Trên Supabase chưa có dữ liệu chính — cần import file chính ít nhất 1 lần trước.','#EF9F27');}});})
+ .then(function(){if(adsU8)return;return _supaLatestDataset('ads').then(function(a){if(a&&a[0]&&a[0].payload&&a[0].payload.b64){adsU8=_b64ToU8(a[0].payload.b64);_impLog('✔ Đã lấy dữ liệu ads từ Supabase (để tính đủ)');}}).catch(function(){});})
  .then(function(){
-   if(!mainU8){_impLog('Không có file chính → chỉ lưu dữ liệu thô, chưa tính snapshot.','#EF9F27');return null;}
+   if(!mainU8){_impLog('Không có dữ liệu chính → chỉ lưu dữ liệu thô, chưa tính snapshot.','#EF9F27');return null;}
    return _supaCompute(mainU8,adsU8).then(function(out){
      _impLog('✔ Tính RAW xong ('+Math.round(out.length/1024)+'KB). Đang đẩy snapshot…','#1D9E75');
      return _supaInsert('snapshot',{payload:JSON.parse(out),bytes:out.length,uploaded_by:who}).then(function(r){
