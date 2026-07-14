@@ -899,7 +899,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <div class="card w2"><h2>Phân bổ kế hoạch theo ngày</h2>
       <div style="display:flex;gap:8px;align-items:center;margin:2px 0 8px">
         <span style="font-size:12px;color:#6B7280">Tháng:</span><select id="aplDayMonth" onchange="_adDayMonth()"></select>
-        <span style="font-size:12px;color:#6B7280">Nhập ngân sách (tr) cho Nệm · Chăn · Phụ kiện từng ngày; các cột sau tự tính; cột "Chi thực tế" lấy từ dữ liệu đã chạy.</span>
+        <span style="font-size:12px;color:#6B7280">Đổi Giai đoạn / Trọng số / Ghi chú từng ngày · sửa Trọng số → tự chia lại NS các ngày khác, Tổng luôn = Mục tiêu · Khóa để giữ nguyên 1 ngày.</span>
       </div>
       <div class="twrap" style="max-height:none;overflow-x:auto"><div id="aplDaily"></div></div>
     </div>
@@ -3837,9 +3837,12 @@ function _adShopBench(){var A=RAW.ads;var t=_adF9();for(var k in A.shopM)_adAdd(
 function _adPlanActual(keys){var A=RAW.ads;var w=_adSum(A.shopM,keys);var nmv=0;A.prod.forEach(function(p){var pw=_adSum(p.byM,keys);nmv+=pw[6]*(1-(p.cancel||0));});
  var sp=w[8],gmv=w[6];return {spend:sp,gmv:gmv,nmv:nmv,roas:sp>0?gmv/sp:0,cancel:gmv>0?1-nmv/gmv:0,ord:w[2],clk:w[1],imp:w[0],conv:w[2],ctr:w[0]>0?w[1]/w[0]:0,aov:w[2]>0?gmv/w[2]:0,acos:gmv>0?sp/gmv:0};}
 /* benchmark theo ngành (cho bảng theo ngày) */
-function _adPgBench(){var B=_adBench();var pg={};B.forEach(function(o){var g=(pg[o.pg]=pg[o.pg]||{sp:0,gmv:0,conv:0,clk:0,cw:0});g.sp+=o.sp;g.gmv+=o.gmv;g.conv+=o.conv;g.clk+=o.clk;g.cw+=o.gmv*o.cancel;});
- for(var k in pg){var g=pg[k];g.roas=g.sp>0?g.gmv/g.sp:5;g.aov=g.conv>0?g.gmv/g.conv:1.5;g.cancel=g.gmv>0?g.cw/g.gmv:0.4;g.cpc=g.clk>0?g.sp/g.clk:0.003;g.cvr=g.clk>0?g.conv/g.clk:0.01;}
+function _adPgBench(){var B=_adBench();var pg={};B.forEach(function(o){var g=(pg[o.pg]=pg[o.pg]||{sp:0,gmv:0,conv:0,clk:0,impr:0,cw:0});g.sp+=o.sp;g.gmv+=o.gmv;g.conv+=o.conv;g.clk+=o.clk;g.impr+=o.impr;g.cw+=o.gmv*o.cancel;});
+ for(var k in pg){var g=pg[k];g.roas=g.sp>0?g.gmv/g.sp:5;g.aov=g.conv>0?g.gmv/g.conv:1.5;g.cancel=g.gmv>0?g.cw/g.gmv:0.4;g.cpc=g.clk>0?g.sp/g.clk:0.003;g.cvr=g.clk>0?g.conv/g.clk:0.01;g.ctr=g.impr>0?g.clk/g.impr:0.02;}
  return pg;}
+/* loại ngày auto: Sale Lớn (double-date dd=mm, 15, 25) · Cuối tuần (T7/CN) · Ngày thường */
+function _adDayType(mk,d){var p=mk.split('.');var mm=+p[1];var wd=new Date(+p[0],mm-1,d).getDay();
+ if(d===mm||d===15||d===25)return 'Sale Lớn'; if(wd===0||wd===6)return 'Cuối tuần'; return 'Ngày thường';}
 
 function renderAdsPlan(){
  var A=RAW.ads;if(!A){document.getElementById('adplHost').innerHTML='<div class="card">Chưa có dữ liệu ads.</div>';return;}
@@ -3928,63 +3931,96 @@ function _adPlanExp(pg){var e=(S._planExp=S._planExp||{});e[pg]=!e[pg];renderAds
 function _adDayFill(){var A=RAW.ads,s=document.getElementById('aplDayMonth');if(!s||s.options.length)return;
  s.innerHTML=A.months.map(function(mk){return '<option value="'+mk+'">'+mk+'</option>';}).join('');var P=_adPlanLoad();s.value=P.dayMonth||A.months[A.months.length-1];}
 function _adDaysInMonth(mk){var p=mk.split('.');return new Date(+p[0],+p[1],0).getDate();}
+function _adPhaseNote(ph){return {'Sale':'SCALE TỐI ĐA: tăng bid +20–30% so ngày thường, mở rộng Discovery/GMV Max, bật hết remarketing','Pre-heat':'LÀM NÓNG: tăng dần bid +5–10%, đẩy Discovery & nội dung teaser, kích thích Add To Cart','Sustain':'DUY TRÌ ĐÀ: giữ bid cao hơn ngày thường ~8%, ưu tiên Search Manual remarketing','Normal':'GIỮ QUALITY SCORE: ngân sách tối thiểu an toàn, không tắt campaign, rà soát từ khoá'}[ph]||'';}
+function _adPhaseFac(ph){return {'Sale':{r:1.08,c:1.07,bg:'#FCE9E9'},'Pre-heat':{r:1.02,c:1.01,bg:'#FAF0DC'},'Sustain':{r:1.0,c:1.0,bg:'#E6F0FA'},'Normal':{r:0.9,c:0.9,bg:''}}[ph]||{r:1,c:1,bg:''};}
+function _adDayDefaults(mk,nd,P){P.daily=P.daily||{};P.daily[mk]=P.daily[mk]||{};var dd=P.daily[mk];var defW={'Sale':3,'Pre-heat':2,'Sustain':1.5,'Normal':1};
+ for(var d=1;d<=nd;d++){var o=dd[d]=dd[d]||{};if(o.phase==null){var t=_adDayType(mk,d);o.phase=(t==='Sale Lớn')?'Sale':'Normal';}if(o.w==null)o.w=defW[o.phase]||1;if(o.sn==null){o.sn=60;o.sc=30;o.sp=10;}if(o.note==null)o.note=_adPhaseNote(o.phase);}
+ return dd;}
+function _adDayBudgets(mk,nd,P){var dd=P.daily[mk];var T=+P.dayTarget||30;var L=0,Wu=0;
+ for(var d=1;d<=nd;d++){var o=dd[d];if(o.lock)L+=(+o.tot||0);else Wu+=(+o.w||0);}
+ var rem=Math.max(0,T-L);var bud={};for(var d=1;d<=nd;d++){var o=dd[d];bud[d]=o.lock?(+o.tot||0):(Wu>0?rem*(+o.w||0)/Wu:0);}
+ return {bud:bud,T:T,L:L};}
 function renderAdsDaily(){
  var A=RAW.ads,P=_adPlanLoad();_adDayFill();
  var s=document.getElementById('aplDayMonth');var mk=(s&&s.value)||P.dayMonth||A.months[A.months.length-1];P.dayMonth=mk;
+ if(P.dayTarget==null)P.dayTarget=30;
+ var nd=_adDaysInMonth(mk);var dd=_adDayDefaults(mk,nd,P);var mo=_adDayBudgets(mk,nd,P);var bud=mo.bud;
  var pgB=_adPgBench();var iNem=CAT.PGshort.indexOf('Nệm'),iChan=CAT.PGshort.indexOf('Chăn'),iPK=CAT.PGshort.indexOf('Phụ Kiện');
- var BN=pgB[iNem]||{roas:10,aov:3,cancel:.4,cpc:.004,cvr:.013},BC=pgB[iChan]||{roas:5,aov:.7,cancel:.25,cpc:.002,cvr:.011},BP=pgB[iPK]||{roas:5,aov:.4,cancel:.3,cpc:.002,cvr:.015};
- var dm=(P.daily&&P.daily[mk])||{};
- /* thực tế theo ngày cho 3 ngành (đủ chỉ số để hiện cạnh kế hoạch) */
- var actF={};A.prod.forEach(function(p){if([iNem,iChan,iPK].indexOf(p.pg)<0)return;var cc=p.cancel||0;for(var dk in (p.byD||{})){if(dk.slice(0,7)!==mk)continue;var v=p.byD[dk];var o=(actF[dk]=actF[dk]||{sp:0,gmv:0,nmv:0,conv:0,clk:0});o.sp+=v[8];o.gmv+=v[6];o.nmv+=v[6]*(1-cc);o.conv+=v[2];o.clk+=v[1];}});
- var nd=_adDaysInMonth(mk);
- var cols=['Ngày','Nệm (tr)','Chăn (tr)','Phụ kiện (tr)','Tổng KH','GMV','NMV','ROAS','Đơn','Click','Chuyển đổi','Chi thực tế','Đánh giá'];
- var rght={};cols.forEach(function(h){if(h!=='Ngày'&&h!=='Đánh giá')rght[h]=1;});
- var h='<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#1B1C4C;color:#fff">'+cols.map(function(c){return '<th style="padding:5px 5px;text-align:'+(rght[c]?'right':'left')+'">'+c+'</th>';}).join('')+'</tr></thead><tbody>';
- var tot={nem:0,chan:0,pk:0,tt:0,gmv:0,pnmv:0,pord:0,pclk:0,pcv:0,asp:0,agmv:0,anmv:0,aconv:0,aclk:0};
- for(var d=1;d<=nd;d++){var dk=mk+'.'+(d<10?'0'+d:d);var row=dm[d]||{};var nem=+row.nem||0,chan=+row.chan||0,pk=+row.pk||0;var t=nem+chan+pk;
-  var gmv2=nem*BN.roas+chan*BC.roas+pk*BP.roas;
-  var nmv2=nem*BN.roas*(1-BN.cancel)+chan*BC.roas*(1-BC.cancel)+pk*BP.roas*(1-BP.cancel);
-  var ordd=(BN.aov>0?nem*BN.roas/BN.aov:0)+(BC.aov>0?chan*BC.roas/BC.aov:0)+(BP.aov>0?pk*BP.roas/BP.aov:0);
-  var clk2=(BN.cpc>0?nem/BN.cpc:0)+(BC.cpc>0?chan/BC.cpc:0)+(BP.cpc>0?pk/BP.cpc:0);
-  var cv2=(BN.cpc>0?nem/BN.cpc*BN.cvr:0)+(BC.cpc>0?chan/BC.cpc*BC.cvr:0)+(BP.cpc>0?pk/BP.cpc*BP.cvr:0);
-  var af=actF[dk]||null;var hasA=!!(af&&(af.sp>0||af.gmv>0));var actv=af?af.sp:0;var ev=t>0?actv/t:0;
-  var evTxt=t<=0?'':(actv<=0?'<span style="color:#B4B8D0">chưa chạy</span>':(ev>1.1?'<span style="color:#E24B4A">vượt '+Math.round((ev-1)*100)+'%</span>':(ev<0.9?'<span style="color:#EF9F27">thiếu '+Math.round((1-ev)*100)+'%</span>':'<span style="color:#1D9E75">đúng KH</span>')));
-  tot.nem+=nem;tot.chan+=chan;tot.pk+=pk;tot.tt+=t;tot.gmv+=gmv2;tot.pnmv+=nmv2;tot.pord+=ordd;tot.pclk+=clk2;tot.pcv+=cv2;
-  if(af){tot.asp+=af.sp;tot.agmv+=af.gmv;tot.anmv+=af.nmv;tot.aconv+=af.conv;tot.aclk+=af.clk;}
-  function inp(field,val){return '<input type="number" step="0.1" min="0" value="'+(val||'')+'" onchange="_adDayIn(\''+mk+'\','+d+',\''+field+'\',this.value)" style="width:56px;text-align:right;font-size:11px;padding:1px 3px">';}
-  function td(v,r){return '<td style="padding:2px 5px;border-bottom:0.5px solid #F2F4F9'+(r?';text-align:right':'')+'">'+v+'</td>';}
-  function td2(plan,act){return '<td style="padding:2px 5px;text-align:right;border-bottom:0.5px solid #F2F4F9;white-space:nowrap">'+plan+(hasA?' <span style="color:#0F6E56;font-weight:600;font-size:10px">· '+act+'</span>':'')+'</td>';}
-  var aRoas=(af&&af.sp>0)?_adR1(af.gmv/af.sp):'—';
-  h+='<tr>'+td('<b>'+d+'</b>')+td(inp('nem',row.nem),1)+td(inp('chan',row.chan),1)+td(inp('pk',row.pk),1)
-   +td(_adTr1(t),1)
-   +td2(_adTr1(gmv2),af?_adTr1(af.gmv):'')
-   +td2(_adTr1(nmv2),af?_adTr1(af.nmv):'')
-   +td2(t>0?_adR1(gmv2/t):'—',aRoas)
-   +td2(_adN(ordd),af?_adN(af.conv):'')
-   +td2(_adN(clk2),af?_adN(af.clk):'')
-   +td2(_adN(cv2),af?_adN(af.conv):'')
-   +td(actv>0?_adTr1(actv):'—',1)+td(evTxt)+'</tr>';
+ var BN=pgB[iNem]||{roas:10,aov:3,cpc:.004,cvr:.013,ctr:.02,cancel:.43},BC=pgB[iChan]||{roas:5,aov:.7,cpc:.002,cvr:.011,ctr:.02,cancel:.25},BP=pgB[iPK]||{roas:5,aov:.4,cpc:.002,cvr:.015,ctr:.02,cancel:.3};
+ var totBud=0;for(var d1=1;d1<=nd;d1++)totBud+=bud[d1];var match=Math.abs(totBud-mo.T)<0.05;
+ var ctrl='<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:8px">'
+  +'<span style="font-size:12px;color:#6B7280">🎯 Mục tiêu tháng (tr):</span><input type="number" step="0.5" min="0" value="'+mo.T+'" onchange="_adDayTarget(this.value)" style="width:90px;text-align:right">'
+  +'<span style="font-size:12px;color:#6B7280">Thực tế sau điều chỉnh: <b style="color:#1B1C4C">'+_adTr1(totBud)+'</b></span>'
+  +'<span style="font-size:12px;color:'+(match?'#1D9E75':'#E24B4A')+';font-weight:600">'+(match?'✓ Khớp Mục tiêu':'≠ lệch '+_adTr1(totBud-mo.T)+' (khóa vượt mục tiêu?)')+'</span></div>';
+ var cols=['Ngày','Giai đoạn','Loại ngày','Khóa','Trọng số','NS Nệm','NS Chăn','NS Phụ kiện','Tổng NS (tr)','CPC','CTR','CR','ROAS','GMV','NMV','Đơn','Ghi chú chiến lược'];
+ var h=ctrl+'<div style="font-size:10px;color:#0F6E56;margin-bottom:4px">Số <b>xanh lá</b> = thực tế đã chạy (hiện khi ngày đã có dữ liệu).</div><table style="width:100%;border-collapse:collapse;font-size:10.5px"><thead><tr style="background:#1B1C4C;color:#fff">'+cols.map(function(c,ci){var lft=(ci<3||ci===16);return '<th style="padding:5px 5px;white-space:nowrap;text-align:'+(lft?'left':'center')+'">'+c+'</th>';}).join('')+'</tr></thead><tbody>';
+ var WD=['CN','T2','T3','T4','T5','T6','T7'];var phOpt=['Normal','Pre-heat','Sustain','Sale'];
+ var iset={};iset[iNem]='nem';iset[iChan]='chan';iset[iPK]='pk';
+ var actD={};A.prod.forEach(function(pp){var key=iset[pp.pg];if(!key)return;var cc=pp.cancel||0;for(var dk in (pp.byD||{})){if(dk.slice(0,7)!==mk)continue;var v=pp.byD[dk];var oo=actD[dk]=actD[dk]||{nem:0,chan:0,pk:0,tot:0,gmv:0,nmv:0,conv:0,clk:0,impr:0};oo[key]+=v[8];oo.tot+=v[8];oo.gmv+=v[6];oo.nmv+=v[6]*(1-cc);oo.conv+=v[2];oo.clk+=v[1];oo.impr+=v[0];}});
+ var tot={b:0,gmv:0,nmv:0,ord:0,imp:0,clk:0,pn:0,pc:0,pp:0,an:0,ac:0,ap:0,at:0,agmv:0,anmv:0,aconv:0,aclk:0,aimpr:0};
+ for(var d=1;d<=nd;d++){var o=dd[d];var b=bud[d];var pf=_adPhaseFac(o.phase);var dt=_adDayType(mk,d);
+  var p=mk.split('.');var wd=WD[new Date(+p[0],+p[1]-1,d).getDay()];
+  var bn=b*(o.sn/100),bc=b*(o.sc/100),bp=b*(o.sp/100);
+  var gmv=(bn*BN.roas+bc*BC.roas+bp*BP.roas)*pf.r;
+  var nmv=(bn*BN.roas*(1-BN.cancel)+bc*BC.roas*(1-BC.cancel)+bp*BP.roas*(1-BP.cancel))*pf.r;
+  var clk=(BN.cpc>0?bn/BN.cpc:0)+(BC.cpc>0?bc/BC.cpc:0)+(BP.cpc>0?bp/BP.cpc:0);
+  var imp=(BN.cpc>0&&BN.ctr>0?bn/BN.cpc/BN.ctr:0)+(BC.cpc>0&&BC.ctr>0?bc/BC.cpc/BC.ctr:0)+(BP.cpc>0&&BP.ctr>0?bp/BP.cpc/BP.ctr:0);
+  var cpc=clk>0?b/clk*1e6:0;var ctr=imp>0?clk/imp:0;var cr=((BN.cvr+BC.cvr+BP.cvr)/3)*pf.c;
+  var ord=(BN.aov>0?bn*BN.roas*pf.r/BN.aov:0)+(BC.aov>0?bc*BC.roas*pf.r/BC.aov:0)+(BP.aov>0?bp*BP.roas*pf.r/BP.aov:0);
+  var roas=b>0?gmv/b:0;
+  var dk=mk+'.'+(d<10?'0'+d:d);var af=actD[dk];var hasA=!!(af&&(af.tot>0||af.gmv>0));
+  var aRoas=(af&&af.tot>0)?af.gmv/af.tot:0,aCpc=(af&&af.clk>0)?af.tot/af.clk*1e6:0,aCtr=(af&&af.impr>0)?af.clk/af.impr:0,aCr=(af&&af.clk>0)?af.conv/af.clk:0;
+  tot.b+=b;tot.gmv+=gmv;tot.nmv+=nmv;tot.ord+=ord;tot.imp+=imp;tot.clk+=clk;tot.pn+=bn;tot.pc+=bc;tot.pp+=bp;
+  if(af){tot.an+=af.nem;tot.ac+=af.chan;tot.ap+=af.pk;tot.at+=af.tot;tot.agmv+=af.gmv;tot.anmv+=af.nmv;tot.aconv+=af.conv;tot.aclk+=af.clk;tot.aimpr+=af.impr;}
+  var pa=function(plan,act){return plan+(hasA&&act!==''&&act!=null?' <span style="color:#0F6E56;font-weight:600;font-size:9px">· '+act+'</span>':'');};
+  var num=function(field,val,w){return '<input type="number" step="0.1" min="0" value="'+(val===''||val==null?'':val)+'" onchange="_adDayIn(\''+mk+'\','+d+',\''+field+'\',this.value)" style="width:'+(w||44)+'px;text-align:center;font-size:10px;padding:1px 2px">';};
+  var sel='<select onchange="_adDayIn(\''+mk+'\','+d+',\'phase\',this.value)" style="font-size:10px;padding:1px">'+phOpt.map(function(x){return '<option'+(x===o.phase?' selected':'')+'>'+x+'</option>';}).join('')+'</select>';
+  var lock='<input type="checkbox" '+(o.lock?'checked':'')+' onchange="_adDayLock(\''+mk+'\','+d+')" title="Khóa giữ nguyên NS ngày này">';
+  var noteInp='<input value="'+String(o.note||'').replace(/"/g,'&quot;')+'" onchange="_adDayIn(\''+mk+'\','+d+',\'note\',this.value)" style="width:300px;font-size:9.5px;padding:1px 3px">';
+  var td=function(v,r){return '<td style="padding:2px 5px;border-bottom:0.5px solid #F2F4F9'+(r?';text-align:center':'')+';white-space:nowrap">'+v+'</td>';};
+  h+='<tr style="background:'+(pf.bg||'#fff')+'">'
+   +td('<b>'+(d<10?'0'+d:d)+'/'+p[1]+'</b> <span style="color:#8494A8">'+wd+'</span>')
+   +td(sel)+td('<span style="color:'+(dt==='Sale Lớn'?'#A32D2D':'#5A6B80')+';font-weight:'+(dt==='Sale Lớn'?'600':'400')+'">'+dt+'</span>')+td(lock,1)
+   +td(num('w',o.w,44),1)
+   +td(num('sn',o.sn,38)+'%<br>'+pa('<span style="color:#5A6B80">'+_adTr1(bn)+'</span>',af?_adTr1(af.nem):''),1)
+   +td(num('sc',o.sc,38)+'%<br>'+pa('<span style="color:#5A6B80">'+_adTr1(bc)+'</span>',af?_adTr1(af.chan):''),1)
+   +td(num('sp',o.sp,38)+'%<br>'+pa('<span style="color:#5A6B80">'+_adTr1(bp)+'</span>',af?_adTr1(af.pk):''),1)
+   +td('<input type="number" step="0.1" min="0" value="'+(Math.round(b*100)/100)+'" onchange="_adDayIn(\''+mk+'\','+d+',\'tot\',this.value)" style="width:58px;text-align:center;font-size:10px;padding:1px 2px'+(o.lock?';background:#FFF7E6':'')+'"><br>'+pa('<span style="color:#5A6B80">'+_adTr1(b)+'</span>',hasA?_adTr1(af.tot):''),1)
+   +td(pa(_adN(cpc)+'đ',hasA?_adN(aCpc)+'đ':''),1)
+   +td(pa(_adPct(ctr),hasA?_adPct(aCtr):''),1)
+   +td(pa(_adPct(cr),hasA?_adPct(aCr):''),1)
+   +td(pa(_adR1(roas),hasA?_adR1(aRoas):''),1)
+   +td(pa(_adTr1(gmv),hasA?_adTr1(af.gmv):''),1)
+   +td(pa(_adTr1(nmv),hasA?_adTr1(af.nmv):''),1)
+   +td(pa(_adN(ord),hasA?_adN(af.conv):''),1)
+   +td(noteInp)+'</tr>';
  }
- var hasAT=tot.asp>0;
- function tt2(plan,act){return '<td style="padding:4px 5px;text-align:right;white-space:nowrap">'+plan+(hasAT?' <span style="color:#0F6E56;font-size:10px">· '+act+'</span>':'')+'</td>';}
- h+='<tr style="background:#EEF0FA;font-weight:700">'
-  +'<td style="padding:4px 5px">TỔNG</td>'
-  +'<td style="padding:4px 5px;text-align:right">'+_adTr1(tot.nem)+'</td>'
-  +'<td style="padding:4px 5px;text-align:right">'+_adTr1(tot.chan)+'</td>'
-  +'<td style="padding:4px 5px;text-align:right">'+_adTr1(tot.pk)+'</td>'
-  +'<td style="padding:4px 5px;text-align:right">'+_adTr1(tot.tt)+'</td>'
-  +tt2(_adTr1(tot.gmv),_adTr1(tot.agmv))
-  +tt2(_adTr1(tot.pnmv),_adTr1(tot.anmv))
-  +tt2(tot.tt>0?_adR1(tot.gmv/tot.tt):'—',tot.asp>0?_adR1(tot.agmv/tot.asp):'—')
-  +tt2(_adN(tot.pord),_adN(tot.aconv))
-  +tt2(_adN(tot.pclk),_adN(tot.aclk))
-  +tt2(_adN(tot.pcv),_adN(tot.aconv))
-  +'<td style="padding:4px 5px;text-align:right">'+(tot.asp>0?_adTr1(tot.asp):'—')+'</td><td></td></tr>';
+ var hasAT=tot.at>0;
+ var paT=function(plan,act){return plan+(hasAT&&act!==''&&act!=null?' <span style="color:#0F6E56;font-size:9px">· '+act+'</span>':'');};
+ var tCpc=tot.clk>0?tot.b/tot.clk*1e6:0,tCtr=tot.imp>0?tot.clk/tot.imp:0,tCr=tot.clk>0?tot.ord/tot.clk:0,tRoas=tot.b>0?tot.gmv/tot.b:0;
+ var aTCpc=tot.aclk>0?tot.at/tot.aclk*1e6:0,aTCtr=tot.aimpr>0?tot.aclk/tot.aimpr:0,aTCr=tot.aclk>0?tot.aconv/tot.aclk:0,aTRoas=tot.at>0?tot.agmv/tot.at:0;
+ var tdT=function(v){return '<td style="padding:4px 5px;text-align:center;white-space:nowrap">'+v+'</td>';};
+ h+='<tr style="background:#EEF0FA;font-weight:700"><td colspan="5" style="padding:4px 5px">TỔNG</td>'
+  +tdT(paT(_adTr1(tot.pn),_adTr1(tot.an)))+tdT(paT(_adTr1(tot.pc),_adTr1(tot.ac)))+tdT(paT(_adTr1(tot.pp),_adTr1(tot.ap)))
+  +tdT(paT(_adTr1(tot.b),_adTr1(tot.at)))
+  +tdT(paT(_adN(tCpc)+'đ',_adN(aTCpc)+'đ'))+tdT(paT(_adPct(tCtr),_adPct(aTCtr)))+tdT(paT(_adPct(tCr),_adPct(aTCr)))+tdT(paT(_adR1(tRoas),_adR1(aTRoas)))
+  +tdT(paT(_adTr1(tot.gmv),_adTr1(tot.agmv)))+tdT(paT(_adTr1(tot.nmv),_adTr1(tot.anmv)))+tdT(paT(_adN(tot.ord),_adN(tot.aconv)))+'<td></td></tr>';
  h+='</tbody></table>';
  document.getElementById('aplDaily').innerHTML=h;
 }
-function _adDayIn(mk,d,field,val){var P=_adPlanLoad();P.daily=P.daily||{};P.daily[mk]=P.daily[mk]||{};P.daily[mk][d]=P.daily[mk][d]||{};P.daily[mk][d][field]=+val||0;P.dayMonth=mk;_adPlanSave();renderAdsDaily();}
+function _adDayIn(mk,d,field,val){var P=_adPlanLoad();P.daily=P.daily||{};P.daily[mk]=P.daily[mk]||{};var o=(P.daily[mk][d]=P.daily[mk][d]||{});
+ if(field==='note'){o.note=val;}
+ else if(field==='phase'){o.phase=val;o.note=_adPhaseNote(val);}
+ else if(field==='tot'){o.tot=+val||0;o.lock=true;}
+ else{o[field]=+val||0;}
+ P.dayMonth=mk;_adPlanSave();renderAdsDaily();}
+function _adDayLock(mk,d){var P=_adPlanLoad();var nd=_adDaysInMonth(mk);_adDayDefaults(mk,nd,P);var o=P.daily[mk][d];
+ if(!o.lock){var mo=_adDayBudgets(mk,nd,P);o.tot=Math.round(mo.bud[d]*100)/100;o.lock=true;}else{o.lock=false;}
+ P.dayMonth=mk;_adPlanSave();renderAdsDaily();}
+function _adDayTarget(val){var P=_adPlanLoad();P.dayTarget=+val||0;_adPlanSave();renderAdsDaily();}
 function _adDayMonth(){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');if(s)P.dayMonth=s.value;_adPlanSave();renderAdsDaily();}
+try{window._adDayLock=_adDayLock;window._adDayTarget=_adDayTarget;window._adDayIn=_adDayIn;window._adDayMonth=_adDayMonth;window.renderAdsDaily=renderAdsDaily;}catch(e){}
+
 function _adPlanRow(ci,field,val){var P=_adPlanLoad();(P.rows[ci]=P.rows[ci]||{v:0,roas:0})[field]=+val||0;_adPlanSave();renderAdsPlan();}
 function _adPlanSet(field,val){var P=_adPlanLoad();P[field]=+val;_adPlanSave();renderAdsPlan();}
 function _adPlanMode(m){var P=_adPlanLoad();P.mode=m;document.querySelectorAll('#aplModeWrap button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-m')===m);});_adPlanSave();renderAdsPlan();}
