@@ -4105,9 +4105,9 @@ function _supaCompute(mainU8,adsU8){
   if(adsU8)py.FS.writeFile('/Sleep Expert — Ads Import.xlsx',adsU8);
   py.FS.writeFile('/build_engine.py',window._PY_ENGINE);
   var real=window._PY_REAL
-    .replace(/XL=".*?"/, 'XL="/main.xlsx"')
-    .replace("/sessions/sweet-pensive-hopper/mnt/outputs/build_engine.py","/build_engine.py")
-    .replace("/sessions/sweet-pensive-hopper/mnt/outputs/RAW_SE.json","/RAW_SE.json");
+    .replace(/XL\s*=\s*"[^"]*"/, 'XL="/main.xlsx"')
+    .split('/sessions/sweet-pensive-hopper/mnt/outputs/').join('/')
+    .split('/sessions/sweet-pensive-hopper/mnt/Data App/').join('/');
   _impLog('Chạy engine tính RAW…');
   py.runPython(real);
   return py.globals.get('out');
@@ -4329,10 +4329,11 @@ function fillType(){
  const OK=1432633302;
  function tryLogin(){
   const v=document.getElementById('gpw').value;
-  if(h(v)===OK){document.getElementById('gate').style.display='none';render();}
+  if(h(v)===OK){try{localStorage.setItem('SE_AUTH','1');}catch(e){}document.getElementById('gate').style.display='none';render();}
   else{document.getElementById('gerr').textContent='Sai mật khẩu — liên hệ Phòng Supply Chain.';document.getElementById('gpw').value='';}
  }
  document.getElementById('gbtn').addEventListener('click',tryLogin);
+ try{if(localStorage.getItem('SE_AUTH')==='1'){document.getElementById('gate').style.display='none';render();}}catch(e){}
  document.getElementById('gpw').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
 })();
 render();
