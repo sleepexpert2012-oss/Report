@@ -911,7 +911,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-import">
     <div class="eyebrow">Nội bộ · Dữ liệu chung trên Supabase</div>
     <h1 class="pt">Import dữ liệu</h1>
-    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-14 14:42</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
+    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-14 14:49</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
     <div class="card w2">
       <h2>Cập nhật dữ liệu mới nhất lên Supabase</h2>
       <div class="sub">Chọn file Excel → hệ thống đọc + tính toán ngay trong trình duyệt → đẩy bản mới nhất lên Supabase. Mọi người mở dashboard sẽ tự thấy bản mới (có banner "Tải bản mới").</div>
@@ -4104,7 +4104,11 @@ function _supaCompute(mainU8,adsU8){
  return _loadPyodide().then(function(py){
   py.FS.writeFile('/main.xlsx',mainU8);
   if(adsU8)py.FS.writeFile('/Sleep Expert — Ads Import.xlsx',adsU8);
-  py.FS.writeFile('/build_engine.py',window._PY_ENGINE);
+  var engine=window._PY_ENGINE
+    .split('/sessions/sweet-pensive-hopper/mnt/outputs/').join('/')
+    .split('/sessions/sweet-pensive-hopper/mnt/Data App/').join('/')
+    .replace(/open\([^\n]*RAW_SE\.json[^\n]*/g,'pass');  /* engine cũng ghi RAW_SE → bỏ */
+  py.FS.writeFile('/build_engine.py',engine);
   var real=window._PY_REAL
     .replace(/XL\s*=\s*"[^"]*"/, 'XL="/main.xlsx"')
     .split('/sessions/sweet-pensive-hopper/mnt/outputs/').join('/')
