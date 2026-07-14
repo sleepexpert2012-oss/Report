@@ -902,6 +902,8 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <div class="card w2"><h2>Phân bổ kế hoạch theo ngày</h2>
       <div style="display:flex;gap:8px;align-items:center;margin:2px 0 8px">
         <span style="font-size:12px;color:#6B7280">Tháng:</span><select id="aplDayMonth" onchange="_adDayMonth()"></select>
+        <button onclick="_adNewMonth()" style="font-weight:600">➕ Tạo kế hoạch tháng mới</button>
+        <span id="aplDayMsg" style="font-size:11.5px;color:#1D9E75"></span>
         <span style="font-size:12px;color:#6B7280">Đổi Giai đoạn / Trọng số / Ghi chú từng ngày · sửa Trọng số → tự chia lại NS các ngày khác, Tổng luôn = Mục tiêu · Khóa để giữ nguyên 1 ngày.</span>
       </div>
       <div class="twrap" style="max-height:none;overflow-x:auto"><div id="aplDaily"></div></div>
@@ -911,7 +913,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-import">
     <div class="eyebrow">Nội bộ · Dữ liệu chung trên Supabase</div>
     <h1 class="pt">Import dữ liệu</h1>
-    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-14 15:03</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
+    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-14 15:20</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
     <div class="card w2">
       <h2>Cập nhật dữ liệu mới nhất lên Supabase</h2>
       <div class="sub">Chọn file Excel → hệ thống đọc + tính toán ngay trong trình duyệt → đẩy bản mới nhất lên Supabase. Mọi người mở dashboard sẽ tự thấy bản mới (có banner "Tải bản mới").</div>
@@ -921,6 +923,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       </div>
       <div style="margin:10px 0"><label style="font-size:12px;color:#6B7280">Người import:</label> <input id="impWho" placeholder="Tên bạn" style="width:170px;font-size:13px;padding:3px 6px"></div>
       <button id="impBtn" onclick="_supaDoImport()" style="font-weight:600">⬆ Import lên Supabase</button>
+      <button onclick="_supaReset()" style="margin-left:8px">↺ Xóa dữ liệu đã lưu (về bản gốc)</button>
       <div id="impLog" style="margin-top:12px;font-size:12px;line-height:1.6;background:#F7F9FC;border:0.5px solid #E6E8F0;border-radius:8px;padding:10px 12px;min-height:36px;max-height:320px;overflow:auto"></div>
     </div>
     <div class="card w2"><h2>Lưu ý</h2><div class="sub">• Lần đầu tính toán sẽ tải Pyodide (~10MB) để chạy engine trong trình duyệt — hơi lâu, các lần sau nhanh hơn.<br>• Có thể import chỉ 1 trong 2 file. File Ads do phòng khác quản, import riêng ở ô số 2.<br>• Sau khi import xong, bấm "Tải lại dashboard" để xem số liệu mới.</div></div>
@@ -3950,8 +3953,19 @@ function renderAdsPlan(){
 function _adPlanExp(pg){var e=(S._planExp=S._planExp||{});e[pg]=!e[pg];renderAdsPlan();}
 
 /* ===== Bảng phân bổ theo NGÀY (Nệm/Chăn/Phụ kiện) ===== */
-function _adDayFill(){var A=RAW.ads,s=document.getElementById('aplDayMonth');if(!s||s.options.length)return;
- s.innerHTML=A.months.map(function(mk){return '<option value="'+mk+'">'+mk+'</option>';}).join('');var P=_adPlanLoad();s.value=P.dayMonth||A.months[A.months.length-1];}
+function _adMonthList(){var A=RAW.ads;var seen={};var list=[];A.months.forEach(function(m){if(!seen[m]){seen[m]=1;list.push(m);}});
+ var last=list[list.length-1]||'2026.01';var p=last.split('.');var y=+p[0],m=+p[1];
+ for(var k=0;k<12;k++){m++;if(m>12){m=1;y++;}var nm=y+'.'+(m<10?'0'+m:m);if(!seen[nm]){seen[nm]=1;list.push(nm);}}
+ var P=_adPlanLoad();for(var mk in (P.daily||{})){if(!seen[mk]){seen[mk]=1;list.push(mk);}}
+ list.sort();return list;}
+function _adDayFill(){var s=document.getElementById('aplDayMonth');if(!s)return;var P=_adPlanLoad();var cur=P.dayMonth||s.value;
+ var list=_adMonthList();
+ s.innerHTML=list.map(function(mk){var isFut=RAW.ads.months.indexOf(mk)<0;return '<option value="'+mk+'"'+(isFut?' data-fut="1"':'')+'>'+mk+(isFut?' (kế hoạch)':'')+'</option>';}).join('');
+ s.value=cur||(RAW.ads.months[RAW.ads.months.length-1]);}
+function _adNewMonth(){var s=document.getElementById('aplDayMonth');var cur=(s&&s.value)||(_adPlanLoad().dayMonth)||RAW.ads.months[RAW.ads.months.length-1];
+ var p=cur.split('.');var y=+p[0],m=+p[1]+1;if(m>12){m=1;y++;}var nm=y+'.'+(m<10?'0'+m:m);
+ var P=_adPlanLoad();P.dayMonth=nm;_adPlanSave();renderAdsDaily();
+ var note=document.getElementById('aplDayMsg');if(note)note.textContent='Đã tạo kế hoạch tháng '+nm+' (tự lưu). Nhập trọng số/giai đoạn cho tháng này.';}
 function _adDaysInMonth(mk){var p=mk.split('.');return new Date(+p[0],+p[1],0).getDate();}
 function _adPhaseNote(ph){return {'Sale':'SCALE TỐI ĐA: tăng bid +20–30% so ngày thường, mở rộng Discovery/GMV Max, bật hết remarketing','Pre-heat':'LÀM NÓNG: tăng dần bid +5–10%, đẩy Discovery & nội dung teaser, kích thích Add To Cart','Sustain':'DUY TRÌ ĐÀ: giữ bid cao hơn ngày thường ~8%, ưu tiên Search Manual remarketing','Normal':'GIỮ QUALITY SCORE: ngân sách tối thiểu an toàn, không tắt campaign, rà soát từ khoá'}[ph]||'';}
 function _adPhaseFac(ph){return {'Sale':{r:1.08,c:1.07,bg:'#FCE9E9'},'Pre-heat':{r:1.02,c:1.01,bg:'#FAF0DC'},'Sustain':{r:1.0,c:1.0,bg:'#E6F0FA'},'Normal':{r:0.9,c:0.9,bg:''}}[ph]||{r:1,c:1,bg:''};}
@@ -4041,7 +4055,7 @@ function _adDayLock(mk,d){var P=_adPlanLoad();var nd=_adDaysInMonth(mk);_adDayDe
  P.dayMonth=mk;_adPlanSave();renderAdsDaily();}
 function _adDayTarget(val){var P=_adPlanLoad();P.dayTarget=+val||0;_adPlanSave();renderAdsDaily();}
 function _adDayMonth(){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');if(s)P.dayMonth=s.value;_adPlanSave();renderAdsDaily();}
-try{window._adDayLock=_adDayLock;window._adDayTarget=_adDayTarget;window._adDayIn=_adDayIn;window._adDayMonth=_adDayMonth;window.renderAdsDaily=renderAdsDaily;}catch(e){}
+try{window._adDayLock=_adDayLock;window._adDayTarget=_adDayTarget;window._adDayIn=_adDayIn;window._adDayMonth=_adDayMonth;window.renderAdsDaily=renderAdsDaily;window._adNewMonth=_adNewMonth;}catch(e){}
 
 function _adPlanRow(ci,field,val){var P=_adPlanLoad();(P.rows[ci]=P.rows[ci]||{v:0,roas:0})[field]=+val||0;_adPlanSave();renderAdsPlan();}
 function _adPlanSet(field,val){var P=_adPlanLoad();P[field]=+val;_adPlanSave();renderAdsPlan();}
@@ -4072,6 +4086,8 @@ var SUPA_URL='https://jkrczsrhonmqxwzzdgen.supabase.co';
 var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprcmN6c3Job25tcXh3enpkZ2VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NzI0NzIsImV4cCI6MjA5OTU0ODQ3Mn0.626X_X3IT7pScUkM9NDn2EXzzR8F4nEDUpjdlNXSfxg';
 function _supaH(extra){var h={apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'};if(extra)for(var k in extra)h[k]=extra[k];return h;}
 function _supaInsert(table,row){return fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:_supaH({Prefer:'return=minimal'}),body:JSON.stringify(row)});}
+/* upsert: cập nhật LẠI dòng đang có (merge theo cột unique) thay vì cộng dồn dòng mới */
+function _supaUpsert(table,row){row.created_at=new Date().toISOString();return fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:_supaH({Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(row)});}
 function _supaLatest(){return fetch(SUPA_URL+'/rest/v1/snapshot?select=payload,created_at,uploaded_by&order=created_at.desc&limit=1',{headers:_supaH()}).then(function(r){return r.ok?r.json():[];});}
 function _supaLatestDataset(kind){return fetch(SUPA_URL+'/rest/v1/dataset?kind=eq.'+encodeURIComponent(kind)+'&select=payload&order=created_at.desc&limit=1',{headers:_supaH()}).then(function(r){return r.ok?r.json():[];});}
 function _u8ToB64(u8){var s='',CH=0x8000;for(var i=0;i<u8.length;i+=CH){s+=String.fromCharCode.apply(null,u8.subarray(i,i+CH));}return btoa(s);}
@@ -4132,16 +4148,16 @@ function _supaDoImport(){
  var mainU8=null, adsU8=null;
  Promise.resolve()
  .then(function(){return fMain?_readBytes(fMain):null;})
- .then(function(u){if(u){mainU8=u;_impLog('Đọc file chính: '+fMain.name+' ('+Math.round(fMain.size/1024)+'KB)');return _supaInsert('dataset',{kind:'main',payload:{b64:_u8ToB64(u),name:fMain.name},uploaded_by:who,note:fMain.name}).then(function(r){_impLog(r.ok?'✔ Lưu dữ liệu chính lên Supabase':'⚠ Lỗi lưu chính: '+r.status, r.ok?'#1D9E75':'#E24B4A');});}})
+ .then(function(u){if(u){mainU8=u;_impLog('Đọc file chính: '+fMain.name+' ('+Math.round(fMain.size/1024)+'KB)');return _supaUpsert('dataset',{kind:'main',payload:{b64:_u8ToB64(u),name:fMain.name},uploaded_by:who,note:fMain.name}).then(function(r){_impLog(r.ok?'✔ Lưu dữ liệu chính lên Supabase':'⚠ Lỗi lưu chính: '+r.status, r.ok?'#1D9E75':'#E24B4A');});}})
  .then(function(){return fAds?_readBytes(fAds):null;})
- .then(function(u){if(u){adsU8=u;_impLog('Đọc file ads: '+fAds.name+' ('+Math.round(fAds.size/1024)+'KB)');return _supaInsert('dataset',{kind:'ads',payload:{b64:_u8ToB64(u),name:fAds.name},uploaded_by:who,note:fAds.name}).then(function(r){_impLog(r.ok?'✔ Lưu dữ liệu ads lên Supabase':'⚠ Lỗi lưu ads: '+r.status, r.ok?'#1D9E75':'#E24B4A');});}})
+ .then(function(u){if(u){adsU8=u;_impLog('Đọc file ads: '+fAds.name+' ('+Math.round(fAds.size/1024)+'KB)');return _supaUpsert('dataset',{kind:'ads',payload:{b64:_u8ToB64(u),name:fAds.name},uploaded_by:who,note:fAds.name}).then(function(r){_impLog(r.ok?'✔ Lưu dữ liệu ads lên Supabase':'⚠ Lỗi lưu ads: '+r.status, r.ok?'#1D9E75':'#E24B4A');});}})
  .then(function(){if(mainU8)return;_impLog('Chưa chọn file chính → lấy bản chính mới nhất trên Supabase để tính đủ…');return _supaLatestDataset('main').then(function(a){if(a&&a[0]&&a[0].payload&&a[0].payload.b64){mainU8=_b64ToU8(a[0].payload.b64);_impLog('✔ Đã lấy dữ liệu chính từ Supabase');}else{_impLog('⚠ Trên Supabase chưa có dữ liệu chính — cần import file chính ít nhất 1 lần trước.','#EF9F27');}});})
  .then(function(){if(adsU8)return;return _supaLatestDataset('ads').then(function(a){if(a&&a[0]&&a[0].payload&&a[0].payload.b64){adsU8=_b64ToU8(a[0].payload.b64);_impLog('✔ Đã lấy dữ liệu ads từ Supabase (để tính đủ)');}}).catch(function(){});})
  .then(function(){
    if(!mainU8){_impLog('Không có dữ liệu chính → chỉ lưu dữ liệu thô, chưa tính snapshot.','#EF9F27');return null;}
    return _supaCompute(mainU8,adsU8).then(function(out){
      _impLog('✔ Tính RAW xong ('+Math.round(out.length/1024)+'KB). Đang đẩy snapshot…','#1D9E75');
-     return _supaInsert('snapshot',{payload:JSON.parse(out),bytes:out.length,uploaded_by:who}).then(function(r){
+     return _supaUpsert('snapshot',{slot:'current',payload:JSON.parse(out),bytes:out.length,uploaded_by:who}).then(function(r){
        if(r.ok){try{localStorage.setItem('SE_RAW',out);localStorage.setItem('SE_RAW_TS',new Date().toISOString());}catch(e){}
          _impLog('✅ HOÀN TẤT. <a href="#" onclick="location.reload();return false;" style="color:#1D9E75;font-weight:700">Tải lại dashboard để xem dữ liệu mới</a>','#1D9E75');}
        else _impLog('⚠ Lỗi đẩy snapshot: '+r.status,'#E24B4A');
@@ -4151,6 +4167,8 @@ function _supaDoImport(){
  .catch(function(e){_impLog('❌ Lỗi: '+(e&&e.message||e),'#E24B4A');_impLog('(Dữ liệu thô có thể đã lưu; phần tính RAW cần chạy trên trình duyệt thật.)','#8494A8');})
  .then(function(){document.getElementById('impBtn').disabled=false;});
 }
+function _supaReset(){try{localStorage.removeItem('SE_RAW');localStorage.removeItem('SE_RAW_TS');}catch(e){}location.reload();}
+window._supaReset=_supaReset;
 function renderImport(){/* nội dung tĩnh trong section; chỉ đảm bảo tồn tại */}
 window._supaCheckLatest=_supaCheckLatest;window._supaApply=_supaApply;window._supaDoImport=_supaDoImport;window.renderImport=renderImport;
 
