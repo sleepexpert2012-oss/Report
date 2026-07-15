@@ -907,6 +907,18 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       </div>
       <div style="font-size:12px;color:#6B7280;margin:0 0 8px">Mỗi tháng có Mục tiêu &amp; kế hoạch riêng, lưu độc lập. Chọn ô <b>Tháng</b> để xem lại tháng cũ (dấu <b>✓</b> = đã lưu). Đổi Giai đoạn / Trọng số từng ngày · sửa Trọng số → tự chia lại NS, Tổng luôn = Mục tiêu · Khóa để giữ nguyên 1 ngày.
       </div>
+      <style>
+        #aplDaily input.apc,#aplDaily select{border:1px solid transparent;background:#F1F3F9;border-radius:6px;color:#1B1C4C;font-size:10px;padding:2px 4px;text-align:center;-moz-appearance:textfield;transition:background .12s,border-color .12s}
+        #aplDaily input.apc:hover,#aplDaily select:hover{background:#E8EBF5}
+        #aplDaily input.apc:focus,#aplDaily select:focus{background:#fff;border-color:#B9BEE0;outline:none;box-shadow:0 0 0 2px rgba(54,62,153,.09)}
+        #aplDaily input.apc::-webkit-outer-spin-button,#aplDaily input.apc::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+        #aplDaily .pc{color:#B4B9C6;font-style:normal;font-size:9px;margin-left:1px}
+        #aplDaily .s2{font-size:10px;color:#7A828F;white-space:nowrap}
+        #aplDaily .ac{color:#0F9E6E;font-weight:600}
+        #aplDaily .ac::before{content:'·';color:#CBD0DA;font-weight:400;margin:0 3px}
+        #aplDaily td{border-bottom:1px solid #F4F6FA!important}
+        #aplDaily input[type=checkbox]{accent-color:#363E99}
+      </style>
       <div class="twrap" style="max-height:none;overflow-x:auto"><div id="aplDaily"></div></div>
     </div>
   </section>
@@ -914,7 +926,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-import">
     <div class="eyebrow">Nội bộ · Dữ liệu chung trên Supabase</div>
     <h1 class="pt">Import dữ liệu</h1>
-    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-15 13:31</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
+    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-15 13:52</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
     <div class="card w2">
       <h2>Cập nhật dữ liệu mới nhất lên Supabase</h2>
       <div class="sub">Chọn file Excel → hệ thống đọc + tính toán ngay trong trình duyệt → đẩy bản mới nhất lên Supabase. Dashboard chỉ lấy dữ liệu từ Supabase — mọi người mở lại là thấy bản mới nhất.</div>
@@ -4028,9 +4040,9 @@ function renderAdsDaily(){
   tot.b+=b;tot.gmv+=gmv;tot.nmv+=nmv;tot.ord+=ord;tot.imp+=imp;tot.clk+=clk;tot.pn+=bn;tot.pc+=bc;tot.pp+=bp;
   if(af){tot.an+=af.nem;tot.ac+=af.chan;tot.ap+=af.pk;tot.at+=af.tot;tot.agmv+=af.gmv;tot.anmv+=af.nmv;tot.aconv+=af.conv;tot.aclk+=af.clk;tot.aimpr+=af.impr;}
   if(sd){tot.sgmv+=sd[0];tot.snmv+=sd[1];tot.sord+=sd[2];}
-  var pa=function(plan,act){return plan+(hasA&&act!==''&&act!=null?' <span style="color:#0F6E56;font-weight:600;font-size:9px">· '+act+'</span>':'');};
-  var paS=function(plan,act){return plan+(hasS&&act!==''&&act!=null?' <span style="color:#0F6E56;font-weight:600;font-size:9px">· '+act+'</span>':'');};
-  var num=function(field,val,w){return '<input type="number" step="0.1" min="0" value="'+(val===''||val==null?'':val)+'" onchange="_adDayIn(\''+mk+'\','+d+',\''+field+'\',this.value)" style="width:'+(w||44)+'px;text-align:center;font-size:10px;padding:1px 2px">';};
+  var pa=function(plan,act){return '<span class="s2">'+plan+(hasA&&act!==''&&act!=null?'<span class="ac">'+act+'</span>':'')+'</span>';};
+  var paS=function(plan,act){return '<span class="s2">'+plan+(hasS&&act!==''&&act!=null?'<span class="ac">'+act+'</span>':'')+'</span>';};
+  var num=function(field,val,w){return '<input class="apc" type="number" step="0.1" min="0" value="'+(val===''||val==null?'':val)+'" onchange="_adDayIn(\''+mk+'\','+d+',\''+field+'\',this.value)" style="width:'+(w||44)+'px">';};
   var sel='<select onchange="_adDayIn(\''+mk+'\','+d+',\'phase\',this.value)" style="font-size:10px;padding:1px">'+phOpt.map(function(x){return '<option'+(x===o.phase?' selected':'')+'>'+x+'</option>';}).join('')+'</select>';
   var lock='<input type="checkbox" '+(o.lock?'checked':'')+' onchange="_adDayLock(\''+mk+'\','+d+')" title="Khóa giữ nguyên NS ngày này">';
   var noteInp='<input value="'+String(o.note||'').replace(/"/g,'&quot;')+'" onchange="_adDayIn(\''+mk+'\','+d+',\'note\',this.value)" style="width:300px;font-size:9.5px;padding:1px 3px">';
@@ -4039,10 +4051,10 @@ function renderAdsDaily(){
    +td('<b>'+(d<10?'0'+d:d)+'/'+p[1]+'</b> <span style="color:#8494A8">'+wd+'</span>')
    +td(sel)+td('<span style="color:'+(dt==='Sale Lớn'?'#A32D2D':'#5A6B80')+';font-weight:'+(dt==='Sale Lớn'?'600':'400')+'">'+dt+'</span>')+td(lock,1)
    +td(num('w',o.w,44),1)
-   +td(num('sn',o.sn,38)+'%<br>'+pa('<span style="color:#5A6B80">'+_adTr1(bn)+'</span>',af?_adTr1(af.nem):''),1)
-   +td(num('sc',o.sc,38)+'%<br>'+pa('<span style="color:#5A6B80">'+_adTr1(bc)+'</span>',af?_adTr1(af.chan):''),1)
-   +td(num('sp',o.sp,38)+'%<br>'+pa('<span style="color:#5A6B80">'+_adTr1(bp)+'</span>',af?_adTr1(af.pk):''),1)
-   +td('<input type="number" step="0.1" min="0" value="'+(Math.round(b*100)/100)+'" onchange="_adDayIn(\''+mk+'\','+d+',\'tot\',this.value)" style="width:58px;text-align:center;font-size:10px;padding:1px 2px'+(o.lock?';background:#FFF7E6':'')+'"><br>'+pa('<span style="color:#5A6B80">'+_adTr1(b)+'</span>',hasA?_adTr1(af.tot):''),1)
+   +td(num('sn',o.sn,38)+'<i class="pc">%</i><br>'+pa(_adTr1(bn),af?_adTr1(af.nem):''),1)
+   +td(num('sc',o.sc,38)+'<i class="pc">%</i><br>'+pa(_adTr1(bc),af?_adTr1(af.chan):''),1)
+   +td(num('sp',o.sp,38)+'<i class="pc">%</i><br>'+pa(_adTr1(bp),af?_adTr1(af.pk):''),1)
+   +td('<input class="apc" type="number" step="0.1" min="0" value="'+(Math.round(b*100)/100)+'" onchange="_adDayIn(\''+mk+'\','+d+',\'tot\',this.value)" style="width:58px'+(o.lock?';background:#FFF7E6':'')+'"><br>'+pa(_adTr1(b),hasA?_adTr1(af.tot):''),1)
    +td(pa(_adN(cpc)+'đ',hasA?_adN(aCpc)+'đ':''),1)
    +td(pa(_adPct(ctr),hasA?_adPct(aCtr):''),1)
    +td(pa(_adPct(cr),hasA?_adPct(aCr):''),1)
@@ -4053,8 +4065,8 @@ function renderAdsDaily(){
    +'</tr>';
  }
  var hasAT=tot.at>0,hasST=tot.sgmv>0;
- var paT=function(plan,act){return plan+(hasAT&&act!==''&&act!=null?' <span style="color:#0F6E56;font-size:9px">· '+act+'</span>':'');};
- var paTS=function(plan,act){return plan+(hasST&&act!==''&&act!=null?' <span style="color:#0F6E56;font-size:9px">· '+act+'</span>':'');};
+ var paT=function(plan,act){return plan+(hasAT&&act!==''&&act!=null?'<span class="ac">'+act+'</span>':'');};
+ var paTS=function(plan,act){return plan+(hasST&&act!==''&&act!=null?'<span class="ac">'+act+'</span>':'');};
  var tCpc=tot.clk>0?tot.b/tot.clk*1e6:0,tCtr=tot.imp>0?tot.clk/tot.imp:0,tCr=tot.clk>0?tot.ord/tot.clk:0,tRoas=tot.b>0?tot.gmv/tot.b:0;
  var aTCpc=tot.aclk>0?tot.at/tot.aclk*1e6:0,aTCtr=tot.aimpr>0?tot.aclk/tot.aimpr:0,aTCr=tot.aclk>0?tot.aconv/tot.aclk:0,aTRoas=tot.at>0?tot.sgmv/tot.at:0;
  var tdT=function(v){return '<td style="padding:4px 5px;text-align:center;white-space:nowrap">'+v+'</td>';};
