@@ -902,8 +902,10 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <div style="display:flex;gap:8px;align-items:center;margin:2px 0 8px">
         <span style="font-size:12px;color:#6B7280">Tháng:</span><select id="aplDayMonth" onchange="_adDayMonth()"></select>
         <button onclick="_adNewMonth()" style="font-weight:600">➕ Tạo kế hoạch tháng mới</button>
-        <span id="aplDayMsg" style="font-size:11.5px;color:#1D9E75"></span>
-        <span style="font-size:12px;color:#6B7280">Đổi Giai đoạn / Trọng số / Ghi chú từng ngày · sửa Trọng số → tự chia lại NS các ngày khác, Tổng luôn = Mục tiêu · Khóa để giữ nguyên 1 ngày.</span>
+        <button onclick="_adDaySave()" style="font-weight:600;background:#1D9E75;color:#fff;border:none">💾 Lưu kế hoạch tháng này</button>
+        <span id="aplDayMsg" style="font-size:11.5px"></span>
+      </div>
+      <div style="font-size:12px;color:#6B7280;margin:0 0 8px">Mỗi tháng có Mục tiêu &amp; kế hoạch riêng, lưu độc lập. Chọn ô <b>Tháng</b> để xem lại tháng cũ (dấu <b>✓</b> = đã lưu). Đổi Giai đoạn / Trọng số từng ngày · sửa Trọng số → tự chia lại NS, Tổng luôn = Mục tiêu · Khóa để giữ nguyên 1 ngày.
       </div>
       <div class="twrap" style="max-height:none;overflow-x:auto"><div id="aplDaily"></div></div>
     </div>
@@ -912,7 +914,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-import">
     <div class="eyebrow">Nội bộ · Dữ liệu chung trên Supabase</div>
     <h1 class="pt">Import dữ liệu</h1>
-    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-15 11:08</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
+    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-15 11:32</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
     <div class="card w2">
       <h2>Cập nhật dữ liệu mới nhất lên Supabase</h2>
       <div class="sub">Chọn file Excel → hệ thống đọc + tính toán ngay trong trình duyệt → đẩy bản mới nhất lên Supabase. Dashboard chỉ lấy dữ liệu từ Supabase — mọi người mở lại là thấy bản mới nhất.</div>
@@ -3965,7 +3967,7 @@ function _adMonthList(){var A=RAW.ads;var seen={};var list=[];A.months.forEach(f
  list.sort();return list;}
 function _adDayFill(){var s=document.getElementById('aplDayMonth');if(!s)return;var P=_adPlanLoad();var cur=P.dayMonth||s.value;
  var list=_adMonthList();
- s.innerHTML=list.map(function(mk){var isFut=RAW.ads.months.indexOf(mk)<0;return '<option value="'+mk+'"'+(isFut?' data-fut="1"':'')+'>'+mk+(isFut?' (kế hoạch)':'')+'</option>';}).join('');
+ s.innerHTML=list.map(function(mk){var isFut=RAW.ads.months.indexOf(mk)<0;var sv=(P.savedM&&P.savedM[mk])?' ✓ đã lưu':'';return '<option value="'+mk+'"'+(isFut?' data-fut="1"':'')+'>'+mk+(isFut?' (kế hoạch)':'')+sv+'</option>';}).join('');
  s.value=cur||(RAW.ads.months[RAW.ads.months.length-1]);}
 function _adNewMonth(){var s=document.getElementById('aplDayMonth');var cur=(s&&s.value)||(_adPlanLoad().dayMonth)||RAW.ads.months[RAW.ads.months.length-1];
  var p=cur.split('.');var y=+p[0],m=+p[1]+1;if(m>12){m=1;y++;}var nm=y+'.'+(m<10?'0'+m:m);
@@ -3977,7 +3979,8 @@ function _adPhaseFac(ph){return {'Sale':{r:1.08,c:1.07,bg:'#FCE9E9'},'Pre-heat':
 function _adDayDefaults(mk,nd,P){P.daily=P.daily||{};P.daily[mk]=P.daily[mk]||{};var dd=P.daily[mk];var defW={'Sale':3,'Pre-heat':2,'Sustain':1.5,'Normal':1};
  for(var d=1;d<=nd;d++){var o=dd[d]=dd[d]||{};if(o.phase==null){var t=_adDayType(mk,d);o.phase=(t==='Sale Lớn')?'Sale':'Normal';}if(o.w==null)o.w=defW[o.phase]||1;if(o.sn==null){o.sn=60;o.sc=30;o.sp=10;}if(o.note==null)o.note=_adPhaseNote(o.phase);}
  return dd;}
-function _adDayBudgets(mk,nd,P){var dd=P.daily[mk];var T=+P.dayTarget||30;var L=0,Wu=0;
+function _adDayTargetOf(mk,P){var t=(P.dayTargetByM||{})[mk];if(t!=null&&t!=='')return +t;return +P.dayTarget||30;}
+function _adDayBudgets(mk,nd,P){var dd=P.daily[mk];var T=_adDayTargetOf(mk,P);var L=0,Wu=0;
  for(var d=1;d<=nd;d++){var o=dd[d];if(o.lock)L+=(+o.tot||0);else Wu+=(+o.w||0);}
  var rem=Math.max(0,T-L);var bud={};for(var d=1;d<=nd;d++){var o=dd[d];bud[d]=o.lock?(+o.tot||0):(Wu>0?rem*(+o.w||0)/Wu:0);}
  return {bud:bud,T:T,L:L};}
@@ -3993,8 +3996,8 @@ function renderAdsDaily(){
   +'<span style="font-size:12px;color:#6B7280">🎯 Mục tiêu tháng (tr):</span><input type="number" step="0.5" min="0" value="'+mo.T+'" onchange="_adDayTarget(this.value)" style="width:90px;text-align:right">'
   +'<span style="font-size:12px;color:#6B7280">Thực tế sau điều chỉnh: <b style="color:#1B1C4C">'+_adTr1(totBud)+'</b></span>'
   +'<span style="font-size:12px;color:'+(match?'#1D9E75':'#E24B4A')+';font-weight:600">'+(match?'✓ Khớp Mục tiêu':'≠ lệch '+_adTr1(totBud-mo.T)+' (khóa vượt mục tiêu?)')+'</span></div>';
- var cols=['Ngày','Giai đoạn','Loại ngày','Khóa','Trọng số','NS Nệm','NS Chăn','NS Phụ kiện','Tổng NS (tr)','CPC','CTR','CR','ROAS','GMV','NMV','Đơn','Ghi chú chiến lược'];
- var h=ctrl+'<div style="font-size:10px;color:#0F6E56;margin-bottom:4px">Số <b>xanh lá</b> = thực tế · GMV/NMV/Đơn theo <b>doanh số bán thật mỗi ngày</b> (đến ngày mới nhất); NS/CPC/CTR/CR theo <b>ads</b>; ROAS thực tế = doanh số shop ÷ chi ads (blended).</div><table style="width:100%;border-collapse:collapse;font-size:10.5px"><thead><tr style="background:#1B1C4C;color:#fff">'+cols.map(function(c,ci){var lft=(ci<3||ci===16);return '<th style="padding:5px 5px;white-space:nowrap;text-align:'+(lft?'left':'center')+'">'+c+'</th>';}).join('')+'</tr></thead><tbody>';
+ var cols=['Ngày','Giai đoạn','Loại ngày','Khóa','Trọng số','NS Nệm','NS Chăn','NS Phụ kiện','Tổng NS (tr)','CPC','CTR','CR','ROAS','GMV','NMV','Đơn'];
+ var h=ctrl+'<div style="font-size:10px;color:#0F6E56;margin-bottom:4px">Số <b>xanh lá</b> = thực tế · GMV/NMV/Đơn theo <b>doanh số bán thật mỗi ngày</b> (đến ngày mới nhất); NS/CPC/CTR/CR theo <b>ads</b>; ROAS thực tế = doanh số shop ÷ chi ads (blended).</div><table style="width:100%;border-collapse:collapse;font-size:10.5px"><thead><tr style="background:#1B1C4C;color:#fff">'+cols.map(function(c,ci){var lft=(ci<3);return '<th style="padding:5px 5px;white-space:nowrap;text-align:'+(lft?'left':'center')+'">'+c+'</th>';}).join('')+'</tr></thead><tbody>';
  var WD=['CN','T2','T3','T4','T5','T6','T7'];var phOpt=['Normal','Pre-heat','Sustain','Sale'];
  var iset={};iset[iNem]='nem';iset[iChan]='chan';iset[iPK]='pk';
  var actD={};A.prod.forEach(function(pp){var key=iset[pp.pg];if(!key)return;var cc=pp.cancel||0;for(var dk in (pp.byD||{})){if(dk.slice(0,7)!==mk)continue;var v=pp.byD[dk];var oo=actD[dk]=actD[dk]||{nem:0,chan:0,pk:0,tot:0,gmv:0,nmv:0,conv:0,clk:0,impr:0};oo[key]+=v[8];oo.tot+=v[8];oo.gmv+=v[6];oo.nmv+=v[6]*(1-cc);oo.conv+=v[2];oo.clk+=v[1];oo.impr+=v[0];}});
@@ -4039,7 +4042,7 @@ function renderAdsDaily(){
    +td(paS(_adTr1(gmv),hasS?_adTr1(sd[0]):''),1)
    +td(paS(_adTr1(nmv),hasS?_adTr1(sd[1]):''),1)
    +td(paS(_adN(ord),hasS?_adN(sd[2]):''),1)
-   +td(noteInp)+'</tr>';
+   +'</tr>';
  }
  var hasAT=tot.at>0,hasST=tot.sgmv>0;
  var paT=function(plan,act){return plan+(hasAT&&act!==''&&act!=null?' <span style="color:#0F6E56;font-size:9px">· '+act+'</span>':'');};
@@ -4051,9 +4054,11 @@ function renderAdsDaily(){
   +tdT(paT(_adTr1(tot.pn),_adTr1(tot.an)))+tdT(paT(_adTr1(tot.pc),_adTr1(tot.ac)))+tdT(paT(_adTr1(tot.pp),_adTr1(tot.ap)))
   +tdT(paT(_adTr1(tot.b),_adTr1(tot.at)))
   +tdT(paT(_adN(tCpc)+'đ',_adN(aTCpc)+'đ'))+tdT(paT(_adPct(tCtr),_adPct(aTCtr)))+tdT(paT(_adPct(tCr),_adPct(aTCr)))+tdT(paT(_adR1(tRoas),_adR1(aTRoas)))
-  +tdT(paTS(_adTr1(tot.gmv),_adTr1(tot.sgmv)))+tdT(paTS(_adTr1(tot.nmv),_adTr1(tot.snmv)))+tdT(paTS(_adN(tot.ord),_adN(tot.sord)))+'<td></td></tr>';
+  +tdT(paTS(_adTr1(tot.gmv),_adTr1(tot.sgmv)))+tdT(paTS(_adTr1(tot.nmv),_adTr1(tot.snmv)))+tdT(paTS(_adN(tot.ord),_adN(tot.sord)))+'</tr>';
  h+='</tbody></table>';
  document.getElementById('aplDaily').innerHTML=h;
+ var _msg=document.getElementById('aplDayMsg');
+ if(_msg){var _sv=(P.savedM&&P.savedM[mk]);if(_sv){_msg.style.color='#1D9E75';_msg.innerHTML='✓ Kế hoạch tháng '+mk+' đã lưu ('+new Date(_sv).toLocaleDateString('vi-VN')+')';}else{_msg.style.color='#B8860B';_msg.innerHTML='● Tháng '+mk+' chưa lưu — bấm 💾 Lưu để chốt';}}
 }
 function _adDayIn(mk,d,field,val){var P=_adPlanLoad();P.daily=P.daily||{};P.daily[mk]=P.daily[mk]||{};var o=(P.daily[mk][d]=P.daily[mk][d]||{});
  if(field==='note'){o.note=val;}
@@ -4064,9 +4069,11 @@ function _adDayIn(mk,d,field,val){var P=_adPlanLoad();P.daily=P.daily||{};P.dail
 function _adDayLock(mk,d){var P=_adPlanLoad();var nd=_adDaysInMonth(mk);_adDayDefaults(mk,nd,P);var o=P.daily[mk][d];
  if(!o.lock){var mo=_adDayBudgets(mk,nd,P);o.tot=Math.round(mo.bud[d]*100)/100;o.lock=true;}else{o.lock=false;}
  P.dayMonth=mk;_adPlanSave();renderAdsDaily();}
-function _adDayTarget(val){var P=_adPlanLoad();P.dayTarget=+val||0;_adPlanSave();renderAdsDaily();}
+function _adDayTarget(val){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');var mk=(s&&s.value)||P.dayMonth;if(!mk)return;P.dayTargetByM=P.dayTargetByM||{};P.dayTargetByM[mk]=+val||0;_adPlanSave();renderAdsDaily();}
 function _adDayMonth(){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');if(s)P.dayMonth=s.value;_adPlanSave();renderAdsDaily();}
-try{window._adDayLock=_adDayLock;window._adDayTarget=_adDayTarget;window._adDayIn=_adDayIn;window._adDayMonth=_adDayMonth;window.renderAdsDaily=renderAdsDaily;window._adNewMonth=_adNewMonth;}catch(e){}
+/* LƯU chốt kế hoạch tháng đang chọn (đánh dấu ✓, ghi thời điểm) */
+function _adDaySave(){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');var mk=(s&&s.value)||P.dayMonth;if(!mk)return;P.savedM=P.savedM||{};P.savedM[mk]=new Date().toISOString();_adPlanSave();renderAdsDaily();var n=document.getElementById('aplDayMsg');if(n){n.style.color='#1D9E75';n.innerHTML='✓ Đã lưu kế hoạch tháng <b>'+mk+'</b> lúc '+new Date().toLocaleString('vi-VN');}}
+try{window._adDayLock=_adDayLock;window._adDayTarget=_adDayTarget;window._adDayIn=_adDayIn;window._adDayMonth=_adDayMonth;window.renderAdsDaily=renderAdsDaily;window._adNewMonth=_adNewMonth;window._adDaySave=_adDaySave;}catch(e){}
 
 function _adPlanRow(ci,field,val){var P=_adPlanLoad();(P.rows[ci]=P.rows[ci]||{v:0,roas:0})[field]=+val||0;_adPlanSave();renderAdsPlan();}
 function _adPlanSet(field,val){var P=_adPlanLoad();P[field]=+val;_adPlanSave();renderAdsPlan();}
