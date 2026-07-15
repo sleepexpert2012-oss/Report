@@ -926,7 +926,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-import">
     <div class="eyebrow">Nội bộ · Dữ liệu chung trên Supabase</div>
     <h1 class="pt">Import dữ liệu</h1>
-    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-15 14:25</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
+    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-15 14:38</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
     <div class="card w2">
       <h2>Cập nhật dữ liệu mới nhất lên Supabase</h2>
       <div class="sub">Chọn file Excel → hệ thống đọc + tính toán ngay trong trình duyệt → đẩy bản mới nhất lên Supabase. Dashboard chỉ lấy dữ liệu từ Supabase — mọi người mở lại là thấy bản mới nhất.</div>
@@ -3922,32 +3922,42 @@ function renderAdsPlan(){
  var _last3=(A.months||[]).slice(-3);var _pByCi={};A.prod.forEach(function(p){_pByCi[p.ci]=p;});
  function _roas3(ci){var p=_pByCi[ci];if(!p)return null;var g=0,s=0;_last3.forEach(function(m){var v=p.byM&&p.byM[m];if(v){g+=v[6];s+=v[8];}});return s>0?g/s:null;}
  function _roas3Cell(ci){var r=_roas3(ci);return '<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF;color:#0F6E56;background:#F2FAF7" title="ROAS thực tế bình quân '+_last3.join(', ')+'">'+(r!=null?_adR1(r):'—')+'</td>';}
+ /* phân bổ có KHÓA: dòng khóa giữ nguyên số tiền (amt); dòng chưa khóa chia phần còn lại theo % */
+ var _lockSum=0,_unlockPct=0;
+ B.forEach(function(x){var r=P.rows[x.ci]||{};if(P.mode==='pct'){if(r.lock)_lockSum+=(+r.amt||0);else _unlockPct+=(+r.v||0);}});
+ var _rem=Math.max(0,Bd-_lockSum);
+ function _budOf(x){var r=P.rows[x.ci]||{v:0};if(P.mode==='amt')return +r.v||0;if(r.lock)return +r.amt||0;return _unlockPct>0?_rem*(+r.v||0)/_unlockPct:0;}
  var head='<table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr style="background:#1B1C4C;color:#fff">'
-  +['Ngành','Class',(P.mode==='pct'?'% NS':'Tiền (tr)'),'Ngân sách','ROAS TT 3T','ROAS KH','GMV KH','NMV KH','Đơn'].map(function(h){return '<th style="padding:6px 7px;text-align:'+(['% NS','Tiền (tr)','Ngân sách','ROAS TT 3T','ROAS KH','GMV KH','NMV KH','Đơn'].indexOf(h)>=0?'right':'left')+'">'+h+'</th>';}).join('')+'</tr></thead><tbody>';
- var sumV=0,sumB=0,sumG=0,sumN=0,sum3g=0,sum3s=0,lastPg=-99,pgAgg={};
- B.forEach(function(x){var row=P.rows[x.ci]||{v:0,roas:x.roas};var v=row.v||0;var bud=(P.mode==='pct')?(v/100*Bd):v;var rr=row.roas||x.roas;var g=bud*rr;var n=g*(1-C);sumV+=v;sumB+=bud;sumG+=g;sumN+=n;
+  +['Ngành','Class',(P.mode==='pct'?'% NS':'Tiền (tr)'),'Ngân sách','Khóa','ROAS TT 3T','ROAS KH','GMV KH','NMV KH','Đơn'].map(function(h){var al=(h==='Khóa')?'center':(['% NS','Tiền (tr)','Ngân sách','ROAS TT 3T','ROAS KH','GMV KH','NMV KH','Đơn'].indexOf(h)>=0?'right':'left');return '<th style="padding:6px 7px;text-align:'+al+'">'+h+'</th>';}).join('')+'</tr></thead><tbody>';
+ var sumV=0,sumB=0,sumG=0,sumN=0,sum3g=0,sum3s=0,sumAB=0,sumAG=0,sumAN=0,sumAO=0,sumOrdP=0,lastPg=-99,pgAgg={};
+ /* thực tế (xanh lá) = ads thực chạy theo class trong KỲ kế hoạch đã chọn */
+ var _pa=function(plan,act){return plan+((act!=null&&act!=='')?' <span style="color:#0F9E6E;font-size:9.5px;font-weight:600">· '+act+'</span>':'');};
+ B.forEach(function(x){var row=P.rows[x.ci]||{v:0,roas:x.roas};var v=row.v||0;var locked=(P.mode==='pct')&&!!row.lock;var bud=_budOf(x);var rr=row.roas||x.roas;var g=bud*rr;var n=g*(1-C);sumV+=v;sumB+=bud;sumG+=g;sumN+=n;sumOrdP+=(x.aov>0?g/x.aov:0);
   var _p3=_pByCi[x.ci];if(_p3){_last3.forEach(function(m){var vv=_p3.byM&&_p3.byM[m];if(vv){sum3g+=vv[6];sum3s+=vv[8];}});}
+  var aw=_p3?_adSum(_p3.byM,pkeys):null;var _cc=_p3?(_p3.cancel||0):0;var hasAct=!!(aw&&(aw[8]>0||aw[6]>0));
+  if(aw){sumAB+=aw[8];sumAG+=aw[6];sumAN+=aw[6]*(1-_cc);sumAO+=aw[2];}
   (pgAgg[x.pg]=pgAgg[x.pg]||{b:0,g:0});pgAgg[x.pg].b+=bud;pgAgg[x.pg].g+=g;
-  if(x.pg!==lastPg){head+='<tr style="background:#EEF0FA"><td colspan="9" style="padding:4px 8px;font-weight:700;color:#1B1C4C">'+(PG[x.pg]||'?')+'</td></tr>';lastPg=x.pg;}
+  if(x.pg!==lastPg){head+='<tr style="background:#EEF0FA"><td colspan="10" style="padding:4px 8px;font-weight:700;color:#1B1C4C">'+(PG[x.pg]||'?')+'</td></tr>';lastPg=x.pg;}
   head+='<tr><td style="padding:3px 7px;border-bottom:0.5px solid #EEF"></td>'
    +'<td style="padding:3px 7px;border-bottom:0.5px solid #EEF">'+x.cls+'</td>'
-   +'<td style="padding:2px 4px;text-align:right;border-bottom:0.5px solid #EEF"><input type="number" step="'+(P.mode==='pct'?'0.5':'0.1')+'" min="0" value="'+v+'" onchange="_adPlanRow('+x.ci+',\'v\',this.value)" style="width:64px;text-align:right;font-size:11px;padding:2px 4px"></td>'
-   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+_adTr1(bud)+'</td>'
+   +'<td style="padding:2px 4px;text-align:right;border-bottom:0.5px solid #EEF"><input type="number" step="'+(P.mode==='pct'?'0.5':'0.1')+'" min="0" value="'+v+'" '+(locked?'disabled ':'')+'onchange="_adPlanRow('+x.ci+',\'v\',this.value)" style="width:64px;text-align:right;font-size:11px;padding:2px 4px'+(locked?';opacity:.45;background:#F0F1F5':'')+'"></td>'
+   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+_pa(_adTr1(bud),hasAct?_adTr1(aw[8]):'')+'</td>'
+   +'<td style="padding:2px 4px;text-align:center;border-bottom:0.5px solid #EEF"><input type="checkbox" '+(locked?'checked':'')+' onchange="_adPlanLock('+x.ci+')" title="Khóa giữ nguyên ngân sách dòng này khi kéo mô phỏng"></td>'
    +_roas3Cell(x.ci)
    +'<td style="padding:2px 4px;text-align:right;border-bottom:0.5px solid #EEF"><input type="number" step="0.5" value="'+rr+'" onchange="_adPlanRow('+x.ci+',\'roas\',this.value)" style="width:52px;text-align:right;font-size:11px;padding:2px 4px"></td>'
-   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF;font-weight:600">'+_adTr1(g)+'</td>'
-   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+_adTr1(n)+'</td>'
-   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+_adN(x.aov>0?g/x.aov:0)+'</td></tr>';
+   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF;font-weight:600">'+_pa(_adTr1(g),hasAct?_adTr1(aw[6]):'')+'</td>'
+   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+_pa(_adTr1(n),hasAct?_adTr1(aw[6]*(1-_cc)):'')+'</td>'
+   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+_pa(_adN(x.aov>0?g/x.aov:0),hasAct?_adN(aw[2]):'')+'</td></tr>';
  });
  var vWarn=(P.mode==='pct'&&Math.abs(sumV-100)>0.5)?' <span style="color:#E24B4A">(tổng '+_adR1(sumV)+'% ≠ 100%)</span>':'';
  head+='<tr style="background:#EEF0FA;font-weight:700"><td style="padding:5px 8px" colspan="2">TỔNG'+vWarn+'</td>'
   +'<td style="padding:5px 7px;text-align:right">'+(P.mode==='pct'?_adR1(sumV)+'%':_adTr1(sumB))+'</td>'
-  +'<td style="padding:5px 7px;text-align:right">'+_adTr1(sumB)+'</td>'
+  +'<td style="padding:5px 7px;text-align:right">'+_pa(_adTr1(sumB),sumAB>0?_adTr1(sumAB):'')+'</td><td></td>'
   +'<td style="padding:5px 7px;text-align:right;color:#0F6E56;background:#F2FAF7">'+(sum3s>0?_adR1(sum3g/sum3s):'—')+'</td><td></td>'
-  +'<td style="padding:5px 7px;text-align:right">'+_adTr1(sumG)+'</td><td style="padding:5px 7px;text-align:right">'+_adTr1(sumN)+'</td><td></td></tr>';
+  +'<td style="padding:5px 7px;text-align:right">'+_pa(_adTr1(sumG),sumAG>0?_adTr1(sumAG):'')+'</td><td style="padding:5px 7px;text-align:right">'+_pa(_adTr1(sumN),sumAN>0?_adTr1(sumAN):'')+'</td><td style="padding:5px 7px;text-align:right">'+_pa(_adN(sumOrdP),sumAO>0?_adN(sumAO):'')+'</td></tr>';
  head+='</tbody></table>';
  document.getElementById('aplAlloc').innerHTML=head;
- var note=document.getElementById('aplAllocNote');if(note)note.innerHTML='📅 Đang lập kế hoạch cho tháng <b style="color:#363E99">'+(P.curMonth||'?')+'</b> (đổi ở ô Tháng bên dưới) · GMV phân bổ chi tiết: <b>'+_adTr(sumG)+'</b> vs mục tiêu (slider) <b>'+_adTr(gmv)+'</b> · chênh '+_adR1(gmv>0?(sumG-gmv)/gmv*100:0)+'%';
+ var note=document.getElementById('aplAllocNote');if(note)note.innerHTML='📅 Đang lập kế hoạch cho tháng <b style="color:#363E99">'+(P.curMonth||'?')+'</b> (đổi ở ô Tháng bên dưới) · GMV phân bổ: <b>'+_adTr(sumG)+'</b> vs mục tiêu <b>'+_adTr(gmv)+'</b> · chênh '+_adR1(gmv>0?(sumG-gmv)/gmv*100:0)+'% · số <b style="color:#0F9E6E">xanh lá</b> = thực tế ads trong kỳ · tick <b>Khóa</b> để giữ nguyên ngân sách dòng khi kéo mô phỏng.';
  /* rải tuần (đều) */
  var nW=Math.max(1,Math.round((P.toM-P.fromM+1)*4.3));
  document.getElementById('aplWeek').innerHTML='Kỳ kế hoạch '+ (M[P.fromM]||'?')+'→'+(M[P.toM]||'?')+' ≈ <b>'+nW+' tuần</b> · Ngân sách/tuần (đều): <b>'+_adTr1(sumB/nW)+'</b> · /ngày: <b>'+_adTr1(sumB/nW/7)+'</b>';
@@ -4110,11 +4120,19 @@ function _adDaySave(){var P=_adPlanLoad();var s=document.getElementById('aplDayM
 try{window._adDayLock=_adDayLock;window._adDayTarget=_adDayTarget;window._adDayIn=_adDayIn;window._adDayMonth=_adDayMonth;window.renderAdsDaily=renderAdsDaily;window._adNewMonth=_adNewMonth;window._adDaySave=_adDaySave;}catch(e){}
 
 function _adPlanRow(ci,field,val){var P=_adPlanLoad();(P.rows[ci]=P.rows[ci]||{v:0,roas:0})[field]=+val||0;_adPlanSave();renderAdsPlan();}
+/* Khóa/mở khóa 1 dòng phân bổ: khóa -> giữ nguyên số tiền hiện tại khi kéo mô phỏng */
+function _adPlanLock(ci){var P=_adPlanLoad();var r=(P.rows[ci]=P.rows[ci]||{v:0,roas:0});
+ if(!r.lock){var Bd=+P.budget||0;
+  if(P.mode==='amt'){r.amt=+r.v||0;}
+  else{var lk=0,unlO=0;for(var k in P.rows){if(k==ci)continue;var rr=P.rows[k];if(rr.lock)lk+=(+rr.amt||0);else unlO+=(+rr.v||0);}var unlAll=unlO+(+r.v||0);var rem=Math.max(0,Bd-lk);r.amt=unlAll>0?rem*(+r.v||0)/unlAll:0;}
+  r.lock=true;
+ }else{r.lock=false;}
+ _adPlanSave();renderAdsPlan();}
 function _adPlanSet(field,val){var P=_adPlanLoad();P[field]=+val;_adPlanSave();renderAdsPlan();}
 function _adPlanMode(m){var P=_adPlanLoad();P.mode=m;document.querySelectorAll('#aplModeWrap button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-m')===m);});_adPlanSave();renderAdsPlan();}
 function _adPlanPeriod(){var P=_adPlanLoad();var f=document.getElementById('aplFrom'),t=document.getElementById('aplTo');if(f&&t){P.fromM=+f.value;P.toM=+t.value;}_adPlanSave();renderAdsPlan();}
 function _adPlanFill(){var A=RAW.ads,f=document.getElementById('aplFrom'),t=document.getElementById('aplTo');if(!f||f.options.length)return;var opts=A.months.map(function(mk){return '<option value="'+M.indexOf(mk)+'">'+mk+'</option>';}).join('');f.innerHTML=opts;t.innerHTML=opts;var P=_adPlanLoad();f.value=P.fromM;t.value=P.toM;}
-window.renderAdsPlan=renderAdsPlan;window._adPlanRow=_adPlanRow;window._adPlanSet=_adPlanSet;window._adPlanMode=_adPlanMode;window._adPlanReset=_adPlanReset;window._adPlanPeriod=_adPlanPeriod;
+window.renderAdsPlan=renderAdsPlan;window._adPlanRow=_adPlanRow;window._adPlanLock=_adPlanLock;window._adPlanSet=_adPlanSet;window._adPlanMode=_adPlanMode;window._adPlanReset=_adPlanReset;window._adPlanPeriod=_adPlanPeriod;
 window._adPlanExp=_adPlanExp;window.renderAdsDaily=renderAdsDaily;window._adDayIn=_adDayIn;window._adDayMonth=_adDayMonth;
 
 try{window.printPage=printPage;}catch(e){}
