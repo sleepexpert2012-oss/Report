@@ -875,7 +875,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <div id="adplHost"></div>
     <div class="card w2"><h2>Bộ thông số (kéo để mô phỏng)</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin:6px 0 4px">
-        <div><div style="display:flex;justify-content:space-between;font-size:12px;color:#6B7280"><span>Ngân sách ads</span><span id="aplBo" style="font-weight:700;color:#1B1C4C"></span></div><input type="range" id="aplB" min="10" max="500" step="5" oninput="_adPlanSet('budget',this.value)" style="width:100%"></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;color:#6B7280"><span>Ngân sách ads</span><span id="aplBo" style="font-weight:700;color:#1B1C4C"></span></div><input type="range" id="aplB" min="10" max="500" step="1" oninput="_adPlanSet('budget',this.value)" style="width:100%"></div>
         <div><div style="display:flex;justify-content:space-between;font-size:12px;color:#6B7280"><span>ROAS cài đặt</span><span id="aplRo" style="font-weight:700;color:#1B1C4C"></span></div><input type="range" id="aplR" min="1" max="15" step="0.1" oninput="_adPlanSet('roas',this.value)" style="width:100%"></div>
         <div><div style="display:flex;justify-content:space-between;font-size:12px;color:#6B7280"><span>Tỷ lệ hủy đơn</span><span id="aplCo" style="font-weight:700;color:#1B1C4C"></span></div><input type="range" id="aplC" min="0" max="70" step="1" oninput="_adPlanSet('cancel',this.value)" style="width:100%"></div>
       </div>
@@ -926,7 +926,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-import">
     <div class="eyebrow">Nội bộ · Dữ liệu chung trên Supabase</div>
     <h1 class="pt">Import dữ liệu</h1>
-    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-15 14:05</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
+    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-15 14:25</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
     <div class="card w2">
       <h2>Cập nhật dữ liệu mới nhất lên Supabase</h2>
       <div class="sub">Chọn file Excel → hệ thống đọc + tính toán ngay trong trình duyệt → đẩy bản mới nhất lên Supabase. Dashboard chỉ lấy dữ liệu từ Supabase — mọi người mở lại là thấy bản mới nhất.</div>
