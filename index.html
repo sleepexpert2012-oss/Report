@@ -914,7 +914,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-import">
     <div class="eyebrow">Nội bộ · Dữ liệu chung trên Supabase</div>
     <h1 class="pt">Import dữ liệu</h1>
-    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-15 11:32</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
+    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-15 13:31</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
     <div class="card w2">
       <h2>Cập nhật dữ liệu mới nhất lên Supabase</h2>
       <div class="sub">Chọn file Excel → hệ thống đọc + tính toán ngay trong trình duyệt → đẩy bản mới nhất lên Supabase. Dashboard chỉ lấy dữ liệu từ Supabase — mọi người mở lại là thấy bản mới nhất.</div>
@@ -3853,7 +3853,12 @@ function _adPlanDef(){var A=RAW.ads;var B=_adBench();var rows={};B.forEach(funct
  return {budget:70,roas:8.6,cancel:44,mode:'pct',fromM:M.indexOf(A.months[0]),toM:M.indexOf(A.months[A.months.length-1]),rows:rows};}
 function _adPlanLoad(){if(S._plan)return S._plan;var p=null;try{var s=localStorage.getItem(_AD_PLANKEY);if(s)p=JSON.parse(s);}catch(e){}
  if(!p||!p.rows)p=_adPlanDef();S._plan=p;return p;}
-function _adPlanSave(){try{localStorage.setItem(_AD_PLANKEY,JSON.stringify(S._plan));}catch(e){}}
+/* lưu: tự CHỐT phân bổ (budget/roas/cancel/mode/kỳ/rows) vào kho theo THÁNG đang chọn */
+function _adPlanSave(){try{var P=S._plan;if(P){if(!P.curMonth)P.curMonth=P.dayMonth||(RAW.ads&&RAW.ads.months&&RAW.ads.months[RAW.ads.months.length-1]);
+ if(P.curMonth){P.arch=P.arch||{};P.arch[P.curMonth]={budget:P.budget,roas:P.roas,cancel:P.cancel,mode:P.mode,fromM:P.fromM,toM:P.toM,rows:JSON.parse(JSON.stringify(P.rows||{}))};}}
+ localStorage.setItem(_AD_PLANKEY,JSON.stringify(S._plan));}catch(e){}}
+/* nạp phân bổ đã lưu của 1 tháng vào trạng thái đang sửa */
+function _adLoadMonth(mk){var P=_adPlanLoad();var a=(P.arch||{})[mk];if(a){if(a.budget!=null)P.budget=a.budget;if(a.roas!=null)P.roas=a.roas;if(a.cancel!=null)P.cancel=a.cancel;if(a.mode)P.mode=a.mode;if(a.fromM!=null)P.fromM=a.fromM;if(a.toM!=null)P.toM=a.toM;if(a.rows)P.rows=JSON.parse(JSON.stringify(a.rows));}}
 function _adPlanReset(){S._plan=_adPlanDef();_adPlanSave();renderAdsPlan();}
 /* CPC/CTR/AOV bình quân shop (cho KPI dự kiến tổng) */
 function _adShopBench(){var A=RAW.ads;var t=_adF9();for(var k in A.shopM)_adAdd(t,A.shopM[k]);
@@ -3872,6 +3877,7 @@ function _adDayType(mk,d){var p=mk.split('.');var mm=+p[1];var wd=new Date(+p[0]
 function renderAdsPlan(){
  var A=RAW.ads;if(!A){document.getElementById('adplHost').innerHTML='<div class="card">Chưa có dữ liệu ads.</div>';return;}
  var P=_adPlanLoad(),PG=CAT.PGshort,B=_adBench(),sb=_adShopBench();
+ if(!P.curMonth)P.curMonth=P.dayMonth||A.months[A.months.length-1];
  _adPlanFill();
  /* set slider readouts */
  var setv=function(id,val){var e=document.getElementById(id);if(e)e.value=val;};
@@ -3929,7 +3935,7 @@ function renderAdsPlan(){
   +'<td style="padding:5px 7px;text-align:right">'+_adTr1(sumG)+'</td><td style="padding:5px 7px;text-align:right">'+_adTr1(sumN)+'</td><td></td></tr>';
  head+='</tbody></table>';
  document.getElementById('aplAlloc').innerHTML=head;
- var note=document.getElementById('aplAllocNote');if(note)note.innerHTML='GMV phân bổ chi tiết: <b>'+_adTr(sumG)+'</b> vs mục tiêu (slider) <b>'+_adTr(gmv)+'</b> · chênh '+_adR1(gmv>0?(sumG-gmv)/gmv*100:0)+'%';
+ var note=document.getElementById('aplAllocNote');if(note)note.innerHTML='📅 Đang lập kế hoạch cho tháng <b style="color:#363E99">'+(P.curMonth||'?')+'</b> (đổi ở ô Tháng bên dưới) · GMV phân bổ chi tiết: <b>'+_adTr(sumG)+'</b> vs mục tiêu (slider) <b>'+_adTr(gmv)+'</b> · chênh '+_adR1(gmv>0?(sumG-gmv)/gmv*100:0)+'%';
  /* rải tuần (đều) */
  var nW=Math.max(1,Math.round((P.toM-P.fromM+1)*4.3));
  document.getElementById('aplWeek').innerHTML='Kỳ kế hoạch '+ (M[P.fromM]||'?')+'→'+(M[P.toM]||'?')+' ≈ <b>'+nW+' tuần</b> · Ngân sách/tuần (đều): <b>'+_adTr1(sumB/nW)+'</b> · /ngày: <b>'+_adTr1(sumB/nW/7)+'</b>';
@@ -3969,10 +3975,12 @@ function _adDayFill(){var s=document.getElementById('aplDayMonth');if(!s)return;
  var list=_adMonthList();
  s.innerHTML=list.map(function(mk){var isFut=RAW.ads.months.indexOf(mk)<0;var sv=(P.savedM&&P.savedM[mk])?' ✓ đã lưu':'';return '<option value="'+mk+'"'+(isFut?' data-fut="1"':'')+'>'+mk+(isFut?' (kế hoạch)':'')+sv+'</option>';}).join('');
  s.value=cur||(RAW.ads.months[RAW.ads.months.length-1]);}
-function _adNewMonth(){var s=document.getElementById('aplDayMonth');var cur=(s&&s.value)||(_adPlanLoad().dayMonth)||RAW.ads.months[RAW.ads.months.length-1];
+function _adNewMonth(){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');var cur=(s&&s.value)||P.dayMonth||P.curMonth||RAW.ads.months[RAW.ads.months.length-1];
  var p=cur.split('.');var y=+p[0],m=+p[1]+1;if(m>12){m=1;y++;}var nm=y+'.'+(m<10?'0'+m:m);
- var P=_adPlanLoad();P.dayMonth=nm;_adPlanSave();renderAdsDaily();
- var note=document.getElementById('aplDayMsg');if(note)note.textContent='Đã tạo kế hoạch tháng '+nm+' (tự lưu). Nhập trọng số/giai đoạn cho tháng này.';}
+ _adPlanSave();                 /* chốt tháng hiện tại */
+ P.curMonth=nm;P.dayMonth=nm;   /* giữ nguyên phân bổ hiện tại làm MẪU cho tháng mới */
+ _adPlanSave();renderAdsPlan();
+ var note=document.getElementById('aplDayMsg');if(note){note.style.color='#1D9E75';note.textContent='Đã tạo kế hoạch tháng '+nm+' (mẫu theo tháng trước). Chỉnh Phân bổ + ngày rồi bấm 💾 Lưu để chốt.';}}
 function _adDaysInMonth(mk){var p=mk.split('.');return new Date(+p[0],+p[1],0).getDate();}
 function _adPhaseNote(ph){return {'Sale':'SCALE TỐI ĐA: tăng bid +20–30% so ngày thường, mở rộng Discovery/GMV Max, bật hết remarketing','Pre-heat':'LÀM NÓNG: tăng dần bid +5–10%, đẩy Discovery & nội dung teaser, kích thích Add To Cart','Sustain':'DUY TRÌ ĐÀ: giữ bid cao hơn ngày thường ~8%, ưu tiên Search Manual remarketing','Normal':'GIỮ QUALITY SCORE: ngân sách tối thiểu an toàn, không tắt campaign, rà soát từ khoá'}[ph]||'';}
 function _adPhaseFac(ph){return {'Sale':{r:1.08,c:1.07,bg:'#FCE9E9'},'Pre-heat':{r:1.02,c:1.01,bg:'#FAF0DC'},'Sustain':{r:1.0,c:1.0,bg:'#E6F0FA'},'Normal':{r:0.9,c:0.9,bg:''}}[ph]||{r:1,c:1,bg:''};}
@@ -4070,7 +4078,10 @@ function _adDayLock(mk,d){var P=_adPlanLoad();var nd=_adDaysInMonth(mk);_adDayDe
  if(!o.lock){var mo=_adDayBudgets(mk,nd,P);o.tot=Math.round(mo.bud[d]*100)/100;o.lock=true;}else{o.lock=false;}
  P.dayMonth=mk;_adPlanSave();renderAdsDaily();}
 function _adDayTarget(val){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');var mk=(s&&s.value)||P.dayMonth;if(!mk)return;P.dayTargetByM=P.dayTargetByM||{};P.dayTargetByM[mk]=+val||0;_adPlanSave();renderAdsDaily();}
-function _adDayMonth(){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');if(s)P.dayMonth=s.value;_adPlanSave();renderAdsDaily();}
+function _adDayMonth(){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');var mk=(s&&s.value)||P.dayMonth;if(!mk)return;
+ _adPlanSave();                       /* chốt tháng cũ */
+ P.curMonth=mk;P.dayMonth=mk;_adLoadMonth(mk);  /* nạp phân bổ tháng mới chọn */
+ _adPlanSave();renderAdsPlan();}      /* render cả cụm theo tháng */
 /* LƯU chốt kế hoạch tháng đang chọn (đánh dấu ✓, ghi thời điểm) */
 function _adDaySave(){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');var mk=(s&&s.value)||P.dayMonth;if(!mk)return;P.savedM=P.savedM||{};P.savedM[mk]=new Date().toISOString();_adPlanSave();renderAdsDaily();var n=document.getElementById('aplDayMsg');if(n){n.style.color='#1D9E75';n.innerHTML='✓ Đã lưu kế hoạch tháng <b>'+mk+'</b> lúc '+new Date().toLocaleString('vi-VN');}}
 try{window._adDayLock=_adDayLock;window._adDayTarget=_adDayTarget;window._adDayIn=_adDayIn;window._adDayMonth=_adDayMonth;window.renderAdsDaily=renderAdsDaily;window._adNewMonth=_adNewMonth;window._adDaySave=_adDaySave;}catch(e){}
