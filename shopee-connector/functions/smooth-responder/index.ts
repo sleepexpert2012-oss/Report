@@ -93,7 +93,7 @@ Deno.serve(async ()=>{
         };
         await sb.from("shopee_sync_state").upsert(st);
       }
-      let from = st.done ? now - 15 * 24 * 3600 : st.next_from; // xong roi thi chi lam moi 15 ngay gan nhat
+      let from = st.done ? now - 30 * 24 * 3600 : st.next_from; // xong roi thi chi lam moi 30 ngay gan nhat
       while(from < now && Date.now() - t0 < BUDGET){
         const to = Math.min(from + 15 * 24 * 3600 - 60, now);
         const sns = [];
