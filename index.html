@@ -3708,6 +3708,17 @@ function _adMetric(v,key){
 var _AD_METRICS=[['spend','Chi phí (tr)'],['gmv','GMV (tr)'],['roas','ROAS'],['acos','ACOS (%)'],
  ['impr','Lượt hiển thị'],['clk','Lượt click'],['ctr','CTR (%)'],['conv','Chuyển đổi'],
  ['cvr','Tỷ lệ CĐ (%)'],['cpc','CPC (nghìn/click)'],['cpconv','Chi phí/CĐ (tr)'],['units','SP đã bán']];
+/* màu CỐ ĐỊNH theo từng chỉ số (không đổi theo thứ tự tick chọn) — 8 màu phân biệt rõ, đã kiểm tra tách bạch (kể cả mù màu đỏ-lục);
+   cvr/cpc/cpconv/units dùng lại màu của spend/gmv/roas/acos (ít khi bật cùng lúc với cặp gốc, tên trong chú giải + tooltip vẫn phân biệt được) */
+var _AD_METRIC_COL={spend:'#2A78D6',gmv:'#E87BA4',roas:'#1D9E75',acos:'#EDA100',impr:'#EB6834',clk:'#E34948',ctr:'#4A3AA7',conv:'#2DA6BE',cvr:'#2A78D6',cpc:'#E87BA4',cpconv:'#1D9E75',units:'#EDA100'};
+/* nhãn số ngắn gọn, đúng đơn vị cho biểu đồ Ads (không dùng chung fmDs vì fmDs quy ước "triệu" cho trục = dữ liệu tính bằng TỶ ở các trang khác — ở đây dữ liệu ads đã tính sẵn theo triệu) */
+function _adFmtMetric(key,v){
+ if(key==='roas')return (Math.round(v*10)/10).toLocaleString('vi-VN');
+ if(_AD_PCT[key])return (Math.round(v*10)/10).toLocaleString('vi-VN')+'%';
+ if(key==='spend'||key==='gmv'||key==='cpconv')return (Math.round(v*10)/10).toLocaleString('vi-VN')+'tr';
+ if(key==='cpc')return Math.round(v).toLocaleString('vi-VN')+'đ';
+ return Math.round(v).toLocaleString('vi-VN');
+}
 var _AD_PCT={ctr:1,cvr:1,acos:1,roas:1};
 
 /* ---- filter kỳ (from/to) dùng riêng cho ads: S.adM0/S.adM1 ---- */
@@ -3732,17 +3743,49 @@ function _adRenderCombo(){
  var _sc=_adScope(gran); var srcBy=function(k){return _sc[k]||_adF9();};
  _adDes('adsCombo');
  var el=document.getElementById('adsCombo'); if(!el)return;
- var gGmv=null; try{var cx=el.getContext('2d'); gGmv=cx.createLinearGradient(0,0,0,320); gGmv.addColorStop(0,'rgba(140,147,201,.95)'); gGmv.addColorStop(1,'rgba(140,147,201,.55)');}catch(e){gGmv='#8C93C9';}
+ var gGmv=null; try{var cx=el.getContext('2d'); gGmv=cx.createLinearGradient(0,0,0,320); gGmv.addColorStop(0,'rgba(232,123,164,.95)'); gGmv.addColorStop(1,'rgba(232,123,164,.55)');}catch(e){gGmv=_AD_METRIC_COL.gmv;}
  ADCH.adsCombo=new Chart(el,{type:'bar',
   data:{labels:show,datasets:[
-   {label:'Chi phí (tr)',data:labs.map(function(k){return +(srcBy(k)[8]).toFixed(2);}),backgroundColor:NAVY,yAxisID:'y',borderRadius:5,maxBarThickness:34,categoryPercentage:.7,barPercentage:.86},
-   {label:'GMV (tr)',data:labs.map(function(k){return +(srcBy(k)[6]).toFixed(2);}),backgroundColor:gGmv,yAxisID:'y',borderRadius:5,maxBarThickness:34,categoryPercentage:.7,barPercentage:.86},
-   {label:'ROAS',type:'line',data:labs.map(function(k){var v=srcBy(k);return v[8]>0?+(v[6]/v[8]).toFixed(2):0;}),borderColor:'#1D9E75',backgroundColor:'#1D9E75',yAxisID:'y1',tension:.35,pointRadius:0,pointHoverRadius:4,borderWidth:2.4,fill:false}]},
+   {label:'Chi phí (tr)',_key:'spend',data:labs.map(function(k){return +(srcBy(k)[8]).toFixed(2);}),backgroundColor:NAVY,yAxisID:'y',borderRadius:5,maxBarThickness:34,categoryPercentage:.7,barPercentage:.86},
+   {label:'GMV (tr)',_key:'gmv',data:labs.map(function(k){return +(srcBy(k)[6]).toFixed(2);}),backgroundColor:gGmv,yAxisID:'y',borderRadius:5,maxBarThickness:34,categoryPercentage:.7,barPercentage:.86},
+   {label:'ROAS',_key:'roas',type:'line',data:labs.map(function(k){var v=srcBy(k);return v[8]>0?+(v[6]/v[8]).toFixed(2):0;}),borderColor:_AD_METRIC_COL.roas,backgroundColor:_AD_METRIC_COL.roas,yAxisID:'y1',tension:.35,pointRadius:0,pointHoverRadius:4,borderWidth:2.4,fill:false}]},
   options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-   plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:14,font:{size:11}}},tooltip:{padding:10,cornerRadius:8,titleFont:{size:12},bodyFont:{size:12}}},
+   plugins:{noVal:true,legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:14,font:{size:11}}},
+    tooltip:{padding:10,cornerRadius:8,titleFont:{size:12},bodyFont:{size:12},callbacks:{label:function(ctx){return (ctx.dataset.label?ctx.dataset.label+': ':'')+_adFmtMetric(ctx.dataset._key,ctx.parsed.y);}}}},
    scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:gran==='d'?14:12}},
     y:{title:{display:true,text:'triệu'},beginAtZero:true,grid:{color:'#EEF0F6',drawBorder:false},ticks:{font:{size:10}}},
-    y1:{position:'right',title:{display:true,text:'ROAS'},grid:{drawOnChartArea:false},beginAtZero:true,ticks:{font:{size:10}}}}}});
+    y1:{position:'right',title:{display:true,text:'ROAS'},grid:{drawOnChartArea:false},beginAtZero:true,ticks:{font:{size:10}}}}},
+  plugins:[{id:'adsComboVals',afterDatasetsDraw:function(chart){
+   var ctx=chart.ctx;ctx.save();ctx.font='bold 9px Segoe UI, Arial';
+   var gmx=0;chart.data.datasets.forEach(function(ds){if(ds.type==='line')return;ds.data.forEach(function(v){if(Math.abs(v)>gmx)gmx=Math.abs(v);});});
+   var dense=labs.length>60;
+   chart.data.datasets.forEach(function(ds,di){
+    var meta=chart.getDatasetMeta(di);if(!meta||meta.hidden||!meta.data)return;
+    var n=ds.data.length,lastX=-999;
+    meta.data.forEach(function(el2,i){
+     var v=ds.data[i];if(v==null||v===0)return;
+     if(ds.type==='line'){
+      var prev=ds.data[i-1],next=ds.data[i+1];
+      var isPeak=(prev==null||v>=prev)&&(next==null||v>=next);
+      var isEdge=(i===0||i===n-1);
+      if(n>16&&!isPeak&&!isEdge)return;
+      var p=el2.tooltipPosition();if(p.x-lastX<34)return;lastX=p.x;
+      ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle=(typeof ds.borderColor==='string')?ds.borderColor:'#1B1C4C';
+      ctx.fillText(_adFmtMetric(ds._key,v),p.x,p.y-3);return;
+     }
+     if(gmx&&Math.abs(v)<gmx*(dense?0.09:0.035))return;
+     var pos=el2.tooltipPosition();if(pos.x-lastX<26)return;lastX=pos.x;
+     var txt=_adFmtMetric(ds._key,v);
+     var base=el2.base;if(base==null)base=chart.scales.y.getPixelForValue(0);
+     var barH=Math.abs(base-pos.y),tw=ctx.measureText(txt).width;
+     ctx.save();ctx.textBaseline='middle';
+     if(barH>=tw+10){ctx.translate(pos.x,base-4);ctx.rotate(-Math.PI/2);ctx.textAlign='left';ctx.fillStyle='#fff';ctx.fillText(txt,0,0);}
+     else{ctx.translate(pos.x,pos.y-4);ctx.rotate(-Math.PI/2);ctx.textAlign='left';ctx.fillStyle='#1B1C4C';ctx.fillText(txt,0,0);}
+     ctx.restore();
+    });
+   });
+   ctx.restore();
+  }}]});
 }
 
 function renderAds(){
@@ -3777,7 +3820,7 @@ function renderAds(){
 
  /* line chỉ số — chọn nhiều (checkbox) */
  var mbox=document.getElementById('adsMetricBox');
- if(mbox&&!mbox.children.length){mbox.innerHTML=_AD_METRICS.map(function(m){return '<label style="display:inline-flex;align-items:center;gap:3px;margin:2px 10px 2px 0;font-size:12px;cursor:pointer"><input type="checkbox" value="'+m[0]+'" '+((m[0]==='spend'||m[0]==='roas')?'checked':'')+' onchange="_adRenderMetric()"> '+m[1]+'</label>';}).join('');}
+ if(mbox&&!mbox.children.length){mbox.innerHTML=_AD_METRICS.map(function(m){var sw='<i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+(_AD_METRIC_COL[m[0]]||'#999')+';margin-right:1px"></i>';return '<label style="display:inline-flex;align-items:center;gap:3px;margin:2px 10px 2px 0;font-size:12px;cursor:pointer"><input type="checkbox" value="'+m[0]+'" '+((m[0]==='spend'||m[0]==='roas')?'checked':'')+' onchange="_adRenderMetric()"> '+sw+m[1]+'</label>';}).join('');}
  _adRenderMetric();
 
  /* bong bóng ROAS × chi phí theo sản phẩm */
@@ -3848,8 +3891,8 @@ function _adRenderMetric(){
  var _sc=_adScope(gran); var srcBy=function(k){return _sc[k]||_adF9();};
  var ds=sel.map(function(key,idx){
   var mlab=(_AD_METRICS.filter(function(m){return m[0]===key;})[0]||['',''])[1];
-  var col=PAL[idx%PAL.length];
-  return {label:mlab,data:labs.map(function(k){return +(_adMetric(srcBy(k),key)).toFixed(2);}),borderColor:col,backgroundColor:col,tension:.35,pointRadius:0,pointHoverRadius:4,borderWidth:2.2,fill:false,yAxisID:_AD_PCT[key]?'y1':'y'};
+  var col=_AD_METRIC_COL[key]||PAL[idx%PAL.length];
+  return {label:mlab,_key:key,data:labs.map(function(k){return +(_adMetric(srcBy(k),key)).toFixed(2);}),borderColor:col,backgroundColor:col,tension:.35,pointRadius:0,pointHoverRadius:4,borderWidth:2.2,fill:false,yAxisID:_AD_PCT[key]?'y1':'y'};
  });
  var hasPct=sel.some(function(k){return _AD_PCT[k];}),hasAbs=sel.some(function(k){return !_AD_PCT[k];});
  var scales={x:{grid:{display:false},ticks:{font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:gran==='d'?14:12}}};
@@ -3857,7 +3900,29 @@ function _adRenderMetric(){
  if(hasPct)scales.y1={position:'right',beginAtZero:true,title:{display:true,text:'% / ROAS'},grid:{drawOnChartArea:false},ticks:{font:{size:10}}};
  _adDes('adsMetricC');
  ADCH.adsMetricC=new Chart(document.getElementById('adsMetricC'),{type:'line',data:{labels:show,datasets:ds},
-  options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:14,font:{size:11}}},tooltip:{padding:10,cornerRadius:8}},scales:scales}});
+  options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+   plugins:{noVal:true,legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:14,font:{size:11}}},
+    tooltip:{padding:10,cornerRadius:8,callbacks:{label:function(ctx){return (ctx.dataset.label?ctx.dataset.label+': ':'')+_adFmtMetric(ctx.dataset._key,ctx.parsed.y);}}}},
+   scales:scales},
+  plugins:[{id:'adsMetricVals',afterDatasetsDraw:function(chart){
+   var ctx=chart.ctx;ctx.save();ctx.font='bold 8.5px Segoe UI, Arial';ctx.textAlign='center';ctx.textBaseline='bottom';
+   chart.data.datasets.forEach(function(ds,di){
+    var meta=chart.getDatasetMeta(di);if(!meta||meta.hidden||!meta.data)return;
+    var n=ds.data.length,lastX=-999;
+    meta.data.forEach(function(pt,i){
+     var v=ds.data[i];if(v==null)return;
+     var prev=ds.data[i-1],next=ds.data[i+1];
+     var isPeak=(prev==null||v>=prev)&&(next==null||v>=next);
+     var isEdge=(i===0||i===n-1);
+     if(n>16&&!isPeak&&!isEdge)return;
+     if(pt.x-lastX<34)return;
+     ctx.fillStyle=(typeof ds.borderColor==='string')?ds.borderColor:'#1B1C4C';
+     ctx.fillText(_adFmtMetric(ds._key,v),pt.x,pt.y-3);
+     lastX=pt.x;
+    });
+   });
+   ctx.restore();
+  }}]});
 }
 
 /* Màn "Ads theo từ khóa" = TỪ KHÓA ĐANG CHẠY (đọc bảng ads_keyword từ Supabase).
