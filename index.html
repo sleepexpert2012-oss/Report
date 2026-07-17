@@ -880,6 +880,11 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <div class="eyebrow">Phân tích Ads · Mô phỏng &amp; kế hoạch</div>
     <h1 class="pt">Lập kế hoạch Ads</h1>
     <div id="adplHost"></div>
+    <div id="aplTopSave" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:6px 0 10px;padding:10px 14px;background:#EEF1FA;border:1px solid #C9D1EE;border-radius:8px">
+      <span style="font-size:12.5px;color:#363E99;font-weight:600">💼 Lưu toàn bộ kế hoạch màn hình này — gồm cả Phân bổ ngân sách theo Ngành/Class và Phân bổ theo ngày</span>
+      <button onclick="_adDaySave()" style="font-weight:700;background:#1D9E75;color:#fff;border:none;padding:6px 16px;border-radius:6px">💾 Lưu kế hoạch tháng này</button>
+      <span id="aplTopSaveMsg" style="font-size:11.5px"></span>
+    </div>
     <div class="card w2"><h2>Bộ thông số (kéo để mô phỏng)</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin:6px 0 4px">
         <div><div style="display:flex;justify-content:space-between;font-size:12px;color:#6B7280"><span>Ngân sách ads</span><span id="aplBo" style="font-weight:700;color:#1B1C4C"></span></div><input type="range" id="aplB" min="10" max="500" step="1" oninput="_adPlanSet('budget',this.value)" style="width:100%"></div>
@@ -909,8 +914,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <div style="display:flex;gap:8px;align-items:center;margin:2px 0 8px">
         <span style="font-size:12px;color:#6B7280">Tháng:</span><select id="aplDayMonth" onchange="_adDayMonth()"></select>
         <button onclick="_adNewMonth()" style="font-weight:600">➕ Tạo kế hoạch tháng mới</button>
-        <button onclick="_adDaySave()" style="font-weight:600;background:#1D9E75;color:#fff;border:none">💾 Lưu kế hoạch tháng này</button>
-        <span id="aplDayMsg" style="font-size:11.5px"></span>
+        <span style="font-size:11px;color:#8494A8">(nút 💾 Lưu ở đầu trang sẽ lưu luôn phần này)</span>
       </div>
       <div style="font-size:12px;color:#6B7280;margin:0 0 8px">Mỗi tháng có Mục tiêu &amp; kế hoạch riêng, lưu độc lập. Chọn ô <b>Tháng</b> để xem lại tháng cũ (dấu <b>✓</b> = đã lưu). Đổi Giai đoạn / Trọng số từng ngày · sửa Trọng số → tự chia lại NS, Tổng luôn = Mục tiêu · Khóa để giữ nguyên 1 ngày.
       </div>
@@ -4057,7 +4061,7 @@ function _adNewMonth(){var P=_adPlanLoad();var s=document.getElementById('aplDay
  _adPlanSave();                 /* chốt tháng hiện tại */
  P.curMonth=nm;P.dayMonth=nm;   /* giữ nguyên phân bổ hiện tại làm MẪU cho tháng mới */
  _adPlanSave();renderAdsPlan();
- var note=document.getElementById('aplDayMsg');if(note){note.style.color='#1D9E75';note.textContent='Đã tạo kế hoạch tháng '+nm+' (mẫu theo tháng trước). Chỉnh Phân bổ + ngày rồi bấm 💾 Lưu để chốt.';}}
+ var note=document.getElementById('aplTopSaveMsg');if(note){note.style.color='#1D9E75';note.textContent='Đã tạo kế hoạch tháng '+nm+' (mẫu theo tháng trước). Chỉnh Phân bổ + ngày rồi bấm 💾 Lưu để chốt.';}}
 function _adDaysInMonth(mk){var p=mk.split('.');return new Date(+p[0],+p[1],0).getDate();}
 function _adPhaseNote(ph){return {'Sale':'SCALE TỐI ĐA: tăng bid +20–30% so ngày thường, mở rộng Discovery/GMV Max, bật hết remarketing','Pre-heat':'LÀM NÓNG: tăng dần bid +5–10%, đẩy Discovery & nội dung teaser, kích thích Add To Cart','Sustain':'DUY TRÌ ĐÀ: giữ bid cao hơn ngày thường ~8%, ưu tiên Search Manual remarketing','Normal':'GIỮ QUALITY SCORE: ngân sách tối thiểu an toàn, không tắt campaign, rà soát từ khoá'}[ph]||'';}
 function _adPhaseFac(ph){return {'Sale':{r:1.08,c:1.07,bg:'#FCE9E9'},'Pre-heat':{r:1.02,c:1.01,bg:'#FAF0DC'},'Sustain':{r:1.0,c:1.0,bg:'#E6F0FA'},'Normal':{r:0.9,c:0.9,bg:''}}[ph]||{r:1,c:1,bg:''};}
@@ -4152,7 +4156,7 @@ function renderAdsDaily(){
  h+=_adTotRow(tot,'TỔNG THÁNG','month');
  h+='</tbody></table>';
  document.getElementById('aplDaily').innerHTML=h;
- var _msg=document.getElementById('aplDayMsg');
+ var _msg=document.getElementById('aplTopSaveMsg');
  if(_msg){var _sv=(P.savedM&&P.savedM[mk]);if(_sv){_msg.style.color='#1D9E75';_msg.innerHTML='✓ Kế hoạch tháng '+mk+' đã lưu ('+new Date(_sv).toLocaleDateString('vi-VN')+')';}else{_msg.style.color='#B8860B';_msg.innerHTML='● Tháng '+mk+' chưa lưu — bấm 💾 Lưu để chốt';}}
 }
 function _adDayIn(mk,d,field,val){var P=_adPlanLoad();P.daily=P.daily||{};P.daily[mk]=P.daily[mk]||{};var o=(P.daily[mk][d]=P.daily[mk][d]||{});
@@ -4170,7 +4174,7 @@ function _adDayMonth(){var P=_adPlanLoad();var s=document.getElementById('aplDay
  P.curMonth=mk;P.dayMonth=mk;_adLoadMonth(mk);  /* nạp phân bổ tháng mới chọn */
  _adPlanSave();renderAdsPlan();}      /* render cả cụm theo tháng */
 /* LƯU chốt kế hoạch tháng đang chọn (đánh dấu ✓, ghi thời điểm) */
-function _adDaySave(){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');var mk=(s&&s.value)||P.dayMonth;if(!mk)return;P.savedM=P.savedM||{};P.savedM[mk]=new Date().toISOString();_adPlanSave();renderAdsDaily();var n=document.getElementById('aplDayMsg');if(n){n.style.color='#1D9E75';n.innerHTML='✓ Đã lưu kế hoạch tháng <b>'+mk+'</b> lúc '+new Date().toLocaleString('vi-VN');}}
+function _adDaySave(){var P=_adPlanLoad();var s=document.getElementById('aplDayMonth');var mk=(s&&s.value)||P.dayMonth;if(!mk)return;P.savedM=P.savedM||{};P.savedM[mk]=new Date().toISOString();_adPlanSave();renderAdsDaily();var n=document.getElementById('aplTopSaveMsg');if(n){n.style.color='#1D9E75';n.innerHTML='✓ Đã lưu toàn bộ kế hoạch tháng <b>'+mk+'</b> lúc '+new Date().toLocaleString('vi-VN');}}
 try{window._adDayLock=_adDayLock;window._adDayTarget=_adDayTarget;window._adDayIn=_adDayIn;window._adDayMonth=_adDayMonth;window.renderAdsDaily=renderAdsDaily;window._adNewMonth=_adNewMonth;window._adDaySave=_adDaySave;}catch(e){}
 
 function _adPlanRow(ci,field,val){var P=_adPlanLoad();(P.rows[ci]=P.rows[ci]||{v:0,roas:0})[field]=+val||0;_adPlanSave();renderAdsPlan();}
