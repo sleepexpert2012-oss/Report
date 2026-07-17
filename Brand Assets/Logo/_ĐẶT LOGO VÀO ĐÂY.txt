@@ -1,0 +1,10 @@
+ĐẶT FILE LOGO SLEEP EXPERT VÀO THƯ MỤC NÀY
+
+Gợi ý định dạng:
+- PNG nền trong suốt (ưu tiên) — dùng cho thanh nav.
+- Kích thước ngang tối thiểu ~300px; nếu có bản SVG càng tốt.
+- Nếu có: thêm cả bản logo nền tối (light) và nền sáng (dark).
+
+Kèm theo (nếu tiện):
+- Mã màu chủ đạo (HEX), ví dụ #14315C, #0E7C4A...
+- Font thương hiệu (nếu có).
