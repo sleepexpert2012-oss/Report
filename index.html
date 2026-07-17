@@ -926,7 +926,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-import">
     <div class="eyebrow">Nội bộ · Dữ liệu chung trên Supabase</div>
     <h1 class="pt">Import dữ liệu</h1>
-    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-17 09:34</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
+    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-17 09:54</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
     <div class="card w2">
       <h2>Cập nhật dữ liệu mới nhất lên Supabase</h2>
       <div class="sub">Chọn file Excel → hệ thống đọc + tính toán ngay trong trình duyệt → đẩy bản mới nhất lên Supabase. Dashboard chỉ lấy dữ liệu từ Supabase — mọi người mở lại là thấy bản mới nhất.</div>
@@ -3630,9 +3630,9 @@ function _adPreset(code){
 function _adSum(byM,keys,n){var s=n?new Array(n).fill(0):_adF9();for(var i=0;i<keys.length;i++)_adAdd(s,byM[keys[i]],n||9);return s;}
 function _adTr(v){return Math.round(v).toLocaleString('vi-VN')+' tr';}
 function _adTr1(v){return (Math.round(v*10)/10).toLocaleString('vi-VN')+' tr';}
-function _adPct(x){return (Math.round(x*1000)/10).toLocaleString('vi-VN')+'%';}
+function _adPct(x){return (Math.round(x*10000)/100).toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';}
 function _adN(v){return Math.round(v).toLocaleString('vi-VN');}
-function _adR1(v){return (Math.round(v*10)/10).toLocaleString('vi-VN');}
+function _adR1(v){return (Math.round(v*100)/100).toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function _adRoasC(r){var t=RAW.ads.thr;return r>=t.roasHi?'#1D9E75':(r>0&&r>=t.roasLo?'#EF9F27':(r>0?'#E24B4A':'#B4B8D0'));}
 /* ---- lọc theo class: S.adsClass = ci hoặc 'all' ---- */
 function _adAll(){return S.adsClass==null||S.adsClass==='all';}
@@ -3947,7 +3947,7 @@ function renderAdsPlan(){
  B.forEach(function(x){var row=P.rows[x.ci]||{v:0,roas:x.roas};var v=row.v||0;var locked=(P.mode==='pct')&&!!row.lock;var bud=_budOf(x);var rr=row.roas||x.roas;var g=bud*rr;var n=g*(1-C);sumV+=v;sumB+=bud;sumG+=g;sumN+=n;sumOrdP+=(x.aov>0?g/x.aov:0);
   var _p3=_pByCi[x.ci];if(_p3){_last3.forEach(function(m){var vv=_p3.byM&&_p3.byM[m];if(vv){sum3g+=vv[6];sum3s+=vv[8];}});}
   var _adM=(_p3&&_p3.byM&&_p3.byM[P.curMonth])?_p3.byM[P.curMonth]:null;   /* ADS class tháng này */
-  var _spM=_adM?_adM[8]:0,_gmM=_adM?_adM[6]:0,_cvM=_adM?_adM[2]:0,_nmM=_adM?_adM[6]*(1-(_p3.cancel||0)):0;
+  var _spM=_adM?_adM[8]:0,_gmM=_adM?_adM[6]:0,_cvM=_adM?_adM[3]:0,_nmM=_adM?_adM[6]*(1-(_p3.cancel||0)):0;
   var hasAct=(_spM>0||_gmM>0);
   sumAB+=_spM;sumAG+=_gmM;sumAN+=_nmM;sumAO+=_cvM;
   (pgAgg[x.pg]=pgAgg[x.pg]||{b:0,g:0});pgAgg[x.pg].b+=bud;pgAgg[x.pg].g+=g;
@@ -4028,6 +4028,7 @@ function _adDayBudgets(mk,nd,P){var dd=P.daily[mk];var T=_adDayTargetOf(mk,P);va
  for(var d=1;d<=nd;d++){var o=dd[d];if(o.lock)L+=(+o.tot||0);else Wu+=(+o.w||0);}
  var rem=Math.max(0,T-L);var bud={};for(var d=1;d<=nd;d++){var o=dd[d];bud[d]=o.lock?(+o.tot||0):(Wu>0?rem*(+o.w||0)/Wu:0);}
  return {bud:bud,T:T,L:L};}
+var _ADCANCEL=0;
 function _adBlankTot(){return {b:0,gmv:0,nmv:0,ord:0,imp:0,clk:0,pn:0,pc:0,pp:0,an:0,ac:0,ap:0,at:0,agmv:0,anmv:0,aconv:0,aclk:0,aimpr:0,sgmv:0,snmv:0,sord:0};}
 /* dòng tổng (dùng cho TỔNG THÁNG và TỔNG TUẦN) — cùng cách tính với dòng ngày */
 function _adTotRow(t,label,bg){
@@ -4040,14 +4041,14 @@ function _adTotRow(t,label,bg){
   +c(paT(_adTr1(t.pn),_adTr1(t.an)))+c(paT(_adTr1(t.pc),_adTr1(t.ac)))+c(paT(_adTr1(t.pp),_adTr1(t.ap)))
   +c(paT(_adTr1(t.b),_adTr1(t.at)))
   +c(paT(_adN(tCpc)+'đ',_adN(aTCpc)+'đ'))+c(paT(_adPct(tCtr),_adPct(aTCtr)))+c(paT(_adPct(tCr),_adPct(aTCr)))+c(paT(_adR1(tRoas),_adR1(aTRoas)))
-  +c(paT(_adTr1(t.gmv),_adTr1(t.agmv)))+c(paT(_adTr1(t.nmv),_adTr1(t.anmv)))+c(paT(_adN(t.ord),_adN(t.aconv)))+'</tr>';
+  +c(paT(_adTr1(t.gmv),_adTr1(t.agmv)))+c(paT(_adTr1(t.nmv),_adTr1(t.agmv*(1-_ADCANCEL))))+c(paT(_adN(t.ord),_adN(t.aconv)))+'</tr>';
 }
 function _adAccTot(T,b,gmv,nmv,ord,imp,clk,bn,bc,bp,af,shp){
  T.b+=b;T.gmv+=gmv;T.nmv+=nmv;T.ord+=ord;T.imp+=imp;T.clk+=clk;T.pn+=bn;T.pc+=bc;T.pp+=bp;
  if(af){T.an+=af.nem;T.ac+=af.chan;T.ap+=af.pk;}                        /* NS theo ngành (từ actD) */
- if(shp){T.at+=shp[8];T.agmv+=shp[6];T.anmv+=shp[7];T.aconv+=shp[2];T.aclk+=shp[1];T.aimpr+=shp[0];}}  /* tổng ads shop = khớp Shopee */
+ if(shp){T.at+=shp[8];T.agmv+=shp[6];T.aconv+=shp[3];T.aclk+=shp[1];T.aimpr+=shp[0];}}  /* tổng ads shop; Đơn=direct */
 function renderAdsDaily(){
- var A=RAW.ads,P=_adPlanLoad();_adDayFill();
+ var A=RAW.ads,P=_adPlanLoad();_adDayFill();_ADCANCEL=(A.cancelShop||0);
  var s=document.getElementById('aplDayMonth');var mk=(s&&s.value)||P.dayMonth||A.months[A.months.length-1];P.dayMonth=mk;
  if(P.dayTarget==null)P.dayTarget=30;
  var nd=_adDaysInMonth(mk);var dd=_adDayDefaults(mk,nd,P);var mo=_adDayBudgets(mk,nd,P);var bud=mo.bud;
@@ -4100,8 +4101,8 @@ function renderAdsDaily(){
    +td(pa(_adPct(cr),hasA?_adPct(aCr):''),1)
    +td(pa(_adR1(roas),hasA?_adR1(aRoas):''),1)
    +td(pa(_adTr1(gmv),hasA?_adTr1(shp[6]):''),1)
-   +td(pa(_adTr1(nmv),hasA?_adTr1(shp[7]):''),1)
-   +td(pa(_adN(ord),hasA?_adN(shp[2]):''),1)
+   +td(pa(_adTr1(nmv),hasA?_adTr1(shp[6]*(1-(A.cancelShop||0))):''),1)
+   +td(pa(_adN(ord),hasA?_adN(shp[3]):''),1)
    +'</tr>';
   /* hết tuần (Chủ nhật) hoặc hết tháng -> chèn dòng TỔNG TUẦN (T2→CN) */
   var _isSun=(new Date(+p[0],+p[1]-1,d).getDay()===0);
