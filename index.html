@@ -915,16 +915,26 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <div style="font-size:12px;color:#6B7280;margin:0 0 8px">Mỗi tháng có Mục tiêu &amp; kế hoạch riêng, lưu độc lập. Chọn ô <b>Tháng</b> để xem lại tháng cũ (dấu <b>✓</b> = đã lưu). Đổi Giai đoạn / Trọng số từng ngày · sửa Trọng số → tự chia lại NS, Tổng luôn = Mục tiêu · Khóa để giữ nguyên 1 ngày.
       </div>
       <style>
-        #aplDaily input.apc,#aplDaily select{border:1px solid transparent;background:#F1F3F9;border-radius:6px;color:#1B1C4C;font-size:10px;padding:2px 4px;text-align:center;-moz-appearance:textfield;transition:background .12s,border-color .12s}
+        #aplDaily table{font-size:11px}
+        #aplDaily th{font-size:11px}
+        #aplDaily input.apc,#aplDaily select{border:1px solid transparent;background:#F1F3F9;border-radius:6px;color:#1B1C4C;font-size:11px;padding:2px 4px;text-align:center;-moz-appearance:textfield;transition:background .12s,border-color .12s}
         #aplDaily input.apc:hover,#aplDaily select:hover{background:#E8EBF5}
         #aplDaily input.apc:focus,#aplDaily select:focus{background:#fff;border-color:#B9BEE0;outline:none;box-shadow:0 0 0 2px rgba(54,62,153,.09)}
         #aplDaily input.apc::-webkit-outer-spin-button,#aplDaily input.apc::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-        #aplDaily .pc{color:#B4B9C6;font-style:normal;font-size:9px;margin-left:1px}
+        #aplDaily .pc{color:#B4B9C6;font-style:normal;font-size:10px;margin-left:1px}
         #aplDaily .s2{font-size:10px;color:#7A828F;white-space:nowrap}
-        #aplDaily .ac{color:#0F9E6E;font-weight:600}
+        #aplDaily .ac{color:#0F9E6E;font-weight:600;font-size:10px}
         #aplDaily .ac::before{content:'·';color:#CBD0DA;font-weight:400;margin:0 3px}
         #aplDaily td{border-bottom:1px solid #F4F6FA!important}
         #aplDaily input[type=checkbox]{accent-color:#363E99}
+        #aplDaily tr.totRow td{font-weight:700;padding-top:7px;padding-bottom:7px}
+        #aplDaily tr.tot-week{background:#E4EAF7!important;border-top:2px solid #A9B6E8;border-bottom:2px solid #A9B6E8}
+        #aplDaily tr.tot-week td:first-child{color:#363E99;font-size:11.5px}
+        #aplDaily tr.tot-month{background:#1B1C4C!important;border-top:3px solid #363E99;border-bottom:3px solid #363E99}
+        #aplDaily tr.tot-month td{color:#fff;font-size:12.5px}
+        #aplDaily tr.tot-month .s2{color:#C7CCE8}
+        #aplDaily tr.tot-month .ac{color:#7FE8B8}
+        #aplDaily tr.tot-month .ac::before{color:#7480C2}
       </style>
       <div class="twrap" style="max-height:none;overflow-x:auto"><div id="aplDaily"></div></div>
     </div>
@@ -4062,13 +4072,13 @@ function _adDayBudgets(mk,nd,P){var dd=P.daily[mk];var T=_adDayTargetOf(mk,P);va
 var _ADCANCEL=0;
 function _adBlankTot(){return {b:0,gmv:0,nmv:0,ord:0,imp:0,clk:0,pn:0,pc:0,pp:0,an:0,ac:0,ap:0,at:0,agmv:0,anmv:0,aconv:0,aclk:0,aimpr:0,sgmv:0,snmv:0,sord:0};}
 /* dòng tổng (dùng cho TỔNG THÁNG và TỔNG TUẦN) — cùng cách tính với dòng ngày */
-function _adTotRow(t,label,bg){
+function _adTotRow(t,label,kind){
  var hasAT=t.at>0||t.agmv>0;
  var paT=function(plan,act){return plan+(hasAT&&act!==''&&act!=null?'<span class="ac">'+act+'</span>':'');};
  var tCpc=t.clk>0?t.b/t.clk*1e6:0,tCtr=t.imp>0?t.clk/t.imp:0,tCr=t.clk>0?t.ord/t.clk:0,tRoas=t.b>0?t.gmv/t.b:0;
  var aTCpc=t.aclk>0?t.at/t.aclk*1e6:0,aTCtr=t.aimpr>0?t.aclk/t.aimpr:0,aTCr=t.aclk>0?t.aconv/t.aclk:0,aTRoas=t.at>0?t.agmv/t.at:0;
  var c=function(v){return '<td style="padding:4px 5px;text-align:center;white-space:nowrap">'+v+'</td>';};
- return '<tr style="background:'+bg+';font-weight:700"><td colspan="5" style="padding:4px 8px">'+label+'</td>'
+ return '<tr class="totRow tot-'+kind+'"><td colspan="5" style="padding:4px 8px">'+label+'</td>'
   +c(paT(_adTr1(t.pn),_adTr1(t.an)))+c(paT(_adTr1(t.pc),_adTr1(t.ac)))+c(paT(_adTr1(t.pp),_adTr1(t.ap)))
   +c(paT(_adTr1(t.b),_adTr1(t.at)))
   +c(paT(_adN(tCpc)+'đ',_adN(aTCpc)+'đ'))+c(paT(_adPct(tCtr),_adPct(aTCtr)))+c(paT(_adPct(tCr),_adPct(aTCr)))+c(paT(_adR1(tRoas),_adR1(aTRoas)))
@@ -4091,7 +4101,7 @@ function renderAdsDaily(){
   +'<span style="font-size:12px;color:#6B7280">Thực tế sau điều chỉnh: <b style="color:#1B1C4C">'+_adTr1(totBud)+'</b></span>'
   +'<span style="font-size:12px;color:'+(match?'#1D9E75':'#E24B4A')+';font-weight:600">'+(match?'✓ Khớp Mục tiêu':'≠ lệch '+_adTr1(totBud-mo.T)+' (khóa vượt mục tiêu?)')+'</span></div>';
  var cols=['Ngày','Giai đoạn','Loại ngày','Khóa','Trọng số','NS Nệm','NS Chăn','NS Phụ kiện','Tổng NS (tr)','CPC','CTR','CR','ROAS','GMV','NMV','Đơn'];
- var h=ctrl+'<div style="font-size:10px;color:#0F6E56;margin-bottom:4px">Số <b>xanh lá</b> = <b>số ADS thực tế</b> (khớp Shopee Ads): Tổng NS · CPC · CTR · CR · ROAS · GMV · NMV · Đơn đều theo dữ liệu quảng cáo Shopee (GMV & ROAS = broad, đúng như trên sàn). NS Nệm/Chăn/PK chia theo sản phẩm (ước lượng).</div><table style="width:100%;border-collapse:collapse;font-size:10.5px"><thead><tr style="background:#1B1C4C;color:#fff">'+cols.map(function(c,ci){var lft=(ci<3);return '<th style="padding:5px 5px;white-space:nowrap;text-align:'+(lft?'left':'center')+'">'+c+'</th>';}).join('')+'</tr></thead><tbody>';
+ var h=ctrl+'<div style="font-size:10px;color:#0F6E56;margin-bottom:4px">Số <b>xanh lá</b> = <b>số ADS thực tế</b> (khớp Shopee Ads): Tổng NS · CPC · CTR · CR · ROAS · GMV · NMV · Đơn đều theo dữ liệu quảng cáo Shopee (GMV & ROAS = broad, đúng như trên sàn). NS Nệm/Chăn/PK chia theo sản phẩm (ước lượng).</div><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#1B1C4C;color:#fff">'+cols.map(function(c,ci){var lft=(ci<3);return '<th style="padding:5px 5px;white-space:nowrap;text-align:'+(lft?'left':'center')+'">'+c+'</th>';}).join('')+'</tr></thead><tbody>';
  var WD=['CN','T2','T3','T4','T5','T6','T7'];var phOpt=['Normal','Pre-heat','Sustain','Sale'];
  var iset={};iset[iNem]='nem';iset[iChan]='chan';iset[iPK]='pk';
  var actD={};A.prod.forEach(function(pp){var key=iset[pp.pg];if(!key)return;var cc=pp.cancel||0;for(var dk in (pp.byD||{})){if(dk.slice(0,7)!==mk)continue;var v=pp.byD[dk];var oo=actD[dk]=actD[dk]||{nem:0,chan:0,pk:0,tot:0,gmv:0,nmv:0,conv:0,clk:0,impr:0};oo[key]+=v[8];oo.tot+=v[8];oo.gmv+=v[6];oo.nmv+=v[6]*(1-cc);oo.conv+=v[2];oo.clk+=v[1];oo.impr+=v[0];}});
@@ -4115,7 +4125,7 @@ function renderAdsDaily(){
   _adAccTot(tot,b,gmv,nmv,ord,imp,clk,bn,bc,bp,af,shp);_adAccTot(wk,b,gmv,nmv,ord,imp,clk,bn,bc,bp,af,shp);
   var pa=function(plan,act){return '<span class="s2">'+plan+(hasA&&act!==''&&act!=null?'<span class="ac">'+act+'</span>':'')+'</span>';};
   var num=function(field,val,w){return '<input class="apc" type="number" step="0.1" min="0" value="'+(val===''||val==null?'':val)+'" onchange="_adDayIn(\''+mk+'\','+d+',\''+field+'\',this.value)" style="width:'+(w||44)+'px">';};
-  var sel='<select onchange="_adDayIn(\''+mk+'\','+d+',\'phase\',this.value)" style="font-size:10px;padding:1px">'+phOpt.map(function(x){return '<option'+(x===o.phase?' selected':'')+'>'+x+'</option>';}).join('')+'</select>';
+  var sel='<select onchange="_adDayIn(\''+mk+'\','+d+',\'phase\',this.value)" style="padding:1px">'+phOpt.map(function(x){return '<option'+(x===o.phase?' selected':'')+'>'+x+'</option>';}).join('')+'</select>';
   var lock='<input type="checkbox" '+(o.lock?'checked':'')+' onchange="_adDayLock(\''+mk+'\','+d+')" title="Khóa giữ nguyên NS ngày này">';
   var noteInp='<input value="'+String(o.note||'').replace(/"/g,'&quot;')+'" onchange="_adDayIn(\''+mk+'\','+d+',\'note\',this.value)" style="width:300px;font-size:9.5px;padding:1px 3px">';
   var td=function(v,r){return '<td style="padding:2px 5px;border-bottom:0.5px solid #F2F4F9'+(r?';text-align:center':'')+';white-space:nowrap">'+v+'</td>';};
@@ -4137,9 +4147,9 @@ function renderAdsDaily(){
    +'</tr>';
   /* hết tuần (Chủ nhật) hoặc hết tháng -> chèn dòng TỔNG TUẦN (T2→CN) */
   var _isSun=(new Date(+p[0],+p[1]-1,d).getDay()===0);
-  if(_isSun||d===nd){h+=_adTotRow(wk,'⌁ Tổng tuần '+(wkStart<10?'0'+wkStart:wkStart)+'–'+(d<10?'0'+d:d)+'/'+p[1],'#E4EAF7');wk=_adBlankTot();wkFresh=true;}
+  if(_isSun||d===nd){h+=_adTotRow(wk,'⌁ Tổng tuần '+(wkStart<10?'0'+wkStart:wkStart)+'–'+(d<10?'0'+d:d)+'/'+p[1],'week');wk=_adBlankTot();wkFresh=true;}
  }
- h+=_adTotRow(tot,'TỔNG THÁNG','#D3D9F0');
+ h+=_adTotRow(tot,'TỔNG THÁNG','month');
  h+='</tbody></table>';
  document.getElementById('aplDaily').innerHTML=h;
  var _msg=document.getElementById('aplDayMsg');
