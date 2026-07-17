@@ -61,7 +61,7 @@ Thông tin của anh:
 | `SHOPEE_PARTNER_ID` | `2039280` |
 | `SHOPEE_PARTNER_KEY` | (dán Partner Key bí mật ở Chặng 1) |
 | `SHOPEE_HOST` | `https://partner.shopeemobile.com` |
-| `SHOPEE_START_DATE` | `2025-01-01` |
+| `SHOPEE_SYNC_DAYS` | `30`  (tuỳ chọn — số ngày gần nhất cần đồng bộ; bỏ trống = 30) |
 | `SELF_URL` | (dán URL của shopee-auth ở Chặng 3) |
 
 3. Lưu lại.
@@ -103,15 +103,22 @@ Nếu thấy `{ "ok": false, "message": "…" }` → **copy nguyên dòng messag
 
 ---
 
-## CHẶNG 9 — Cho nó tự chạy mỗi ngày  (2 phút, làm sau cũng được)
+## CHẶNG 9 — Cho nó tự chạy 3 lần/ngày  (2 phút, làm sau cũng được)
+`shopee-sync` giờ chỉ đồng bộ **30 ngày gần nhất** (xoá đúng phần 30 ngày trong `sales_fact` rồi kéo lại từ Shopee — đơn cũ hơn 30 ngày giữ nguyên), nên chạy nhiều lần/ngày vẫn nhẹ và an toàn.
+
 1. Supabase → **SQL Editor** → dán đoạn dưới (thay `<mã-project>` và `<SERVICE_ROLE_KEY>`), Run:
 ```sql
-select cron.schedule('shopee-daily','0 23 * * *',
+-- Chạy 3 khung giờ VN: 06:00, 12:00, 20:00 (Supabase cron dùng giờ UTC, VN = UTC+7)
+select cron.schedule('shopee-3x-daily','0 23,5,13 * * *',
   $$ select net.http_post(
      url:='https://<mã-project>.supabase.co/functions/v1/shopee-sync',
      headers:='{"Authorization":"Bearer <SERVICE_ROLE_KEY>"}'::jsonb) $$);
 ```
-(23:00 UTC = 06:00 sáng VN. `SERVICE_ROLE_KEY` lấy ở **Project Settings → API**.)
+Quy đổi giờ (UTC → VN): `23:00 UTC = 06:00 VN` · `05:00 UTC = 12:00 VN` · `13:00 UTC = 20:00 VN`.
+`SERVICE_ROLE_KEY` lấy ở **Project Settings → API**.
+
+> Đổi số ngày đồng bộ: thêm secret `SHOPEE_SYNC_DAYS` (mặc định 30) ở **Edge Functions → Secrets**.
+> Nếu trước đó đã tạo lịch cũ tên `shopee-daily`, gỡ bằng: `select cron.unschedule('shopee-daily');`
 
 ---
 

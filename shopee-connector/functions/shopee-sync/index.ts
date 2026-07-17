@@ -1,16 +1,20 @@
 // Supabase Edge Function: shopee-sync
-// Kéo đơn hàng Shopee -> ghi vào bảng sales_fact (dashboard tự đọc).
-// Chạy tay để test, sau đó đặt LỊCH (cron) chạy mỗi ngày.
+// Kéo đơn hàng Shopee (chỉ N ngày gần nhất) -> ghi vào bảng sales_fact (dashboard tự đọc).
+// Chạy tay để test, sau đó đặt LỊCH (cron) chạy nhiều lần/ngày.
+//
+// CHỈ cập nhật cửa sổ N ngày gần nhất (mặc định 30): xoá phần dữ liệu cũ trong đúng
+// cửa sổ đó rồi kéo lại từ Shopee — dữ liệu TRƯỚC cửa sổ này không bị đụng tới,
+// nên chạy nhiều lần/ngày vẫn nhẹ (không kéo lại toàn bộ lịch sử mỗi lần).
 //
 // Secrets cần: SHOPEE_PARTNER_ID, SHOPEE_PARTNER_KEY, SHOPEE_HOST,
-//              SHOPEE_START_DATE (vd 2025-01-01),  (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY tự có)
+//              SHOPEE_SYNC_DAYS (tuỳ chọn, mặc định 30),  (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY tự có)
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const PARTNER_ID = Number(Deno.env.get("SHOPEE_PARTNER_ID"));
 const PARTNER_KEY = Deno.env.get("SHOPEE_PARTNER_KEY")!;
 const HOST = Deno.env.get("SHOPEE_HOST") || "https://partner.shopeemobile.com";
-const START = Deno.env.get("SHOPEE_START_DATE") || "2025-01-01";
+const SYNC_DAYS = Number(Deno.env.get("SHOPEE_SYNC_DAYS")) || 30;
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
 async function hmac(base: string): Promise<string> {
@@ -49,6 +53,11 @@ function isoVN(unix: number) { // unix giây -> 'YYYY-MM-DD HH:MM' (giờ VN +7)
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`;
 }
+function isoVNDate(unix: number) { // unix giây -> 'YYYY-MM-DD' (giờ VN +7) — mốc ngày để xoá lại đúng cửa sổ đang đồng bộ
+  const d = new Date((unix + 7 * 3600) * 1000);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())}`;
+}
 
 Deno.serve(async () => {
   try {
@@ -57,15 +66,19 @@ Deno.serve(async () => {
 
     const rows: any[] = [];
     let totalOrders = 0;
+    const now = Math.floor(Date.now() / 1000);
+    // windowFrom = ĐẦU NGÀY (00:00 giờ VN) của mốc N ngày trước — căn đúng biên với bước xoá bên dưới,
+    // để không bị hụt vài giờ đầu ngày (xoá mà không kéo lại).
+    const startOfTodayVN = Math.floor((now + 7 * 3600) / 86400) * 86400 - 7 * 3600;
+    const windowFrom = startOfTodayVN - SYNC_DAYS * 24 * 3600; // chỉ đồng bộ lại N ngày gần nhất
 
     for (let tok of toks) {
       tok = await refreshIfNeeded(tok);
       const shopId = tok.shop_id, token = tok.access_token;
 
-      // 1) lấy danh sách order_sn theo từng khoảng 15 ngày
+      // 1) lấy danh sách order_sn theo từng khoảng 15 ngày, trong cửa sổ N ngày gần nhất
       const orderSns: string[] = [];
-      let from = Math.floor(new Date(START + "T00:00:00+07:00").getTime() / 1000);
-      const now = Math.floor(Date.now() / 1000);
+      let from = windowFrom;
       while (from < now) {
         const to = Math.min(from + 15 * 24 * 3600 - 60, now);
         let cursor = "";
@@ -116,8 +129,9 @@ Deno.serve(async () => {
       }
     }
 
-    // 3) THAY TOÀN BỘ sales_fact bằng dữ liệu mới (đảm bảo dashboard = trạng thái Shopee hiện tại)
-    await sb.from("sales_fact").delete().gte("_id", 0);
+    // 3) chỉ THAY dữ liệu trong cửa sổ N ngày gần nhất — đơn cũ hơn cửa sổ này giữ nguyên, không đụng tới
+    const cutoff = isoVNDate(windowFrom) + " 00:00";
+    await sb.from("sales_fact").delete().gte("ngay_dat_hang", cutoff);
     for (let i = 0; i < rows.length; i += 500) {
       const { error } = await sb.from("sales_fact").insert(rows.slice(i, i + 500).map(r => {
         const o: any = {}; for (const k in r) o[k] = r[k] === null ? null : String(r[k]); return o;

@@ -30,7 +30,7 @@ SHOPEE_PARTNER_ID   = 2039280
 SHOPEE_PARTNER_KEY  = <partner key bí mật của anh>
 SHOPEE_HOST         = https://partner.shopeemobile.com          # production
 #   (sandbox thì dùng: https://partner.test-stable.shopeemobile.com)
-SHOPEE_START_DATE   = 2025-01-01                                # lấy đơn từ ngày này
+SHOPEE_SYNC_DAYS    = 30                                        # (tuỳ chọn) số ngày gần nhất cần đồng bộ; bỏ trống = 30
 SELF_URL            = https://<project-ref>.supabase.co/functions/v1/shopee-auth
 ```
 `SUPABASE_URL` và `SUPABASE_SERVICE_ROLE_KEY` Supabase tự cấp cho function khi deploy.
@@ -62,14 +62,14 @@ supabase functions deploy shopee-sync --no-verify-jwt
 - Kiểm tra bảng `public.shopee_sync_log` (dòng mới nhất) và bảng `sales_fact` (có dữ liệu).
 - Mở dashboard → dữ liệu bán hàng đã là số Shopee thật.
 
-> Lưu ý: `shopee-sync` **thay toàn bộ** `sales_fact` bằng đơn từ `SHOPEE_START_DATE` đến hiện tại → dashboard luôn khớp trạng thái Shopee.
+> Lưu ý: `shopee-sync` chỉ đồng bộ **30 ngày gần nhất** (secret `SHOPEE_SYNC_DAYS`, mặc định 30): xoá đúng phần 30 ngày trong `sales_fact` rồi kéo lại từ Shopee. Đơn cũ hơn 30 ngày KHÔNG bị đụng → chạy nhiều lần/ngày vẫn nhẹ, không kéo lại toàn bộ lịch sử.
 
 ---
 
 ## 6. Đặt lịch tự chạy (cron)
-Supabase → **Database → Cron** (hoặc extension `pg_cron`) tạo job gọi `shopee-sync` mỗi ngày, ví dụ 6h sáng:
+Supabase → **Database → Cron** (hoặc extension `pg_cron`) tạo job gọi `shopee-sync` 3 lần/ngày (6h/12h/20h VN):
 ```sql
-select cron.schedule('shopee-daily','0 23 * * *',  -- 23:00 UTC = 06:00 VN
+select cron.schedule('shopee-3x-daily','0 23,5,13 * * *',  -- 23/05/13 UTC = 06/12/20 VN
   $$ select net.http_post(
        url:='https://<project-ref>.supabase.co/functions/v1/shopee-sync',
        headers:='{"Authorization":"Bearer <SERVICE_ROLE_KEY>"}'::jsonb) $$);

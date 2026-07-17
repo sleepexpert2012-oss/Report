@@ -3,7 +3,7 @@
 // Sau khi seller bấm đồng ý, Shopee gọi lại (?code=&shop_id=) -> function đổi code lấy token và lưu vào bảng shopee_token.
 //
 // Biến môi trường cần đặt (Supabase -> Edge Functions -> Secrets):
-//   SHOPEE_PARTNER_ID   = 1238417
+//   SHOPEE_PARTNER_ID   = 2039280
 //   SHOPEE_PARTNER_KEY  = <partner key BÍ MẬT của anh>   (KHÔNG chia sẻ)
 //   SHOPEE_HOST         = https://partner.shopeemobile.com          (production)
 //                         hoặc https://partner.test-stable.shopeemobile.com (sandbox)
