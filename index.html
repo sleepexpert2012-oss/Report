@@ -933,7 +933,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-import">
     <div class="eyebrow">Nội bộ · Dữ liệu chung trên Supabase</div>
     <h1 class="pt">Import dữ liệu</h1>
-    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-17 10:12</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
+    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-17 10:23</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
     <div class="card w2">
       <h2>Cập nhật dữ liệu mới nhất lên Supabase</h2>
       <div class="sub">Chọn file Excel → hệ thống đọc + tính toán ngay trong trình duyệt → đẩy bản mới nhất lên Supabase. Dashboard chỉ lấy dữ liệu từ Supabase — mọi người mở lại là thấy bản mới nhất.</div>
@@ -4077,7 +4077,7 @@ function _adTotRow(t,label,bg){
 function _adAccTot(T,b,gmv,nmv,ord,imp,clk,bn,bc,bp,af,shp){
  T.b+=b;T.gmv+=gmv;T.nmv+=nmv;T.ord+=ord;T.imp+=imp;T.clk+=clk;T.pn+=bn;T.pc+=bc;T.pp+=bp;
  if(af){T.an+=af.nem;T.ac+=af.chan;T.ap+=af.pk;}                        /* NS theo ngành (từ actD) */
- if(shp){T.at+=shp[8];T.agmv+=shp[6];T.aconv+=shp[3];T.aclk+=shp[1];T.aimpr+=shp[0];}}  /* tổng ads shop; Đơn=direct */
+ if(shp){T.at+=shp[8];T.agmv+=shp[6];T.aconv+=shp[2];T.aclk+=shp[1];T.aimpr+=shp[0];}}  /* tổng ads shop; Đơn=broad (khớp Shopee Ads) */
 function renderAdsDaily(){
  var A=RAW.ads,P=_adPlanLoad();_adDayFill();_ADCANCEL=(A.cancelShop||0);
  var s=document.getElementById('aplDayMonth');var mk=(s&&s.value)||P.dayMonth||A.months[A.months.length-1];P.dayMonth=mk;
@@ -4133,7 +4133,7 @@ function renderAdsDaily(){
    +td(pa(_adR1(roas),hasA?_adR1(aRoas):''),1)
    +td(pa(_adTr1(gmv),hasA?_adTr1(shp[6]):''),1)
    +td(pa(_adTr1(nmv),hasA?_adTr1(shp[6]*(1-(A.cancelShop||0))):''),1)
-   +td(pa(_adN(ord),hasA?_adN(shp[3]):''),1)
+   +td(pa(_adN(ord),hasA?_adN(shp[2]):''),1)
    +'</tr>';
   /* hết tuần (Chủ nhật) hoặc hết tháng -> chèn dòng TỔNG TUẦN (T2→CN) */
   var _isSun=(new Date(+p[0],+p[1]-1,d).getDay()===0);
