@@ -1174,7 +1174,7 @@ const valPlugin={id:'vals',afterDatasetsDraw(chart){
  if(!chart.config)return;
  if(chart.options.plugins&&chart.options.plugins.noVal)return;
  if(chart.config.type==='doughnut'||chart.config.type==='pie'){const meta=chart.getDatasetMeta(0);if(!meta||!meta.data)return;const tot=chart.data.datasets[0].data.reduce((a,b)=>a+Math.abs(b||0),0);if(!tot)return;const ctx=chart.ctx;ctx.save();ctx.font='bold 12px Segoe UI, Arial';ctx.textAlign='center';ctx.textBaseline='middle';meta.data.forEach((arc,i)=>{const v=chart.data.datasets[0].data[i];if(!v||Math.abs(v)/tot<0.03)return;const p=arc.tooltipPosition();ctx.fillStyle='#fff';ctx.fillText(Math.round(Math.abs(v)/tot*100)+'%',p.x,p.y);});ctx.restore();return;}
- if(chart.config.type==='line'){const ctx=chart.ctx;ctx.save();ctx.font='bold 8.5px Segoe UI, Arial';ctx.textAlign='center';ctx.textBaseline='bottom';const ds=chart.data.datasets[0];const meta=chart.getDatasetMeta(0);if(meta&&meta.data){const bc=(typeof ds.borderColor==='string')?ds.borderColor:'#1B1C4C';meta.data.forEach((pt,i)=>{const v=ds.data[i];if(v==null)return;ctx.fillStyle=bc;ctx.fillText(fmDs(chart,ds,v),pt.x,pt.y-3);});}ctx.restore();return;}
+ if(chart.config.type==='line'){const ctx=chart.ctx;ctx.save();ctx.font='bold 8.5px Segoe UI, Arial';ctx.textAlign='center';ctx.textBaseline='bottom';const ds=chart.data.datasets[0];const meta=chart.getDatasetMeta(0);if(meta&&meta.data){const bc=(typeof ds.borderColor==='string')?ds.borderColor:'#1B1C4C';const n=ds.data.length;let lastX=-999;meta.data.forEach((pt,i)=>{const v=ds.data[i];if(v==null||v===0)return;const prev=ds.data[i-1],next=ds.data[i+1];const isPeak=(prev==null||v>=prev)&&(next==null||v>=next);const isEdge=(i===0||i===n-1);if(n>16&&!isPeak&&!isEdge)return;if(pt.x-lastX<32)return;ctx.fillStyle=bc;ctx.fillText(fmDs(chart,ds,v),pt.x,pt.y-3);lastX=pt.x;});}ctx.restore();return;}
  if(chart.config.type!=='bar')return;
  const horiz=chart.options.indexAxis==='y';
  const stacked=chart.options.scales&&((chart.options.scales.y&&chart.options.scales.y.stacked)||(chart.options.scales.x&&chart.options.scales.x.stacked));
@@ -1183,11 +1183,14 @@ const valPlugin={id:'vals',afterDatasetsDraw(chart){
  chart.data.datasets.forEach((ds,di)=>{
   const meta=chart.getDatasetMeta(di);if(!meta||meta.hidden||!meta.data)return;
   const bgC=ds.backgroundColor;
+  let lastLineX=-999;const nLine=ds.data.length;let lastBarX=-999;const denseBars=nLine>60;
   meta.data.forEach((el,i)=>{
    const v=ds.data[i];if(v==null||v===0)return;
-   if(ds.type==='line'){const p=el.tooltipPosition();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle=(typeof ds.borderColor==='string')?ds.borderColor:'#8A6D00';ctx.fillText(fmDs(chart,ds,v),p.x,p.y-3);return;}
-   if(gmx&&Math.abs(v)<gmx*(stacked?0.05:0.035))return;
-   const pos=el.tooltipPosition();const bg=Array.isArray(bgC)?bgC[i]:bgC;
+   if(ds.type==='line'){const prevL=ds.data[i-1],nextL=ds.data[i+1];const isPeakL=(prevL==null||v>=prevL)&&(nextL==null||v>=nextL);const isEdgeL=(i===0||i===nLine-1);if(nLine>16&&!isPeakL&&!isEdgeL)return;const p=el.tooltipPosition();if(p.x-lastLineX<32)return;lastLineX=p.x;ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle=(typeof ds.borderColor==='string')?ds.borderColor:'#8A6D00';ctx.fillText(fmDs(chart,ds,v),p.x,p.y-3);return;}
+   if(gmx&&Math.abs(v)<gmx*(stacked?0.05:0.035)*(denseBars?2.5:1))return;
+   const pos=el.tooltipPosition();
+   if(!horiz){if(pos.x-lastBarX<26)return;lastBarX=pos.x;}
+   const bg=Array.isArray(bgC)?bgC[i]:bgC;
    let txt=fmDs(chart,ds,v);
    {const pctP=chart.options.plugins&&chart.options.plugins.pct;if(pctP&&pctP.on){const tt=ds.data.reduce((a,b)=>a+Math.abs(b||0),0);if(tt){let ex=' ('+Math.round(Math.abs(v)/tt*100)+'%';if(di===chart.data.datasets.length-1&&chart.data.datasets.length>=2){const ss=chart.data.datasets[0].data,tS=ss.reduce((a,b)=>a+Math.abs(b||0),0);if(tS){const pS=Math.abs(ss[i]||0)/tS,pC=Math.abs(v)/tt;ex+=pC>pS+0.002?' ▲':(pC<pS-0.002?' ▼':'');}}ex+=')';txt+=ex;}}}
    if(horiz){ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#1B1C4C';ctx.fillText(txt,pos.x+5,pos.y);}
@@ -3638,7 +3641,7 @@ function _adWinKeys(){var r=_adRange();var ks=[];for(var m=r[0];m<=r[1];m++){if(
 /* nhãn trục thời gian theo kỳ chọn: tháng (winKeys) hoặc ngày (lọc theo tháng trong kỳ) */
 function _adLabs(gran){var A=RAW.ads;var mk=_adWinKeys();if((gran||S.adsGran)==='d')return A.days.filter(function(d){return mk.indexOf(d.slice(0,7))>=0;});return mk;}
 /* nhãn hiển thị gọn cho trục (ngày: dd/mm · tháng: mm/yy) */
-function _adLabShow(labs,gran){return (gran==='d')?labs.map(function(k){var p=k.split('-');return p[2]+'/'+p[1];}):labs.map(function(k){return k.slice(5)+'/'+k.slice(2,4);});}
+function _adLabShow(labs,gran){return (gran==='d')?labs.map(function(k){var p=k.split('.');return p[2]+'/'+p[1];}):labs.map(function(k){return k.slice(5)+'/'+k.slice(2,4);});}
 /* preset kỳ cho ads (đặt S.adM0/S.adM1 rồi vẽ lại màn ads đang mở) */
 function _adPreset(code){
  var A=RAW.ads;var lo=M.indexOf(A.months[0]),hi=M.indexOf(A.months[A.months.length-1]);var a=lo,b=hi,mm;
