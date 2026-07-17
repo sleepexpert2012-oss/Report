@@ -18,6 +18,19 @@
 - Lần đầu (chưa có state): xóa sạch `sales_fact` rồi kéo từ `SHOPEE_START_DATE`.
 - Khi đã đồng bộ xong toàn bộ (`done=true`): mỗi lần chỉ làm mới **N ngày gần nhất** (xóa theo từng mã đơn rồi ghi lại, không xóa sạch bảng).
 
+## Lịch tự chạy (pg_cron trên Supabase) — cập nhật 2026-07-17
+| Job | Lịch (UTC) | Giờ VN | Gọi function |
+|---|---|---|---|
+| `shopee-sync-daily` | `0 23,5,13 * * *` | 06:00 / 12:00 / 20:00 | `smooth-responder` (đơn hàng) |
+| `shopee-ads-daily` | `10 23,5,13 * * *` | 06:10 / 12:10 / 20:10 | `bright-responder` (chi phí Ads) |
+| `shopee-ads-kw-daily` | `20 23 * * *` | 06:20 | `smart-endpoint` (từ khóa Ads) |
+
+Các function đều public (`verify_jwt=false`) nên cron gọi URL không cần Authorization header.
+Gỡ 1 job: `select cron.unschedule('<jobname>');`
+
+## Giới hạn coverage đã biết
+- `bright-responder` chỉ kéo **quảng cáo cấp SẢN PHẨM** (`get_product_level_campaign_*`). **Quảng cáo cấp Shop** (nếu có chạy) KHÔNG được đồng bộ → tổng chi phí trong `ads_fact` có thể thấp hơn số tổng trên app seller.
+
 ## Cách deploy lại 1 function (khi sửa code)
 Dashboard: Supabase → Edge Functions → mở đúng slug → dán nội dung `index.ts` → Deploy.
 Hoặc qua Management API (cần Personal Access Token).
