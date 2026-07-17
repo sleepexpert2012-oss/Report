@@ -926,7 +926,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-import">
     <div class="eyebrow">Nội bộ · Dữ liệu chung trên Supabase</div>
     <h1 class="pt">Import dữ liệu</h1>
-    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-17 08:59</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
+    <div style="font-size:11px;color:#8494A8;margin:-6px 0 8px">Phiên bản build: <b style="color:#363E99">2026-07-17 09:34</b> — nếu số này không khớp bản mới nhất, anh chưa upload/đang bị cache (Ctrl+Shift+R).</div>
     <div class="card w2">
       <h2>Cập nhật dữ liệu mới nhất lên Supabase</h2>
       <div class="sub">Chọn file Excel → hệ thống đọc + tính toán ngay trong trình duyệt → đẩy bản mới nhất lên Supabase. Dashboard chỉ lấy dữ liệu từ Supabase — mọi người mở lại là thấy bản mới nhất.</div>
@@ -3942,17 +3942,14 @@ function renderAdsPlan(){
  var head='<table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr style="background:#1B1C4C;color:#fff">'
   +['Ngành','Class',(P.mode==='pct'?'% NS':'Tiền (tr)'),'Ngân sách','Khóa','ROAS TT 3T','ROAS KH','GMV KH','NMV KH','Đơn'].map(function(h){var al=(h==='Khóa')?'center':(['% NS','Tiền (tr)','Ngân sách','ROAS TT 3T','ROAS KH','GMV KH','NMV KH','Đơn'].indexOf(h)>=0?'right':'left');return '<th style="padding:6px 7px;text-align:'+al+'">'+h+'</th>';}).join('')+'</tr></thead><tbody>';
  var sumV=0,sumB=0,sumG=0,sumN=0,sum3g=0,sum3s=0,sumAB=0,sumAG=0,sumAN=0,sumAO=0,sumOrdP=0,lastPg=-99,pgAgg={};
- /* thực tế (xanh lá) của THÁNG đang lập: GMV/NMV/Đơn = doanh số bán THẬT theo class (RAW.rows); Ngân sách = chi ads tháng đó */
+ /* thực tế (xanh lá) của THÁNG đang lập = số ADS theo từng class (khớp Shopee Ads) */
  var _pa=function(plan,act){return plan+((act!=null&&act!=='')?' <span style="color:#0F9E6E;font-size:9.5px;font-weight:600">· '+act+'</span>':'');};
- var _cmIdx=(typeof M!=='undefined'&&M)?M.indexOf(P.curMonth):-1;var _realCi={};
- if(_cmIdx>=0&&RAW.rows){RAW.rows.forEach(function(r){if(r[9]===_cmIdx){var o=_realCi[r[2]]=_realCi[r[2]]||{gmv:0,u:0};o.gmv+=r[11];o.u+=r[14];}});}
- var _realTotG=0,_realTotU=0;for(var _rk in _realCi){_realTotG+=_realCi[_rk].gmv;_realTotU+=_realCi[_rk].u;}   /* tổng doanh số thật CẢ THÁNG (mọi class) */
  B.forEach(function(x){var row=P.rows[x.ci]||{v:0,roas:x.roas};var v=row.v||0;var locked=(P.mode==='pct')&&!!row.lock;var bud=_budOf(x);var rr=row.roas||x.roas;var g=bud*rr;var n=g*(1-C);sumV+=v;sumB+=bud;sumG+=g;sumN+=n;sumOrdP+=(x.aov>0?g/x.aov:0);
   var _p3=_pByCi[x.ci];if(_p3){_last3.forEach(function(m){var vv=_p3.byM&&_p3.byM[m];if(vv){sum3g+=vv[6];sum3s+=vv[8];}});}
-  var _spM=(_p3&&_p3.byM&&_p3.byM[P.curMonth])?_p3.byM[P.curMonth][8]:0;   /* chi ads tháng này */
-  var _rc=_realCi[x.ci];var _rg=_rc?_rc.gmv:0,_ru=_rc?_rc.u:0;            /* doanh số bán thật tháng này */
-  var hasAct=(_spM>0||_rg>0||_ru>0);
-  sumAB+=_spM;sumAG+=_rg;sumAN+=_rg;sumAO+=_ru;
+  var _adM=(_p3&&_p3.byM&&_p3.byM[P.curMonth])?_p3.byM[P.curMonth]:null;   /* ADS class tháng này */
+  var _spM=_adM?_adM[8]:0,_gmM=_adM?_adM[6]:0,_cvM=_adM?_adM[2]:0,_nmM=_adM?_adM[6]*(1-(_p3.cancel||0)):0;
+  var hasAct=(_spM>0||_gmM>0);
+  sumAB+=_spM;sumAG+=_gmM;sumAN+=_nmM;sumAO+=_cvM;
   (pgAgg[x.pg]=pgAgg[x.pg]||{b:0,g:0});pgAgg[x.pg].b+=bud;pgAgg[x.pg].g+=g;
   if(x.pg!==lastPg){head+='<tr style="background:#EEF0FA"><td colspan="10" style="padding:4px 8px;font-weight:700;color:#1B1C4C">'+(PG[x.pg]||'?')+'</td></tr>';lastPg=x.pg;}
   head+='<tr><td style="padding:3px 7px;border-bottom:0.5px solid #EEF"></td>'
@@ -3962,19 +3959,19 @@ function renderAdsPlan(){
    +'<td style="padding:2px 4px;text-align:center;border-bottom:0.5px solid #EEF"><input type="checkbox" '+(locked?'checked':'')+' onchange="_adPlanLock('+x.ci+')" title="Khóa giữ nguyên ngân sách dòng này khi kéo mô phỏng"></td>'
    +_roas3Cell(x.ci)
    +'<td style="padding:2px 4px;text-align:right;border-bottom:0.5px solid #EEF"><input type="number" step="0.5" value="'+rr+'" onchange="_adPlanRow('+x.ci+',\'roas\',this.value)" style="width:52px;text-align:right;font-size:11px;padding:2px 4px"></td>'
-   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF;font-weight:600">'+_pa(_adTr1(g),_rg>0?_adTr1(_rg):'')+'</td>'
-   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+_pa(_adTr1(n),_rg>0?_adTr1(_rg):'')+'</td>'
-   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+_pa(_adN(x.aov>0?g/x.aov:0),_ru>0?_adN(_ru):'')+'</td></tr>';
+   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF;font-weight:600">'+_pa(_adTr1(g),_gmM>0?_adTr1(_gmM):'')+'</td>'
+   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+_pa(_adTr1(n),_gmM>0?_adTr1(_nmM):'')+'</td>'
+   +'<td style="padding:3px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+_pa(_adN(x.aov>0?g/x.aov:0),_cvM>0?_adN(_cvM):'')+'</td></tr>';
  });
  var vWarn=(P.mode==='pct'&&Math.abs(sumV-100)>0.5)?' <span style="color:#E24B4A">(tổng '+_adR1(sumV)+'% ≠ 100%)</span>':'';
  head+='<tr style="background:#EEF0FA;font-weight:700"><td style="padding:5px 8px" colspan="2">TỔNG'+vWarn+'</td>'
   +'<td style="padding:5px 7px;text-align:right">'+(P.mode==='pct'?_adR1(sumV)+'%':_adTr1(sumB))+'</td>'
   +'<td style="padding:5px 7px;text-align:right">'+_pa(_adTr1(sumB),sumAB>0?_adTr1(sumAB):'')+'</td><td></td>'
-  +'<td style="padding:5px 7px;text-align:right;color:#0F6E56;background:#F2FAF7">'+(sum3s>0?_adR1(sum3g/sum3s):'—')+'</td>'+'<td style="padding:5px 7px;text-align:right" title="ROAS KH bình quân = tổng GMV KH ÷ tổng ngân sách; xanh = thực tế (GMV thật ÷ chi ads)">'+_pa(_adR1(sumB>0?sumG/sumB:0),sumAB>0?_adR1(_realTotG/sumAB):'')+'</td>'
-  +'<td style="padding:5px 7px;text-align:right">'+_pa(_adTr1(sumG),_realTotG>0?_adTr1(_realTotG):'')+'</td><td style="padding:5px 7px;text-align:right">'+_pa(_adTr1(sumN),_realTotG>0?_adTr1(_realTotG):'')+'</td><td style="padding:5px 7px;text-align:right">'+_pa(_adN(sumOrdP),_realTotU>0?_adN(_realTotU):'')+'</td></tr>';
+  +'<td style="padding:5px 7px;text-align:right;color:#0F6E56;background:#F2FAF7">'+(sum3s>0?_adR1(sum3g/sum3s):'—')+'</td>'+'<td style="padding:5px 7px;text-align:right" title="ROAS KH bình quân = tổng GMV KH ÷ tổng ngân sách; xanh = thực tế (GMV thật ÷ chi ads)">'+_pa(_adR1(sumB>0?sumG/sumB:0),sumAB>0?_adR1(sumAG/sumAB):'')+'</td>'
+  +'<td style="padding:5px 7px;text-align:right">'+_pa(_adTr1(sumG),sumAG>0?_adTr1(sumAG):'')+'</td><td style="padding:5px 7px;text-align:right">'+_pa(_adTr1(sumN),sumAN>0?_adTr1(sumAN):'')+'</td><td style="padding:5px 7px;text-align:right">'+_pa(_adN(sumOrdP),sumAO>0?_adN(sumAO):'')+'</td></tr>';
  head+='</tbody></table>';
  document.getElementById('aplAlloc').innerHTML=head;
- var note=document.getElementById('aplAllocNote');if(note)note.innerHTML='📅 Đang lập kế hoạch cho tháng <b style="color:#363E99">'+(P.curMonth||'?')+'</b> (đổi ở ô Tháng bên dưới) · GMV phân bổ: <b>'+_adTr(sumG)+'</b> vs mục tiêu <b>'+_adTr(gmv)+'</b> · chênh '+_adR1(gmv>0?(sumG-gmv)/gmv*100:0)+'% · số <b style="color:#0F9E6E">xanh lá</b> = thực tế tháng này (GMV/NMV/Đơn theo doanh số bán thật; Ngân sách theo chi ads); dòng <b>TỔNG</b> xanh = tổng doanh số thật cả tháng (gồm cả class chưa chạy ads) · tick <b>Khóa</b> để giữ nguyên ngân sách dòng khi kéo mô phỏng.';
+ var note=document.getElementById('aplAllocNote');if(note)note.innerHTML='📅 Đang lập kế hoạch cho tháng <b style="color:#363E99">'+(P.curMonth||'?')+'</b> (đổi ở ô Tháng bên dưới) · GMV phân bổ: <b>'+_adTr(sumG)+'</b> vs mục tiêu <b>'+_adTr(gmv)+'</b> · chênh '+_adR1(gmv>0?(sumG-gmv)/gmv*100:0)+'% · số <b style="color:#0F9E6E">xanh lá</b> = <b>số ADS thực tế</b> theo class trong tháng (chi phí, GMV, ROAS khớp Shopee Ads) · tick <b>Khóa</b> để giữ nguyên ngân sách dòng khi kéo mô phỏng.';
  /* rải tuần (đều) */
  var nW=Math.max(1,Math.round((P.toM-P.fromM+1)*4.3));
  document.getElementById('aplWeek').innerHTML='Kỳ kế hoạch '+ (M[P.fromM]||'?')+'→'+(M[P.toM]||'?')+' ≈ <b>'+nW+' tuần</b> · Ngân sách/tuần (đều): <b>'+_adTr1(sumB/nW)+'</b> · /ngày: <b>'+_adTr1(sumB/nW/7)+'</b>';
@@ -4034,22 +4031,21 @@ function _adDayBudgets(mk,nd,P){var dd=P.daily[mk];var T=_adDayTargetOf(mk,P);va
 function _adBlankTot(){return {b:0,gmv:0,nmv:0,ord:0,imp:0,clk:0,pn:0,pc:0,pp:0,an:0,ac:0,ap:0,at:0,agmv:0,anmv:0,aconv:0,aclk:0,aimpr:0,sgmv:0,snmv:0,sord:0};}
 /* dòng tổng (dùng cho TỔNG THÁNG và TỔNG TUẦN) — cùng cách tính với dòng ngày */
 function _adTotRow(t,label,bg){
- var hasAT=t.at>0,hasST=t.sgmv>0;
+ var hasAT=t.at>0||t.agmv>0;
  var paT=function(plan,act){return plan+(hasAT&&act!==''&&act!=null?'<span class="ac">'+act+'</span>':'');};
- var paTS=function(plan,act){return plan+(hasST&&act!==''&&act!=null?'<span class="ac">'+act+'</span>':'');};
  var tCpc=t.clk>0?t.b/t.clk*1e6:0,tCtr=t.imp>0?t.clk/t.imp:0,tCr=t.clk>0?t.ord/t.clk:0,tRoas=t.b>0?t.gmv/t.b:0;
- var aTCpc=t.aclk>0?t.at/t.aclk*1e6:0,aTCtr=t.aimpr>0?t.aclk/t.aimpr:0,aTCr=t.aclk>0?t.aconv/t.aclk:0,aTRoas=t.at>0?t.sgmv/t.at:0;
+ var aTCpc=t.aclk>0?t.at/t.aclk*1e6:0,aTCtr=t.aimpr>0?t.aclk/t.aimpr:0,aTCr=t.aclk>0?t.aconv/t.aclk:0,aTRoas=t.at>0?t.agmv/t.at:0;
  var c=function(v){return '<td style="padding:4px 5px;text-align:center;white-space:nowrap">'+v+'</td>';};
  return '<tr style="background:'+bg+';font-weight:700"><td colspan="5" style="padding:4px 8px">'+label+'</td>'
   +c(paT(_adTr1(t.pn),_adTr1(t.an)))+c(paT(_adTr1(t.pc),_adTr1(t.ac)))+c(paT(_adTr1(t.pp),_adTr1(t.ap)))
   +c(paT(_adTr1(t.b),_adTr1(t.at)))
   +c(paT(_adN(tCpc)+'đ',_adN(aTCpc)+'đ'))+c(paT(_adPct(tCtr),_adPct(aTCtr)))+c(paT(_adPct(tCr),_adPct(aTCr)))+c(paT(_adR1(tRoas),_adR1(aTRoas)))
-  +c(paTS(_adTr1(t.gmv),_adTr1(t.sgmv)))+c(paTS(_adTr1(t.nmv),_adTr1(t.snmv)))+c(paTS(_adN(t.ord),_adN(t.sord)))+'</tr>';
+  +c(paT(_adTr1(t.gmv),_adTr1(t.agmv)))+c(paT(_adTr1(t.nmv),_adTr1(t.anmv)))+c(paT(_adN(t.ord),_adN(t.aconv)))+'</tr>';
 }
-function _adAccTot(T,b,gmv,nmv,ord,imp,clk,bn,bc,bp,af,sd){
+function _adAccTot(T,b,gmv,nmv,ord,imp,clk,bn,bc,bp,af,shp){
  T.b+=b;T.gmv+=gmv;T.nmv+=nmv;T.ord+=ord;T.imp+=imp;T.clk+=clk;T.pn+=bn;T.pc+=bc;T.pp+=bp;
- if(af){T.an+=af.nem;T.ac+=af.chan;T.ap+=af.pk;T.at+=af.tot;T.agmv+=af.gmv;T.anmv+=af.nmv;T.aconv+=af.conv;T.aclk+=af.clk;T.aimpr+=af.impr;}
- if(sd){T.sgmv+=sd[0];T.snmv+=sd[1];T.sord+=sd[2];}}
+ if(af){T.an+=af.nem;T.ac+=af.chan;T.ap+=af.pk;}                        /* NS theo ngành (từ actD) */
+ if(shp){T.at+=shp[8];T.agmv+=shp[6];T.anmv+=shp[7];T.aconv+=shp[2];T.aclk+=shp[1];T.aimpr+=shp[0];}}  /* tổng ads shop = khớp Shopee */
 function renderAdsDaily(){
  var A=RAW.ads,P=_adPlanLoad();_adDayFill();
  var s=document.getElementById('aplDayMonth');var mk=(s&&s.value)||P.dayMonth||A.months[A.months.length-1];P.dayMonth=mk;
@@ -4063,11 +4059,11 @@ function renderAdsDaily(){
   +'<span style="font-size:12px;color:#6B7280">Thực tế sau điều chỉnh: <b style="color:#1B1C4C">'+_adTr1(totBud)+'</b></span>'
   +'<span style="font-size:12px;color:'+(match?'#1D9E75':'#E24B4A')+';font-weight:600">'+(match?'✓ Khớp Mục tiêu':'≠ lệch '+_adTr1(totBud-mo.T)+' (khóa vượt mục tiêu?)')+'</span></div>';
  var cols=['Ngày','Giai đoạn','Loại ngày','Khóa','Trọng số','NS Nệm','NS Chăn','NS Phụ kiện','Tổng NS (tr)','CPC','CTR','CR','ROAS','GMV','NMV','Đơn'];
- var h=ctrl+'<div style="font-size:10px;color:#0F6E56;margin-bottom:4px">Số <b>xanh lá</b> = thực tế theo <b>doanh số bán thật mỗi ngày</b> (đến ngày mới nhất): GMV = gộp cả đơn hủy · NMV = net (loại hủy, trừ hoàn) · Đơn = số đơn thực; NS/CPC/CTR/CR theo <b>ads</b>; ROAS thực tế = doanh số shop ÷ chi ads (blended).</div><table style="width:100%;border-collapse:collapse;font-size:10.5px"><thead><tr style="background:#1B1C4C;color:#fff">'+cols.map(function(c,ci){var lft=(ci<3);return '<th style="padding:5px 5px;white-space:nowrap;text-align:'+(lft?'left':'center')+'">'+c+'</th>';}).join('')+'</tr></thead><tbody>';
+ var h=ctrl+'<div style="font-size:10px;color:#0F6E56;margin-bottom:4px">Số <b>xanh lá</b> = <b>số ADS thực tế</b> (khớp Shopee Ads): Tổng NS · CPC · CTR · CR · ROAS · GMV · NMV · Đơn đều theo dữ liệu quảng cáo Shopee (GMV & ROAS = broad, đúng như trên sàn). NS Nệm/Chăn/PK chia theo sản phẩm (ước lượng).</div><table style="width:100%;border-collapse:collapse;font-size:10.5px"><thead><tr style="background:#1B1C4C;color:#fff">'+cols.map(function(c,ci){var lft=(ci<3);return '<th style="padding:5px 5px;white-space:nowrap;text-align:'+(lft?'left':'center')+'">'+c+'</th>';}).join('')+'</tr></thead><tbody>';
  var WD=['CN','T2','T3','T4','T5','T6','T7'];var phOpt=['Normal','Pre-heat','Sustain','Sale'];
  var iset={};iset[iNem]='nem';iset[iChan]='chan';iset[iPK]='pk';
  var actD={};A.prod.forEach(function(pp){var key=iset[pp.pg];if(!key)return;var cc=pp.cancel||0;for(var dk in (pp.byD||{})){if(dk.slice(0,7)!==mk)continue;var v=pp.byD[dk];var oo=actD[dk]=actD[dk]||{nem:0,chan:0,pk:0,tot:0,gmv:0,nmv:0,conv:0,clk:0,impr:0};oo[key]+=v[8];oo.tot+=v[8];oo.gmv+=v[6];oo.nmv+=v[6]*(1-cc);oo.conv+=v[2];oo.clk+=v[1];oo.impr+=v[0];}});
- var SD=RAW.salesD||{};   /* doanh số bán THẬT theo ngày: {dkey:[GMV,NMV,Đơn]} */
+ var shD=A.shopD||{};   /* ADS shop theo ngày (khớp Shopee Ads): [impr,clk,conv,convD,units,unitsD,gmv,gmvD,spend] (tr) */
  var tot=_adBlankTot();var wk=_adBlankTot(),wkStart=1,wkFresh=true;
  for(var d=1;d<=nd;d++){var o=dd[d];var b=bud[d];var pf=_adPhaseFac(o.phase);var dt=_adDayType(mk,d);
   if(wkFresh){wkStart=d;wkFresh=false;}
@@ -4080,13 +4076,12 @@ function renderAdsDaily(){
   var cpc=clk>0?b/clk*1e6:0;var ctr=imp>0?clk/imp:0;var cr=((BN.cvr+BC.cvr+BP.cvr)/3)*pf.c;
   var ord=(BN.aov>0?bn*BN.roas*pf.r/BN.aov:0)+(BC.aov>0?bc*BC.roas*pf.r/BC.aov:0)+(BP.aov>0?bp*BP.roas*pf.r/BP.aov:0);
   var roas=b>0?gmv/b:0;
-  var dk=mk+'.'+(d<10?'0'+d:d);var af=actD[dk];var hasA=!!(af&&(af.tot>0||af.gmv>0));
-  var sd=SD[dk];var hasS=!!(sd&&(sd[0]>0||sd[2]>0));   /* doanh số bán THẬT ngày này (đến ngày mới nhất) */
-  /* ROAS thực tế BLENDED = doanh số shop / chi ads (chỉ khi ngày đó có chi ads) */
-  var aRoas=(af&&af.tot>0)?((hasS?sd[0]:af.gmv)/af.tot):0,aCpc=(af&&af.clk>0)?af.tot/af.clk*1e6:0,aCtr=(af&&af.impr>0)?af.clk/af.impr:0,aCr=(af&&af.clk>0)?af.conv/af.clk:0;
-  _adAccTot(tot,b,gmv,nmv,ord,imp,clk,bn,bc,bp,af,sd);_adAccTot(wk,b,gmv,nmv,ord,imp,clk,bn,bc,bp,af,sd);
+  var dk=mk+'.'+(d<10?'0'+d:d);var af=actD[dk];var shp=shD[dk];
+  var hasA=!!(shp&&(shp[8]>0||shp[6]>0));   /* có ads shop ngày này */
+  /* ADS thực tế theo Shopee: GMV=shp[6], NMV=shp[7], Đơn=shp[2], ROAS=GMV/chi, chi=shp[8] */
+  var aRoas=(shp&&shp[8]>0)?(shp[6]/shp[8]):0,aCpc=(shp&&shp[1]>0)?shp[8]/shp[1]*1e6:0,aCtr=(shp&&shp[0]>0)?shp[1]/shp[0]:0,aCr=(shp&&shp[1]>0)?shp[2]/shp[1]:0;
+  _adAccTot(tot,b,gmv,nmv,ord,imp,clk,bn,bc,bp,af,shp);_adAccTot(wk,b,gmv,nmv,ord,imp,clk,bn,bc,bp,af,shp);
   var pa=function(plan,act){return '<span class="s2">'+plan+(hasA&&act!==''&&act!=null?'<span class="ac">'+act+'</span>':'')+'</span>';};
-  var paS=function(plan,act){return '<span class="s2">'+plan+(hasS&&act!==''&&act!=null?'<span class="ac">'+act+'</span>':'')+'</span>';};
   var num=function(field,val,w){return '<input class="apc" type="number" step="0.1" min="0" value="'+(val===''||val==null?'':val)+'" onchange="_adDayIn(\''+mk+'\','+d+',\''+field+'\',this.value)" style="width:'+(w||44)+'px">';};
   var sel='<select onchange="_adDayIn(\''+mk+'\','+d+',\'phase\',this.value)" style="font-size:10px;padding:1px">'+phOpt.map(function(x){return '<option'+(x===o.phase?' selected':'')+'>'+x+'</option>';}).join('')+'</select>';
   var lock='<input type="checkbox" '+(o.lock?'checked':'')+' onchange="_adDayLock(\''+mk+'\','+d+')" title="Khóa giữ nguyên NS ngày này">';
@@ -4099,14 +4094,14 @@ function renderAdsDaily(){
    +td(num('sn',o.sn,38)+'<i class="pc">%</i><br>'+pa(_adTr1(bn),af?_adTr1(af.nem):''),1)
    +td(num('sc',o.sc,38)+'<i class="pc">%</i><br>'+pa(_adTr1(bc),af?_adTr1(af.chan):''),1)
    +td(num('sp',o.sp,38)+'<i class="pc">%</i><br>'+pa(_adTr1(bp),af?_adTr1(af.pk):''),1)
-   +td('<input class="apc" type="number" step="0.1" min="0" value="'+(Math.round(b*100)/100)+'" onchange="_adDayIn(\''+mk+'\','+d+',\'tot\',this.value)" style="width:58px'+(o.lock?';background:#FFF7E6':'')+'"><br>'+pa(_adTr1(b),hasA?_adTr1(af.tot):''),1)
+   +td('<input class="apc" type="number" step="0.1" min="0" value="'+(Math.round(b*100)/100)+'" onchange="_adDayIn(\''+mk+'\','+d+',\'tot\',this.value)" style="width:58px'+(o.lock?';background:#FFF7E6':'')+'"><br>'+pa(_adTr1(b),hasA?_adTr1(shp[8]):''),1)
    +td(pa(_adN(cpc)+'đ',hasA?_adN(aCpc)+'đ':''),1)
    +td(pa(_adPct(ctr),hasA?_adPct(aCtr):''),1)
    +td(pa(_adPct(cr),hasA?_adPct(aCr):''),1)
    +td(pa(_adR1(roas),hasA?_adR1(aRoas):''),1)
-   +td(paS(_adTr1(gmv),hasS?_adTr1(sd[0]):''),1)
-   +td(paS(_adTr1(nmv),hasS?_adTr1(sd[1]):''),1)
-   +td(paS(_adN(ord),hasS?_adN(sd[2]):''),1)
+   +td(pa(_adTr1(gmv),hasA?_adTr1(shp[6]):''),1)
+   +td(pa(_adTr1(nmv),hasA?_adTr1(shp[7]):''),1)
+   +td(pa(_adN(ord),hasA?_adN(shp[2]):''),1)
    +'</tr>';
   /* hết tuần (Chủ nhật) hoặc hết tháng -> chèn dòng TỔNG TUẦN (T2→CN) */
   var _isSun=(new Date(+p[0],+p[1]-1,d).getDay()===0);
