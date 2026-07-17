@@ -7,7 +7,7 @@ Luồng: **Shopee API → shopee-sync (chạy theo lịch) → bảng `sales_fac
 ---
 
 ## 0. Chuẩn bị
-- **Partner ID**: 1238417 (đã có).
+- **Partner ID**: 2039280 (đã có — bản Live/thật).
 - **Partner Key**: lấy trong Shopee Open Platform → App List → app của anh. **ĐÂY LÀ KHÓA BÍ MẬT — không gửi cho ai.**
 - Quyết định môi trường:
   - **Sandbox** (test-stable): chỉ có shop/đơn giả lập → dùng để chạy thử luồng.
@@ -26,7 +26,7 @@ Vào Supabase → **SQL Editor** → dán nội dung file `1_supabase_shopee_tok
 Supabase → **Edge Functions → Secrets** (hoặc `supabase secrets set ...`):
 
 ```
-SHOPEE_PARTNER_ID   = 1238417
+SHOPEE_PARTNER_ID   = 2039280
 SHOPEE_PARTNER_KEY  = <partner key bí mật của anh>
 SHOPEE_HOST         = https://partner.shopeemobile.com          # production
 #   (sandbox thì dùng: https://partner.test-stable.shopeemobile.com)
