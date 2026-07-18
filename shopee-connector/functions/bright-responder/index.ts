@@ -181,6 +181,54 @@ Deno.serve(async ()=>{
         if (error) throw new Error(error.message);
       }
       added += rows.length;
+
+      // ---- ĐỐI SOÁT tổng shop: get_all_cpc_ads_daily_performance cho đúng cửa sổ [sd,ed] ----
+      // API campaign SẢN PHẨM ở trên có thể thiếu (SP mới / GMS / CPC cấp shop...). API này trả
+      // tổng chi phí + doanh số cấp TOÀN SHOP (khớp app seller). Ta ghi 1 dòng/ngày = phần CHÊNH
+      // (tổng shop − tổng sản phẩm) để ads_fact khớp tổng thật; dashboard xếp vào "Chưa gắn ngành".
+      const prodByDay: Record<string, any> = {};
+      for (const r of rows){
+        const dk = `${r.ngay}-${r.thang}-${r.nam}`;
+        const a = prodByDay[dk] || (prodByDay[dk] = { exp: 0, gmv: 0, dgmv: 0, ord: 0, dord: 0, clk: 0, imp: 0 });
+        a.exp += +r.chi_phi || 0; a.gmv += +r.doanh_so || 0; a.dgmv += +r.doanh_so_truc_tiep || 0;
+        a.ord += +r.luot_chuyen_doi || 0; a.dord += +r.luot_chuyen_doi_truc_tiep || 0;
+        a.clk += +r.so_luot_click || 0; a.imp += +r.so_luot_xem || 0;
+      }
+      const cu = await shopUrl("/api/v2/ads/get_all_cpc_ads_daily_performance", shopId, token, { start_date: sd, end_date: ed });
+      const cj = await (await fetch(cu)).json();
+      const recon = [];
+      for (const d of (cj?.response || [])){
+        const dk = String(d.date);                       // DD-MM-YYYY
+        const [dd, mm, yy] = dk.split("-");
+        const p = prodByDay[dk] || { exp: 0, gmv: 0, dgmv: 0, ord: 0, dord: 0, clk: 0, imp: 0 };
+        const dExp = Math.max(0, (d.expense || 0) - p.exp);
+        const dGmv = Math.max(0, (d.broad_gmv || 0) - p.gmv);
+        const dGmvD = Math.max(0, (d.direct_gmv || 0) - p.dgmv);
+        const dOrd = Math.max(0, (d.broad_order || 0) - p.ord);
+        const dOrdD = Math.max(0, (d.direct_order || 0) - p.dord);
+        const dClk = Math.max(0, (d.clicks || 0) - p.clk);
+        const dImp = Math.max(0, (d.impression || 0) - p.imp);
+        if (dExp <= 0 && dGmv <= 0) continue;             // ngày này SP đã phủ đủ -> bỏ qua
+        recon.push({
+          ngay: dd, thang: mm, nam: yy,
+          ten_dich_vu_hien_thi: "CPC khác (chưa phân bổ SP)",
+          ma_san_pham: "-",
+          so_luot_xem: dImp, so_luot_click: dClk,
+          luot_chuyen_doi: dOrd, luot_chuyen_doi_truc_tiep: dOrdD,
+          san_pham_da_ban: dOrd, san_pham_da_ban_truc_tiep: dOrdD,
+          doanh_so: dGmv, doanh_so_truc_tiep: dGmvD,
+          chi_phi: dExp, roas: dExp > 0 ? +(dGmv / dExp).toFixed(2) : 0
+        });
+      }
+      for(let i = 0; i < recon.length; i += 500){
+        const { error } = await sb.from("ads_fact").insert(recon.slice(i, i + 500).map((r)=>{
+          const o: any = {};
+          for(const k in r)o[k] = r[k] == null ? null : String(r[k]);
+          return o;
+        }));
+        if (error) throw new Error("recon: " + error.message);
+      }
+      added += recon.length;
       lastTo = ed;
       from = to + 60;
       if (!st.done) await sb.from("shopee_ads_state").upsert({
