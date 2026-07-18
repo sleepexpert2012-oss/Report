@@ -3668,14 +3668,18 @@ function _adScope(gran){var A=RAW.ads;if(_adAll())return gran==='d'?A.shopD:A.sh
 /* ---- thống kê theo scope (all shop hoặc 1 class) trên 1 tập tháng ---- */
 function _adStats(keys){
  var A=RAW.ads; var w=_adSum(_adScope('m'),keys); var spend=w[8],gmv=w[6];
- var nmv=0; _adProds().forEach(function(p){var pw=_adSum(p.byM,keys);nmv+=pw[6]*(1-(p.cancel||0));});
- if(_adAll())for(var ak in A.auto){var aw=_adSum(A.auto[ak].byM,keys);nmv+=aw[6]*(1-(A.cancelShop||0));}
+ /* DT thực NET = doanh thu đơn HOÀN THÀNH (đã trừ hàng hoàn) từ sales_fact, đúng kỳ đang chọn */
  var real=0;
  if(_adAll()){for(var pg in A.realByPgM){var dd=A.realByPgM[pg];for(var k in dd){if(keys.indexOf(k)>=0)real+=dd[k];}}}
  else{_adProds().forEach(function(p){for(var k in (p.realRevM||{})){if(keys.indexOf(k)>=0)real+=p.realRevM[k];}});}
+ var nmv=real;   /* NMV thực = doanh thu thật net (KHÔNG còn ước tính GMV_ads×(1−hủy)) */
+ /* tỷ lệ hủy: shop (all) hoặc bình quân gia quyền theo GMV ads của class */
+ var cancel;
+ if(_adAll())cancel=A.cancelShop||0;
+ else{var cg=0,cw=0;_adProds().forEach(function(p){var pw=_adSum(p.byM,keys);cg+=pw[6]*(p.cancel||0);cw+=pw[6];});cancel=cw>0?cg/cw:0;}
  return {spend:spend,gmv:gmv,nmv:nmv,real:real,
   roas:spend>0?gmv/spend:0,roasR:spend>0?nmv/spend:0,acos:gmv>0?spend/gmv:0,
-  cancel:gmv>0?1-nmv/gmv:0,tacos:real>0?spend/real:0,pct:real>0?nmv/real:0,
+  cancel:cancel,tacos:real>0?spend/real:0,
   ctr:w[0]>0?w[1]/w[0]:0,cvr:w[1]>0?w[2]/w[1]:0};
 }
 /* tập tháng kỳ so sánh = liền trước, cùng độ dài (chỉ nhận tháng có dữ liệu ads) */
@@ -3799,18 +3803,17 @@ function renderAds(){
  var cards=[
   _adKpi('Tổng chi ads',_adTr(cur.spend),cur.spend,PV('spend'),'pct',false,true),
   _adKpi('GMV ads (gộp)',_adTr(cur.gmv),cur.gmv,PV('gmv'),'pct',false),
-  _adKpi('NMV (thực)',_adTr(cur.nmv),cur.nmv,PV('nmv'),'pct',false),
+  _adKpi('DT thực (net)',_adTr(cur.nmv),cur.nmv,PV('nmv'),'pct',false),
   _adKpi('ROAS (gộp)',_adR1(cur.roas),cur.roas,PV('roas'),'pct',false),
   _adKpi('ROAS thực',_adR1(cur.roasR),cur.roasR,PV('roasR'),'pct',false),
   _adKpi('Tỷ lệ hủy đơn',_adPct(cur.cancel),cur.cancel,PV('cancel'),'pp',true),
   _adKpi('ACOS',_adPct(cur.acos),cur.acos,PV('acos'),'pp',true),
   _adKpi('TACOS',_adPct(cur.tacos),cur.tacos,PV('tacos'),'pp',true),
-  _adKpi('% DT nhờ ads',_adPct(cur.pct),cur.pct,PV('pct'),'pp',false),
   _adKpi('CTR',_adPct(cur.ctr),cur.ctr,PV('ctr'),'pp',false),
   _adKpi('Tỷ lệ CĐ',_adPct(cur.cvr),cur.cvr,PV('cvr'),'pp',false)];
  document.getElementById('adsKpi').innerHTML=cards.join('');
  var clsTxt=_adAll()?'Tất cả class':((_adProds()[0]||{cls:'?'}).cls);
- var sub=document.getElementById('adsSub'); if(sub)sub.innerHTML='<b>Phạm vi: '+clsTxt+'</b> · Kỳ: '+winTxt+(cmpK?(' · so kỳ SS: '+cmpK[0]+'→'+cmpK[cmpK.length-1]):' · (không có kỳ SS)')+' · DT thật: '+_adTr(cur.real)+' · NMV = GMV trừ hủy đơn ('+_adPct(cur.cancel)+')'+(_adAll()?'':' <span style="color:#E24B4A">— đang lọc 1 class, chọn "Tất cả class" để xem toàn shop</span>');
+ var sub=document.getElementById('adsSub'); if(sub)sub.innerHTML='<b>Phạm vi: '+clsTxt+'</b> · Kỳ: '+winTxt+(cmpK?(' · so kỳ SS: '+cmpK[0]+'→'+cmpK[cmpK.length-1]):' · (không có kỳ SS)')+' · <b>DT thực (net)</b> = doanh thu đơn HOÀN THÀNH đã trừ hàng hoàn, lấy từ đơn hàng thật (không phải GMV tracking của Shopee) · ROAS thực = DT thực ÷ chi ads'+(_adAll()?'':' <span style="color:#E24B4A">— đang lọc 1 class, chọn "Tất cả class" để xem toàn shop</span>');
 
  /* class dropdown */
  var cs=document.getElementById('adsClass');
@@ -3859,20 +3862,20 @@ function renderAds(){
  /* bảng hiệu suất theo sản phẩm */
  var P=_adProds().map(function(p){var w=_adSum(p.byM,keys);var rr=0;for(var k in (p.realRevM||{})){if(keys.indexOf(k)>=0)rr+=p.realRevM[k];}return {p:p,w:w,rr:rr};}).filter(function(o){return o.w[8]>0||o.w[6]>0;});
  P.sort(function(a,b){return b.w[8]-a.w[8];});
- var cols=['Ngành','Chất liệu','Brand','Class','Chi','GMV','NMV','ROAS(g|thực)','Hủy','ACOS','TACOS','%ads','CTR','CVR','Cờ'];
- var rght={'Chi':1,'GMV':1,'NMV':1,'ROAS(g|thực)':1,'Hủy':1,'ACOS':1,'TACOS':1,'%ads':1,'CTR':1,'CVR':1};
+ var cols=['Ngành','Chất liệu','Brand','Class','Chi','GMV ads','DT thực','ROAS(g|thực)','Hủy','ACOS','TACOS','CTR','CVR','Cờ'];
+ var rght={'Chi':1,'GMV ads':1,'DT thực':1,'ROAS(g|thực)':1,'Hủy':1,'ACOS':1,'TACOS':1,'CTR':1,'CVR':1};
  var th='<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#1B1C4C;color:#fff">'+cols.map(function(h){return '<th style="padding:6px 6px;text-align:'+(rght[h]?'right':'left')+'">'+h+'</th>';}).join('')+'</tr></thead><tbody>';
- P.forEach(function(o){var w=o.w,p=o.p;var sp=w[8],g=w[6],gd=w[7];var cc=p.cancel||0;var nm=g*(1-cc);
-  var ro=sp>0?g/sp:0,rr2=sp>0?nm/sp:0,ac=g>0?sp/g:0;var tac=o.rr>0?sp/o.rr:0,pa=o.rr>0?nm/o.rr:0;
+ P.forEach(function(o){var w=o.w,p=o.p;var sp=w[8],g=w[6],gd=w[7];var cc=p.cancel||0;var nm=o.rr;   /* DT thực (net) từ đơn hàng thật, không ước tính từ GMV ads */
+  var ro=sp>0?g/sp:0,rr2=sp>0?nm/sp:0,ac=g>0?sp/g:0;var tac=o.rr>0?sp/o.rr:0;
   var ctr2=w[0]>0?w[1]/w[0]:0,cvr2=w[1]>0?w[2]/w[1]:0;
-  var flag='';if(sp>0.3&&g<=0)flag='<span style="color:#E24B4A;font-weight:600">Chi mà GMV=0</span>';
-   else if(ro>0&&ro<A.thr.roasLo)flag='<span style="color:#E24B4A">ROAS thấp</span>';
+  var flag='';if(sp>0.3&&nm<=0)flag='<span style="color:#E24B4A;font-weight:600">Chi, DT thực=0</span>';
+   else if(rr2>0&&rr2<A.thr.roasLo)flag='<span style="color:#E24B4A">ROAS thực thấp</span>';
    else if(cc>0.4)flag='<span style="color:#EF9F27">Hủy cao</span>';
    else if(rr2>=A.thr.roasHi)flag='<span style="color:#1D9E75">Tốt</span>';
   function td(v,r,c){return '<td style="padding:4px 6px;border-bottom:0.5px solid #EEF;'+(r?'text-align:right;':'')+(c?'color:'+c+';font-weight:600':'')+'">'+v+'</td>';}
   th+='<tr>'+td(PG[p.pg]||'')+td(CAT["ChấtLiệu"][p.mat]||'')+td(BR[p.br]||'')+td('<b>'+p.cls+'</b>')
-   +td(_adTr1(sp),1)+td(_adTr1(g),1)+td(_adTr1(nm),1)+td(_adR1(ro)+' | '+_adR1(rr2),1,_adRoasC(rr2))
-   +td(_adPct(cc),1,cc>0.4?'#E24B4A':'')+td(_adPct(ac),1)+td(_adPct(tac),1,tac>A.thr.tacos?'#E24B4A':'')+td(_adPct(pa),1)+td(_adPct(ctr2),1)+td(_adPct(cvr2),1)+td(flag)+'</tr>';
+   +td(_adTr1(sp),1)+td(_adTr1(g),1)+td(_adTr1(nm),1,nm<=0&&sp>0?'#E24B4A':'')+td(_adR1(ro)+' | '+_adR1(rr2),1,_adRoasC(rr2))
+   +td(_adPct(cc),1,cc>0.4?'#E24B4A':'')+td(_adPct(ac),1)+td(_adPct(tac),1,tac>A.thr.tacos?'#E24B4A':'')+td(_adPct(ctr2),1)+td(_adPct(cvr2),1)+td(flag)+'</tr>';
  });
  th+='</tbody></table>';document.getElementById('adsTbl').innerHTML=th;
 
