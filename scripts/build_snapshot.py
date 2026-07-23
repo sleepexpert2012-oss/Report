@@ -6,6 +6,7 @@ import json
 import os
 import re
 import tempfile
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -120,6 +121,29 @@ def run_engine(source: str, table_map: dict, tables: dict) -> dict:
         return namespace["RAW"]
 
 
+def add_cancel_rates(raw: dict, sales_rows: list[dict]) -> None:
+    """Attach monthly cancelled/gross GMV for dashboard period comparisons."""
+    gmv_by_month: dict[str, list[float]] = defaultdict(lambda: [0.0, 0.0])
+    for row in sales_rows:
+        ordered_at = str(row.get("ngay_dat_hang") or "").strip()
+        if len(ordered_at) < 7:
+            continue
+        month = ordered_at[:7].replace("-", ".")
+        try:
+            gmv = float(row.get("tong_gia_ban_san_pham") or 0)
+        except (TypeError, ValueError):
+            gmv = 0.0
+        is_cancelled = str(row.get("trang_thai_don_hang") or "").strip() == "Đã hủy"
+        gmv_by_month[month][1] += gmv
+        if is_cancelled:
+            gmv_by_month[month][0] += gmv
+
+    raw["cancelGmvByM"] = {
+        month: [round(values[0], 2), round(values[1], 2)]
+        for month, values in sorted(gmv_by_month.items())
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="Tính snapshot nhưng không ghi Supabase")
@@ -144,6 +168,7 @@ def main():
     print("Số dòng:", {table: len(rows) for table, rows in tables.items()}, flush=True)
 
     raw = run_engine(source, table_map, tables)
+    add_cancel_rates(raw, tables.get("sales_fact", []))
     payload = json.dumps(raw, ensure_ascii=False, separators=(",", ":"))
     print(f"Snapshot hoàn tất: {len(payload):,} bytes", flush=True)
     if args.dry_run:

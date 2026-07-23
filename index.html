@@ -1267,7 +1267,7 @@ function kpiHTML(items){
  return items.map(k=>{
   let d='';
   if(k.prev===null||k.prev===undefined)d='<div class="d na">— không có kỳ so sánh</div>';
-  else if(k.pp!==undefined){const dd=k.v2-k.prev;d=`<div class="d ${dd>=0?'up':'down'}">${dd>=0?'▲ +':'▼ '}${dd.toFixed(1).replace('.',',')} điểm %</div>`;}
+  else if(k.pp!==undefined){const dd=k.v2-k.prev,good=k.badUp?dd<=0:dd>=0;d=`<div class="d ${good?'up':'down'}">${dd>=0?'▲ +':'▼ '}${dd.toFixed(1).replace('.',',')} điểm %</div>`;}
   else{const dd=k.prev?(k.raw-k.prev)/k.prev:0;d=`<div class="d ${dd>=0?'up':'down'}">${dd>=0?'▲ +':'▼ '}${pc(dd)} vs kỳ SS</div>`;}
   return`<div class="kpi"><div class="t">${k.t}</div><div class="v">${k.v}</div><div class="u">${k.u||''}</div>${k.pv?`<div class="pv" style="font-size:11px;color:#8494A8;margin-top:2px">Kỳ SS: ${k.pv}</div>`:''}${d}</div>`;}).join('');
 }
@@ -2045,10 +2045,57 @@ function gotoBrand(label){
  document.querySelectorAll('#ovBrandTbl tbody tr').forEach(r=>r.style.background='');
  const row=document.querySelector('#ovBrandTbl tbody tr[data-b="'+label+'"]');if(row)row.style.background='#FFF3C4';
 }
+let _cancelRatesLoad=null;
+function ensureCancelRates(){
+ if(RAW.cancelGmvByM)return Promise.resolve(RAW.cancelGmvByM);
+ if(_cancelRatesLoad)return _cancelRatesLoad;
+ const rows=[],limit=1000;
+ const loadPage=offset=>fetch(
+  SUPA_URL+'/rest/v1/sales_fact?select=ngay_dat_hang,trang_thai_don_hang,tong_gia_ban_san_pham&order=_id.asc&limit='+limit+'&offset='+offset,
+  {headers:_supaH()}
+ ).then(r=>{if(!r.ok)throw new Error('sales_fact '+r.status);return r.json();})
+  .then(page=>{rows.push(...page);return page.length===limit?loadPage(offset+limit):rows;});
+ _cancelRatesLoad=loadPage(0).then(data=>{
+  const months={};
+  data.forEach(r=>{
+   const date=String(r.ngay_dat_hang||'');
+   if(date.length<7)return;
+   const month=date.slice(0,7).replace('-','.');
+   if(!months[month])months[month]=[0,0];
+   const gmv=Number(r.tong_gia_ban_san_pham)||0;
+   const cancelled=String(r.trang_thai_don_hang||'').trim()==='Đã hủy';
+   months[month][1]+=gmv;
+   if(cancelled)months[month][0]+=gmv;
+  });
+  RAW.cancelGmvByM=months;
+  if(S.page==='overview')renderOverview();
+  return RAW.cancelGmvByM;
+ }).catch(err=>{console.warn('Không tải được tỷ lệ hủy theo tháng:',err);_cancelRatesLoad=null;return null;});
+ return _cancelRatesLoad;
+}
 function renderOverview(){
  renderOvKenh();
  const a=sum();
- document.getElementById('ovKpis').innerHTML=kpiHTML(stdKpis(a));
+ const overviewKpis=stdKpis(a);
+ const cancelRateFor=(lo,hi)=>{
+  const byM=RAW.cancelGmvByM||{},months=RAW.months||[],tot=[0,0];
+  for(let i=lo;i<=hi;i++){const x=byM[months[i]];if(x){tot[0]+=+x[0]||0;tot[1]+=+x[1]||0;}}
+  return tot[1]?tot[0]/tot[1]:null;
+ };
+ const cancelRate=cancelRateFor(S.m0,S.m1),cancelCmp=cmpRange();
+ const cancelPrev=cancelCmp?cancelRateFor(cancelCmp[0],cancelCmp[1]):null;
+ overviewKpis[6]={
+  t:'Tỷ lệ hủy đơn',
+  v:cancelRate===null?'—':pc(cancelRate),
+  u:'GMV đơn hủy ÷ GMV gộp',
+  v2:cancelRate===null?0:cancelRate*100,
+  pp:1,
+  badUp:1,
+  prev:cancelPrev===null?null:cancelPrev*100,
+  pv:cancelPrev===null?null:pc(cancelPrev)
+ };
+ document.getElementById('ovKpis').innerHTML=kpiHTML(overviewKpis);
+ if(!RAW.cancelGmvByM)ensureCancelRates();
  const mnote=MNAME();
  document.getElementById('ovTrendS').textContent=mnote+' theo tháng · nét đứt = riêng SP mới';
  document.getElementById('ovIndS').textContent='Chỉ số: '+mnote;
