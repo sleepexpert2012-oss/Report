@@ -3910,11 +3910,20 @@ function renderAds(){
 
  /* bảng hiệu suất theo sản phẩm */
  var P=_adProds().map(function(p){var w=_adSum(p.byM,keys);var rr=0;for(var k in (p.realRevM||{})){if(keys.indexOf(k)>=0)rr+=p.realRevM[k];}return {p:p,w:w,rr:rr};}).filter(function(o){return o.w[8]>0||o.w[6]>0;});
- P.sort(function(a,b){return b.w[8]-a.w[8];});
+ function _adTxt(v){return String(v||'').toLocaleLowerCase('vi-VN');}
+ P.sort(function(a,b){
+  var ap=a.p,bp=b.p;if(ap.pg!==bp.pg)return ap.pg-bp.pg;
+  var am=_adTxt(CAT["ChấtLiệu"][ap.mat]),bm=_adTxt(CAT["ChấtLiệu"][bp.mat]);if(am!==bm)return am.localeCompare(bm,'vi');
+  var ab=_adTxt(BR[ap.br]),bb=_adTxt(BR[bp.br]);if(ab!==bb)return ab.localeCompare(bb,'vi');
+  return _adTxt(ap.cls).localeCompare(_adTxt(bp.cls),'vi');
+ });
  var cols=['Ngành','Chất liệu','Brand','Class','Chi','GMV ads','DT thực','ROAS(g|thực)','Hủy','ACOS','TACOS','CTR','CVR','Cờ'];
  var rght={'Chi':1,'GMV ads':1,'DT thực':1,'ROAS(g|thực)':1,'Hủy':1,'ACOS':1,'TACOS':1,'CTR':1,'CVR':1};
  var th='<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#1B1C4C;color:#fff">'+cols.map(function(h){return '<th style="padding:6px 6px;text-align:'+(rght[h]?'right':'left')+'">'+h+'</th>';}).join('')+'</tr></thead><tbody>';
+ var _tblTot=_adF9(),_tblRR=0,_tblCancelW=0,_tblCancelBase=0,_lastTblPg=null;
  P.forEach(function(o){var w=o.w,p=o.p;var sp=w[8],g=w[6],gd=w[7];var cc=p.cancel||0;var nm=o.rr;   /* DT thực (net) từ đơn hàng thật, không ước tính từ GMV ads */
+  _adAdd(_tblTot,w);_tblRR+=nm;_tblCancelW+=cc*g;_tblCancelBase+=g;
+  if(p.pg!==_lastTblPg){th+='<tr style="background:#E8EDF6"><td colspan="14" style="padding:5px 7px;border-top:1px solid #CFD8E6;border-bottom:1px solid #DDE4EE;color:#263A68;font-weight:700">'+(PG[p.pg]||'Chưa xác định')+'</td></tr>';_lastTblPg=p.pg;}
   var ro=sp>0?g/sp:0,rr2=sp>0?nm/sp:0,ac=g>0?sp/g:0;var tac=o.rr>0?sp/o.rr:0;
   var ctr2=w[0]>0?w[1]/w[0]:0,cvr2=w[1]>0?w[2]/w[1]:0;
   var flag='';if(sp>0.3&&nm<=0)flag='<span style="color:#E24B4A;font-weight:600">Chi, DT thực=0</span>';
@@ -3922,11 +3931,19 @@ function renderAds(){
    else if(cc>0.4)flag='<span style="color:#EF9F27">Hủy cao</span>';
    else if(rr2>=A.thr.roasHi)flag='<span style="color:#1D9E75">Tốt</span>';
   function td(v,r,c){return '<td style="padding:4px 6px;border-bottom:0.5px solid #EEF;'+(r?'text-align:right;':'')+(c?'color:'+c+';font-weight:600':'')+'">'+v+'</td>';}
-  th+='<tr>'+td(PG[p.pg]||'')+td(CAT["ChấtLiệu"][p.mat]||'')+td(BR[p.br]||'')+td('<b>'+p.cls+'</b>')
+  th+='<tr>'+td('')+td(CAT["ChấtLiệu"][p.mat]||'')+td(BR[p.br]||'')+td('<b>'+p.cls+'</b>')
    +td(_adTr1(sp),1)+td(_adTr1(g),1)+td(_adTr1(nm),1,nm<=0&&sp>0?'#E24B4A':'')+td(_adR1(ro)+' | '+_adR1(rr2),1,_adRoasC(rr2))
    +td(_adPct(cc),1,cc>0.4?'#E24B4A':'')+td(_adPct(ac),1)+td(_adPct(tac),1,tac>A.thr.tacos?'#E24B4A':'')+td(_adPct(ctr2),1)+td(_adPct(cvr2),1)+td(flag)+'</tr>';
  });
- th+='</tbody></table>';document.getElementById('adsTbl').innerHTML=th;
+ var _tsp=_tblTot[8],_tgmv=_tblTot[6],_tro=_tsp>0?_tgmv/_tsp:0,_trr=_tsp>0?_tblRR/_tsp:0,_tac=_tgmv>0?_tsp/_tgmv:0,_ttac=_tblRR>0?_tsp/_tblRR:0;
+ var _tctr=_tblTot[0]>0?_tblTot[1]/_tblTot[0]:0,_tcvr=_tblTot[1]>0?_tblTot[2]/_tblTot[1]:0,_tcancel=_tblCancelBase>0?_tblCancelW/_tblCancelBase:0;
+ th+='</tbody><tfoot><tr style="background:#1B1C4C;color:#fff;font-weight:700;border-top:2px solid #363E99">'
+  +'<td colspan="4" style="padding:7px 6px">TỔNG TOÀN BẢNG · '+P.length+' class</td>'
+  +'<td style="padding:7px 6px;text-align:right">'+_adTr1(_tsp)+'</td><td style="padding:7px 6px;text-align:right">'+_adTr1(_tgmv)+'</td><td style="padding:7px 6px;text-align:right">'+_adTr1(_tblRR)+'</td>'
+  +'<td style="padding:7px 6px;text-align:right">'+_adR1(_tro)+' | '+_adR1(_trr)+'</td><td style="padding:7px 6px;text-align:right">'+_adPct(_tcancel)+'</td>'
+  +'<td style="padding:7px 6px;text-align:right">'+_adPct(_tac)+'</td><td style="padding:7px 6px;text-align:right">'+_adPct(_ttac)+'</td>'
+  +'<td style="padding:7px 6px;text-align:right">'+_adPct(_tctr)+'</td><td style="padding:7px 6px;text-align:right">'+_adPct(_tcvr)+'</td><td></td></tr></tfoot></table>';
+ document.getElementById('adsTbl').innerHTML=th;
 
  /* khối GMV-Max */
  var au='<table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr style="background:#1B1C4C;color:#fff"><th style="padding:6px 8px;text-align:left">Nhóm (theo tên chiến dịch)</th><th style="padding:6px 8px;text-align:right">Chi phí</th><th style="padding:6px 8px;text-align:right">GMV</th><th style="padding:6px 8px;text-align:right">ROAS</th></tr></thead><tbody>';
