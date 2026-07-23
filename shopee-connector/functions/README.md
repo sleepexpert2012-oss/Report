@@ -28,6 +28,26 @@
 Các function đều public (`verify_jwt=false`) nên cron gọi URL không cần Authorization header.
 Gỡ 1 job: `select cron.unschedule('<jobname>');`
 
+## Snapshot dashboard (giai đoạn 2)
+
+Dashboard không còn đọc và tính lại toàn bộ bảng nguồn mỗi lần mở. Workflow
+`.github/workflows/build-dashboard-snapshot.yml` chạy lúc 06:35 / 12:35 / 20:35
+(giờ Việt Nam), sau các job đồng bộ Shopee, rồi:
+
+1. đọc song song 9 bảng nguồn;
+2. chạy đúng engine Python đang dùng trong dashboard;
+3. upsert một dòng `snapshot/current`;
+4. dashboard tải snapshot bằng một request.
+
+Repository cần hai GitHub Actions secrets:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Có thể chạy ngay bằng nút **Run workflow** của workflow `Build dashboard snapshot`.
+Script `python scripts/build_snapshot.py --dry-run` dùng để kiểm tra cục bộ mà
+không ghi dữ liệu lên Supabase.
+
 ## Giới hạn coverage đã biết
 - `bright-responder` chỉ kéo **quảng cáo cấp SẢN PHẨM** (`get_product_level_campaign_*`). **Quảng cáo cấp Shop** (nếu có chạy) KHÔNG được đồng bộ → tổng chi phí trong `ads_fact` có thể thấp hơn số tổng trên app seller.
 

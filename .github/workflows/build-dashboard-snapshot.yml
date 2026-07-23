@@ -1,0 +1,29 @@
+name: Build dashboard snapshot
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Chạy sau các đợt đồng bộ Shopee 06:00 / 12:00 / 20:00 (giờ Việt Nam).
+    - cron: "35 23,5,13 * * *"
+
+concurrency:
+  group: dashboard-snapshot
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scripts/requirements.txt
+      - run: pip install -r scripts/requirements.txt
+      - name: Build and publish current snapshot
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/build_snapshot.py
