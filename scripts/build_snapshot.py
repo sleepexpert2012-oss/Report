@@ -8,7 +8,9 @@ import re
 import tempfile
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 from openpyxl import Workbook
@@ -169,6 +171,9 @@ def main():
 
     raw = run_engine(source, table_map, tables)
     add_cancel_rates(raw, tables.get("sales_fact", []))
+    if tables.get("tonkho"):
+        raw["stockDate"] = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime("%d/%m/%Y")
+        raw["stockSource"] = "Shopee API"
     payload = json.dumps(raw, ensure_ascii=False, separators=(",", ":"))
     print(f"Snapshot hoàn tất: {len(payload):,} bytes", flush=True)
     if args.dry_run:
