@@ -115,7 +115,7 @@ Deno.serve(async ()=>{
         for(let i = 0; i < sns.length; i += 50){
           const u = await shopUrl("/api/v2/order/get_order_detail", shopId, token, {
             order_sn_list: sns.slice(i, i + 50).join(","),
-            response_optional_fields: "item_list,order_status,create_time"
+            response_optional_fields: "item_list,order_status,create_time,recipient_address,cancel_by,cancel_reason,buyer_cancel_reason,shipping_carrier,pay_time,pickup_done_time,package_list"
           });
           const j = await (await fetch(u)).json();
           for (const o of j?.response?.order_list || []){
@@ -128,6 +128,9 @@ Deno.serve(async ()=>{
                 ma_don_hang: o.order_sn,
                 ngay_dat_hang: ngay,
                 trang_thai_don_hang: status,
+                ly_do_huy: o.cancel_reason || o.buyer_cancel_reason || "",
+                don_vi_van_chuyen: o.shipping_carrier || "",
+                tinh_thanh_pho: o.recipient_address?.state || o.recipient_address?.city || "",
                 san_pham_ban_chay: it.item_name || "",
                 sku_san_pham: it.item_sku || "",
                 ten_san_pham: it.item_name || "",

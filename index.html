@@ -402,6 +402,25 @@ th[data-tip]>span.tipu{border-bottom:1px dotted rgba(255,255,255,.55)}
 th[data-tip]{position:relative}
 th[data-tip].tipon::after,th[data-tip]:hover::after{content:attr(data-tip);position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#0F2547;color:#fff;font-size:11px;font-weight:500;line-height:1.45;letter-spacing:0;text-transform:none;padding:8px 11px;border-radius:8px;width:max-content;max-width:250px;white-space:normal;text-align:left;z-index:60;box-shadow:0 8px 22px rgba(5,15,35,.35);pointer-events:none}
 th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-bottom-color:#0F2547;z-index:61;pointer-events:none}
+/* ===== Shopee operations center ===== */
+.ops-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+.ops-head h1{margin:2px 0 4px}.ops-updated{font-size:11px;color:#718198;margin-top:5px}
+.ops-refresh{min-height:42px;padding:0 16px;border:1.5px solid #29306F;border-radius:9px;background:#fff;color:#1B1C4C;font-weight:800;cursor:pointer}
+.ops-refresh:hover{background:#F1F3FA}.ops-kpis{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:11px;margin-bottom:14px}
+.ops-kpi{background:#fff;border:1px solid #D9E0EB;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(21,35,70,.05);min-height:96px}
+.ops-kpi .lab{font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#75849A}
+.ops-kpi .val{font-size:23px;line-height:1.15;font-weight:850;color:#1B1C4C;margin:8px 0 3px}.ops-kpi .hint{font-size:10.5px;color:#8290A4}
+.ops-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(310px,.85fr);gap:14px}.ops-card{background:#fff;border:1px solid #D9E0EB;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(21,35,70,.045)}
+.ops-card h2{font-size:14px;color:#1B1C4C;margin:0 0 4px}.ops-sub{font-size:11px;color:#7A889B;margin-bottom:12px}
+.ops-source-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.ops-source{border:1px solid #E0E6EF;border-radius:9px;padding:10px;background:#FBFCFE}
+.ops-source b{font-size:11.5px}.ops-source small{display:block;color:#7B899C;font-size:9.5px;margin-top:3px}.ops-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;background:#AAB4C3}.ops-dot.connected{background:#18A85B}.ops-dot.partial{background:#E39B17}.ops-dot.pending{background:#C4CAD4}
+.ops-table{width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px}.ops-table th{background:#1B1C4C;color:#fff;padding:9px 10px;text-align:left;font-size:10px;letter-spacing:.04em;text-transform:uppercase}.ops-table th:first-child{border-radius:7px 0 0 0}.ops-table th:last-child{border-radius:0 7px 0 0}
+.ops-table td{padding:10px;border-bottom:1px solid #E8EDF4;vertical-align:top}.ops-table tr:hover td{background:#F7F9FC}.ops-num{text-align:right;font-variant-numeric:tabular-nums;font-weight:750}
+.ops-sev{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:850;text-transform:uppercase}.ops-sev.critical{background:#FDE9E7;color:#B72E24}.ops-sev.warning{background:#FFF2D8;color:#A86400}
+.ops-empty{padding:30px 18px;text-align:center;border:1px dashed #CAD3E0;border-radius:10px;background:#FAFBFD;color:#718198}.ops-empty b{display:block;color:#293451;margin-bottom:5px}
+.ops-bar{height:8px;border-radius:999px;background:#E9EEF5;overflow:hidden;min-width:100px}.ops-bar i{display:block;height:100%;background:#4651A8;border-radius:inherit}
+.ops-filter{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px}.ops-filter button{padding:7px 10px;border:1px solid #D4DCE8;border-radius:8px;background:#fff;color:#526177;font-weight:700;font-size:10.5px;cursor:pointer}.ops-filter button.on{background:#1B1C4C;color:#fff;border-color:#1B1C4C}
+@media(max-width:1250px){.ops-kpis{grid-template-columns:repeat(3,1fr)}.ops-source-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.ops-kpis{grid-template-columns:repeat(2,1fr)}.ops-grid{grid-template-columns:1fr}.ops-source-grid{grid-template-columns:1fr}.ops-head{align-items:flex-start;flex-direction:column}}
 
 </style>
 </head>
@@ -433,6 +452,18 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <li><a data-page="ind" data-pg="Gối"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="10" rx="5"/><path d="M4 9C2.8 7.8 2.8 6 4 5m16 4c1.2-1.2 1.2-3 0-4M4 15c-1.2 1.2-1.2 3 0 4m16-4c1.2 1.2 1.2 3 0 4"/></svg></span>Gối</a></li>
     <li><a data-page="ind" data-pg="Phụ Kiện"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span>Phụ Kiện</a></li>
     <li><a data-page="ind" data-pg="__other"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>Ngành khác</a></li>
+    <li class="ghead">Vận hành Shopee</li>
+    <li><a data-page="shopops"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="18" height="7" rx="1"/></svg></span>Tổng quan vận hành</a></li>
+    <li><a data-page="overview"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V8m6 11V4m6 15v-7m4 7H2"/></svg></span>Doanh thu &amp; đơn hàng</a></li>
+    <li><a data-page="shopfinance"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18m-5 5h2"/></svg></span>Tài chính &amp; phí Shopee</a></li>
+    <li><a data-page="shopreturns"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 7H3v-4M3 7a9 9 0 101.7-2.9"/></svg></span>Huỷ, trả &amp; hoàn tiền</a></li>
+    <li><a data-page="shoplogistics"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z"/><circle cx="7" cy="19" r="1.5"/><circle cx="18" cy="19" r="1.5"/></svg></span>Hiệu suất giao vận</a></li>
+    <li><a data-page="ads"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg></span>Ads Shopee</a></li>
+    <li><a data-page="shopaffiliate"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 007 0l2-2a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-2 2a5 5 0 007 7l1-1"/></svg></span>Affiliate</a></li>
+    <li><a data-page="shopcontent"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg></span>Livestream &amp; Video</a></li>
+    <li><a data-page="stock"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5"/></svg></span>Tồn kho Shopee</a></li>
+    <li><a data-page="shopissues"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l10 18H2zM12 9v5m0 3h.01"/></svg></span>Phân tích vấn đề</a></li>
+    <li><a data-page="shopregions"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-6.1 7-12A7 7 0 005 9c0 5.9 7 12 7 12z"/><circle cx="12" cy="9" r="2"/></svg></span>Khách hàng khu vực</a></li>
     <li class="ghead">Phân tích sâu</li>
     <li><a data-page="range"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10m5.3 10V4m5.4 16v-9m5.3 9V7"/></svg></span>Range Review</a></li>
     <li><a data-page="matrix"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg></span>Ma trận SP</a></li>
@@ -980,6 +1011,15 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     </div>
     <div class="card w2"><h2>Lưu ý</h2><div class="sub">• Lần đầu tính toán sẽ tải Pyodide (~10MB) để chạy engine trong trình duyệt — hơi lâu, các lần sau nhanh hơn.<br>• Có thể import chỉ 1 trong 2 file. File Ads do phòng khác quản, import riêng ở ô số 2.<br>• Sau khi import xong, bấm "Tải lại dashboard" để xem số liệu mới.</div></div>
   </section>
+
+<section class="page" id="pg-shopops"><div id="shopopsHost"></div></section>
+<section class="page" id="pg-shopfinance"><div id="shopfinanceHost"></div></section>
+<section class="page" id="pg-shopreturns"><div id="shopreturnsHost"></div></section>
+<section class="page" id="pg-shoplogistics"><div id="shoplogisticsHost"></div></section>
+<section class="page" id="pg-shopaffiliate"><div id="shopaffiliateHost"></div></section>
+<section class="page" id="pg-shopcontent"><div id="shopcontentHost"></div></section>
+<section class="page" id="pg-shopissues"><div id="shopissuesHost"></div></section>
+<section class="page" id="pg-shopregions"><div id="shopregionsHost"></div></section>
 
 <section class="page" id="pg-log">
   <h1>📝 Nhật ký cập nhật (Changelog)</h1>
@@ -4700,13 +4740,69 @@ function _aiToggle(){var p=document.getElementById('aiPanel');if(!p)return;var o
 var _AI_ICON='<svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="3.2"/><path d="M12 8V4.6"/><circle cx="12" cy="3.2" r="1.25" fill="#fff" stroke="none"/><circle cx="9" cy="14" r="1.35" fill="#fff" stroke="none"/><circle cx="15" cy="14" r="1.35" fill="#fff" stroke="none"/><path d="M9.5 17.4h5"/><path d="M4 12.5H2.4M20 12.5h1.6"/></svg>';
 try{window._aiToggle=_aiToggle;window._aiSend=_aiSend;window._aiChip=_aiChip;}catch(e){}
 
+var _OPS=null,_OPS_LOADING=null,_OPS_FILTER='all';
+function _opsEsc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+function _opsMoney(v){v=Number(v)||0;return(v/1000000).toLocaleString('vi-VN',{maximumFractionDigits:1})+' triệu';}
+function _opsPct(v){return((Number(v)||0)*100).toLocaleString('vi-VN',{maximumFractionDigits:1})+'%';}
+function _opsHead(title,sub){return '<div class="ops-head"><div><div class="eyebrow">VẬN HÀNH SHOPEE · API LIVE</div><h1>'+title+'</h1><div class="sub">'+sub+'</div><div class="ops-updated" id="opsUpdated">Đang tải dữ liệu...</div></div><button class="ops-refresh" id="opsRefresh">↻ Đồng bộ phân tích</button></div>';}
+function _opsLoad(force){
+ if(_OPS&&!force)return Promise.resolve(_OPS);
+ if(_OPS_LOADING&&!force)return _OPS_LOADING;
+ _OPS_LOADING=fetch(SUPA_URL+'/functions/v1/ops-responder',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+  .then(function(r){return r.json();}).then(function(j){if(!j.ok)throw new Error(j.error||'Không tải được dữ liệu');_OPS=j.payload;return _OPS;})
+  .finally(function(){_OPS_LOADING=null;});
+ return _OPS_LOADING;
+}
+function _opsSources(p){return '<div class="ops-source-grid">'+(p.sources||[]).map(function(s){return '<div class="ops-source"><b><i class="ops-dot '+s.status+'"></i>'+_opsEsc(s.name)+'</b><small>'+_opsEsc(s.note)+' · '+(s.status==='connected'?'Đã kết nối':s.status==='partial'?'Độ phủ '+_opsPct(s.coverage):'Chờ kết nối')+'</small></div>';}).join('')+'</div>';}
+function _opsKpis(p){var s=p.summary;return '<div class="ops-kpis">'+[
+ ['GMV gộp',_opsMoney(s.gross_gmv),'90 ngày gần nhất'],['Doanh thu sau huỷ',_opsMoney(s.net_gmv),'GMV gộp − GMV huỷ'],
+ ['Tỷ lệ huỷ theo GMV',_opsPct(s.cancel_rate_gmv),_opsMoney(s.cancel_gmv)+' bị ảnh hưởng'],['Đơn hàng',Number(s.orders||0).toLocaleString('vi-VN'),s.cancelled_orders+' đơn huỷ'],
+ ['Chi phí Ads',_opsMoney(s.ad_spend),'ROAS '+Number(s.roas||0).toLocaleString('vi-VN',{maximumFractionDigits:2})],
+ ['Giá vốn tồn kho',_opsMoney(s.stock_value),Number(s.stock_qty||0).toLocaleString('vi-VN')+' unit']
+ ].map(function(x){return '<div class="ops-kpi"><div class="lab">'+x[0]+'</div><div class="val">'+x[1]+'</div><div class="hint">'+x[2]+'</div></div>';}).join('')+'</div>';}
+function _opsIssueRows(arr){
+ if(!arr.length)return '<div class="ops-empty"><b>Không có vấn đề trong bộ lọc này</b>Dữ liệu hiện tại chưa phát hiện ngoại lệ cần xử lý.</div>';
+ return '<table class="ops-table"><thead><tr><th>Mức độ</th><th>Vấn đề &amp; nguyên nhân</th><th>Ảnh hưởng</th><th>Hành động đề xuất</th></tr></thead><tbody>'+arr.map(function(x){return '<tr><td><span class="ops-sev '+x.severity+'">'+(x.severity==='critical'?'Khẩn':'Cần xem')+'</span></td><td><b>'+_opsEsc(x.title)+'</b><div class="ops-sub" style="margin:3px 0 0">'+_opsEsc(x.detail)+'</div></td><td class="ops-num">'+(x.type==='stockout'?Number(x.impact).toLocaleString('vi-VN')+' unit':_opsMoney(x.impact))+'<div class="ops-sub" style="margin:2px 0">'+_opsEsc(x.metric)+'</div></td><td>'+_opsEsc(x.action)+'</td></tr>';}).join('')+'</tbody></table>';
+}
+function _opsPending(title,desc,source){
+ return _opsHead(title,desc)+'<div class="ops-card"><div class="ops-empty"><b>Đang chờ dữ liệu từ '+source+'</b>Khung phân tích đã sẵn sàng. Hệ thống sẽ tự hiển thị KPI và bảng chi tiết sau khi app được xác thực và đồng bộ thành công.</div></div>';
+}
+function renderShopeePage(){
+ var hosts={shopops:'shopopsHost',shopfinance:'shopfinanceHost',shopreturns:'shopreturnsHost',shoplogistics:'shoplogisticsHost',shopaffiliate:'shopaffiliateHost',shopcontent:'shopcontentHost',shopissues:'shopissuesHost',shopregions:'shopregionsHost'};
+ var host=document.getElementById(hosts[S.page]);if(!host)return;
+ host.innerHTML=_opsHead('Đang tải dữ liệu vận hành','Đang tổng hợp Data Sale, Data Ads và tồn kho Shopee.')+'<div class="ops-empty">Đang đọc và đối chiếu dữ liệu API...</div>';
+ _opsLoad(false).then(function(p){
+  if(S.page==='shopops'){
+   var top=(p.issues||[]).slice(0,6);
+   host.innerHTML=_opsHead('Tổng quan vận hành Shopee','Bức tranh 90 ngày: kết quả, rủi ro và tình trạng kết nối nguồn dữ liệu.')+_opsKpis(p)+'<div class="ops-grid"><div class="ops-card"><h2>Ưu tiên cần xử lý</h2><div class="ops-sub">Xếp theo mức độ nghiêm trọng và giá trị ảnh hưởng</div>'+_opsIssueRows(top)+'</div><div class="ops-card"><h2>Sức khoẻ nguồn dữ liệu</h2><div class="ops-sub">Không sử dụng số liệu ước đoán cho API chưa kết nối</div>'+_opsSources(p)+'</div></div>';
+  }else if(S.page==='shopissues'){
+   var types=[['all','Tất cả'],['cancel','Huỷ đơn'],['ads','Ads lãng phí'],['stock','Tồn chậm'],['stockout','Hết hàng']];
+   var arr=(p.issues||[]).filter(function(x){return _OPS_FILTER==='all'||x.type===_OPS_FILTER;});
+   host.innerHTML=_opsHead('Phân tích vấn đề','Nhìn từ ảnh hưởng đến nguyên nhân và hành động cần quyết định.')+'<div class="ops-filter">'+types.map(function(x){return '<button data-of="'+x[0]+'" class="'+(_OPS_FILTER===x[0]?'on':'')+'">'+x[1]+'</button>';}).join('')+'</div><div class="ops-card">'+_opsIssueRows(arr)+'</div>';
+   host.querySelectorAll('[data-of]').forEach(function(b){b.onclick=function(){_OPS_FILTER=b.dataset.of;renderShopeePage();};});
+  }else if(S.page==='shopregions'){
+   var rr=p.regions||[],mx=Math.max.apply(null,rr.map(function(x){return x.gmv;}));
+   host.innerHTML=_opsHead('Khách hàng theo khu vực','Xếp hạng tỉnh/thành theo GMV, đơn hàng, AOV và tỷ lệ huỷ; không lưu thông tin nhận diện khách hàng.')+
+   '<div class="ops-card"><h2>Xếp hạng tỉnh/thành</h2><div class="ops-sub">Bấm đồng bộ đơn hàng sau khi trường tỉnh/thành được cấp từ Shopee API</div>'+(rr.length?'<table class="ops-table"><thead><tr><th>#</th><th>Tỉnh / thành</th><th>Doanh thu</th><th>Tỷ trọng</th><th>Đơn</th><th>AOV</th><th>Tỷ lệ huỷ</th><th>Top sản phẩm</th></tr></thead><tbody>'+rr.map(function(x,i){return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.province)+'</b><div class="ops-bar"><i style="width:'+((x.gmv/mx)*100).toFixed(1)+'%"></i></div></td><td class="ops-num">'+_opsMoney(x.gmv-x.cancelled_gmv)+'</td><td class="ops-num">'+_opsPct(x.gmv/(p.summary.gross_gmv||1))+'</td><td class="ops-num">'+x.orders+'</td><td class="ops-num">'+_opsMoney(x.aov)+'</td><td class="ops-num">'+_opsPct(x.cancel_rate)+'</td><td>'+_opsEsc((x.top_products||[]).map(function(y){return y.name;}).join(' · '))+'</td></tr>';}).join('')+'</tbody></table>':'<div class="ops-empty"><b>API chưa trả trường tỉnh/thành trong dữ liệu hiện tại</b>Hệ thống đã sẵn sàng nhận trường tỉnh/thành ở lần đồng bộ Data Sale tiếp theo. Không cần import thủ công.</div>')+'</div>';
+  }else if(S.page==='shopreturns'){
+   var canc=(p.issues||[]).filter(function(x){return x.type==='cancel';});
+   host.innerHTML=_opsHead('Huỷ, trả hàng & hoàn tiền','Theo dõi thất thoát GMV và SKU phát sinh vấn đề sau bán.')+'<div class="ops-kpis"><div class="ops-kpi"><div class="lab">GMV huỷ</div><div class="val">'+_opsMoney(p.summary.cancel_gmv)+'</div><div class="hint">'+_opsPct(p.summary.cancel_rate_gmv)+' GMV gộp</div></div><div class="ops-kpi"><div class="lab">Đơn huỷ</div><div class="val">'+p.summary.cancelled_orders+'</div><div class="hint">trong '+p.summary.orders+' đơn</div></div><div class="ops-kpi"><div class="lab">Sản phẩm hoàn</div><div class="val">'+p.summary.returned_units+'</div><div class="hint">Độ phủ Returns API đang được kiểm tra</div></div></div><div class="ops-card">'+_opsIssueRows(canc)+'</div>';
+  }else if(S.page==='shopfinance')host.innerHTML=_opsPending('Tài chính & phí Shopee','Đối soát GMV, phí cố định, phí dịch vụ, phí thanh toán và tiền thực nhận.','Payment / Escrow API');
+  else if(S.page==='shoplogistics')host.innerHTML=_opsPending('Hiệu suất giao vận','Theo dõi thời gian chuẩn bị, giao đúng hạn, giao thất bại và hiệu suất đơn vị vận chuyển.','Seller Logistics API');
+  else if(S.page==='shopaffiliate')host.innerHTML=_opsPending('Hiệu suất Affiliate','Đánh giá GMV, hoa hồng, ROAS và publisher theo sản phẩm/campaign.','Affiliate Marketing Solution API');
+  else if(S.page==='shopcontent')host.innerHTML=_opsPending('Livestream & Shopee Video','Đo lượt xem, tương tác, đơn hàng và GMV do Live/Video tạo ra.','Livestream & Shopee Video API');
+  var u=host.querySelector('#opsUpdated');if(u)u.textContent='Dữ liệu đến '+p.period.to+' · tổng hợp lúc '+new Date(p.generated_at).toLocaleString('vi-VN');
+  var b=host.querySelector('#opsRefresh');if(b)b.onclick=function(){b.disabled=true;b.textContent='Đang đồng bộ...';_opsLoad(true).then(renderShopeePage).catch(function(e){alert(e.message);}).finally(function(){b.disabled=false;});};
+ }).catch(function(e){host.innerHTML=_opsHead('Không tải được dữ liệu vận hành','Kiểm tra Edge Function và quyền truy cập dữ liệu.')+'<div class="ops-empty"><b>Lỗi kết nối</b>'+_opsEsc(e.message)+'</div>';});
+}
+
 function render(){try{var _aif=document.getElementById("aiFabWrap");if(_aif)_aif.style.display="block";}catch(e){}
 
  periodTxt();
  const sv=S.lcSet;S.lcSet=new Set([0,1,2,3]);
  drawSpark(sum());S.lcSet=sv;
  document.querySelectorAll('.page').forEach(pp=>pp.classList.remove('on'));
- const map={intro:'pg-intro',overview:'pg-overview',brand:'pg-brand',ind:'pg-ind',new:'pg-new',classes:'pg-classes',range:'pg-range',matrix:'pg-matrix',chan:'pg-chan',rank:'pg-rank',stock:'pg-stock',forecast:'pg-forecast',suppliers:'pg-suppliers',ads:'pg-ads',adskw:'pg-adskw',adsplan:'pg-adsplan',import:'pg-import',log:'pg-log',warn:'pg-warn'};
+ const map={intro:'pg-intro',overview:'pg-overview',brand:'pg-brand',ind:'pg-ind',new:'pg-new',classes:'pg-classes',range:'pg-range',matrix:'pg-matrix',chan:'pg-chan',rank:'pg-rank',stock:'pg-stock',forecast:'pg-forecast',suppliers:'pg-suppliers',ads:'pg-ads',adskw:'pg-adskw',adsplan:'pg-adsplan',import:'pg-import',log:'pg-log',warn:'pg-warn',shopops:'pg-shopops',shopfinance:'pg-shopfinance',shopreturns:'pg-shopreturns',shoplogistics:'pg-shoplogistics',shopaffiliate:'pg-shopaffiliate',shopcontent:'pg-shopcontent',shopissues:'pg-shopissues',shopregions:'pg-shopregions'};
  document.getElementById(map[S.page]).classList.add('on');
  {const GB=new Set(['overview','brand','ind','new','classes','rank','chan']);const gb=document.querySelector('.gbar');if(gb)gb.style.display=GB.has(S.page)?'':'none';}
  if(S.page==='overview')renderOverview();
@@ -4726,6 +4822,7 @@ function render(){try{var _aif=document.getElementById("aiFabWrap");if(_aif)_aif
  else if(S.page==='stock'){if(!['t1','t3'].includes(S.stkTab))S.stkTab='t1';renderStock();applyStkTab();}
  else if(S.page==='forecast'){if(!['t2','t4'].includes(S.stkTab))S.stkTab='t2';renderStock();renderFcOverview();applyStkTab();}
  else if(S.page==='classes')renderClasses();
+ else if(/^shop/.test(S.page))renderShopeePage();
  scanUI();
 }
 // ---------- brand select (sắp theo DT + lọc nhanh) ----------
