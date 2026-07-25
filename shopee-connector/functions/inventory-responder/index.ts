@@ -25,6 +25,18 @@ type InventoryRow = {
   ton_kha_dung: string;
 };
 
+type Warehouse = {
+  code: string;
+  name: string;
+};
+
+const WAREHOUSE_BY_LOCATION: Record<string, Warehouse> = {
+  VNZ: { code: "WH01", name: "Kho WH01" },
+  VN019XF0Z: { code: "WH02", name: "Kho WH02" },
+  VN019ZLCZ: { code: "WH03", name: "Kho WH03" },
+  VN01A1IOZ: { code: "WH04", name: "Kho WH04" },
+};
+
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -161,38 +173,41 @@ async function listItemIds(shopId: number, token: string) {
   return [...ids];
 }
 
-function stockOf(entity: Record<string, unknown>) {
+function sellerStockByLocation(entity: Record<string, unknown>) {
   const v2 = (entity.stock_info_v2 || {}) as Record<string, unknown>;
-  const summary = (v2.summary_info || {}) as Record<string, unknown>;
-  const available = Number(summary.total_available_stock);
-  if (Number.isFinite(available)) return Math.max(0, available);
-
   const sellerStock = Array.isArray(v2.seller_stock) ? v2.seller_stock : [];
   if (sellerStock.length) {
-    return sellerStock.reduce(
-      (sum: number, row: Record<string, unknown>) =>
-        sum + Math.max(0, Number(row.stock) || 0),
-      0,
-    );
+    return sellerStock.map((raw: Record<string, unknown>) => ({
+      locationId: String(raw.location_id || "").trim(),
+      stock: Math.max(0, Number(raw.stock) || 0),
+    }));
   }
 
+  // Tương thích dữ liệu Shopee cũ không có stock_info_v2.seller_stock.
   const legacy = Array.isArray(entity.stock_info) ? entity.stock_info : [];
   if (legacy.length) {
-    return legacy.reduce(
-      (sum: number, row: Record<string, unknown>) =>
-        sum + Math.max(0, Number(row.current_stock ?? row.stock) || 0),
-      0,
-    );
+    return legacy.map((raw: Record<string, unknown>) => ({
+      locationId: String(raw.location_id || "VN01A1IOZ").trim(),
+      stock: Math.max(0, Number(raw.current_stock ?? raw.stock) || 0),
+    }));
   }
-  return Math.max(0, Number(entity.stock ?? entity.normal_stock) || 0);
+  return [{
+    locationId: "VN01A1IOZ",
+    stock: Math.max(0, Number(entity.stock ?? entity.normal_stock) || 0),
+  }];
 }
 
-function inventoryRow(sku: string, name: string, stock: number): InventoryRow {
+function inventoryRow(
+  sku: string,
+  name: string,
+  warehouse: Warehouse,
+  stock: number,
+): InventoryRow {
   return {
     sku_khoa: sku.trim(),
     ten_san_pham: name.trim(),
-    ma_kho_khoa: "WH04",
-    ten_kho: "Kho Shopee Ecommerce",
+    ma_kho_khoa: warehouse.code,
+    ten_kho: warehouse.name,
     ton_hien_tai: String(Math.max(0, Math.round(stock))),
     ton_kha_dung: "Có",
   };
@@ -240,10 +255,36 @@ Deno.serve(async () => {
     if (tokenError) throw new Error(tokenError.message);
     if (!tokens?.length) return json({ ok: false, error: "Shop chưa được ủy quyền" }, 409);
 
-    const rowsBySku = new Map<string, InventoryRow>();
+    const rowsBySkuWarehouse = new Map<string, InventoryRow>();
     let itemCount = 0;
     let modelCount = 0;
     const skipped: Array<{ item_id: number; reason: string }> = [];
+    const unknownLocations = new Set<string>();
+
+    const addStock = (
+      sku: string,
+      name: string,
+      entity: Record<string, unknown>,
+    ) => {
+      for (const locationStock of sellerStockByLocation(entity)) {
+        const warehouse = WAREHOUSE_BY_LOCATION[locationStock.locationId];
+        if (!warehouse) {
+          unknownLocations.add(locationStock.locationId || "(trống)");
+          continue;
+        }
+        const key = `${sku}\u0000${warehouse.code}`;
+        const existing = rowsBySkuWarehouse.get(key);
+        rowsBySkuWarehouse.set(
+          key,
+          inventoryRow(
+            sku,
+            name,
+            warehouse,
+            locationStock.stock + Number(existing?.ton_hien_tai || 0),
+          ),
+        );
+      }
+    };
 
     for (const rawToken of tokens as TokenRow[]) {
       const token = await refreshIfNeeded(rawToken);
@@ -280,12 +321,7 @@ Deno.serve(async () => {
               }
               modelCount += 1;
               const name = `${itemName} — ${String(model.model_name || "").trim()}`;
-              const stock = stockOf(model);
-              const existing = rowsBySku.get(sku);
-              rowsBySku.set(
-                sku,
-                inventoryRow(sku, name, stock + Number(existing?.ton_hien_tai || 0)),
-              );
+              addStock(sku, name, model);
             }
           } else {
             const sku = String(item.item_sku || "").trim();
@@ -293,22 +329,19 @@ Deno.serve(async () => {
               skipped.push({ item_id: itemId, reason: "item_sku trống" });
               continue;
             }
-            const stock = stockOf(item);
-            const existing = rowsBySku.get(sku);
-            rowsBySku.set(
-              sku,
-              inventoryRow(
-                sku,
-                itemName,
-                stock + Number(existing?.ton_hien_tai || 0),
-              ),
-            );
+            addStock(sku, itemName, item);
           }
         }
       }
     }
 
-    const rows = [...rowsBySku.values()];
+    if (unknownLocations.size) {
+      throw new Error(
+        `Shopee trả location_id chưa được mapping: ${[...unknownLocations].join(", ")}`,
+      );
+    }
+
+    const rows = [...rowsBySkuWarehouse.values()];
     if (!rows.length && !ALLOW_EMPTY) {
       throw new Error(
         "Shopee trả về 0 SKU; giữ nguyên bảng tonkho để tránh mất dữ liệu",
@@ -317,23 +350,39 @@ Deno.serve(async () => {
 
     // Chỉ thay dữ liệu cũ sau khi toàn bộ API đã tải và chuyển đổi thành công.
     await replaceInventory(rows);
-    await sb
-      .from("dim_kho")
-      .update({
-        ten_kho: "Kho Shopee Ecommerce",
-        ton_kha_dung: "Có",
-        ghi_chu: "Tồn khả dụng đồng bộ tự động từ Shopee Product API",
-      })
-      .eq("ma_kho_khoa", "WH04");
+    for (const warehouse of Object.values(WAREHOUSE_BY_LOCATION)) {
+      const { error: warehouseError } = await sb
+        .from("dim_kho")
+        .update({
+          ten_kho: warehouse.name,
+          ton_kha_dung: "Có",
+          ghi_chu: "Tồn seller theo kho đồng bộ tự động từ Shopee Product API",
+        })
+        .eq("ma_kho_khoa", warehouse.code);
+      if (warehouseError) {
+        throw new Error(
+          `Không cập nhật được ${warehouse.code}: ${warehouseError.message}`,
+        );
+      }
+    }
 
     return json({
       ok: true,
       items: itemCount,
       models: modelCount,
-      skus: rows.length,
-      total_available_stock: rows.reduce(
+      sku_warehouse_rows: rows.length,
+      skus: new Set(rows.map((row) => row.sku_khoa)).size,
+      total_seller_stock: rows.reduce(
         (sum, row) => sum + Number(row.ton_hien_tai || 0),
         0,
+      ),
+      warehouse_totals: Object.fromEntries(
+        Object.values(WAREHOUSE_BY_LOCATION).map((warehouse) => [
+          warehouse.code,
+          rows
+            .filter((row) => row.ma_kho_khoa === warehouse.code)
+            .reduce((sum, row) => sum + Number(row.ton_hien_tai || 0), 0),
+        ]),
       ),
       skipped: skipped.slice(0, 30),
       duration_ms: Date.now() - startedAt,
