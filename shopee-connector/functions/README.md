@@ -8,6 +8,7 @@
 |---|---|---|---|
 | `swift-handler` | Ủy quyền **đơn hàng** (OAuth 1 lần) | `shopee_token` | `SHOPEE_PARTNER_ID/KEY`, `SELF_URL` |
 | `smooth-responder` | Đồng bộ **đơn hàng** → dashboard | `sales_fact`, `shopee_sync_state` | `SHOPEE_PARTNER_ID/KEY`, `SHOPEE_START_DATE` |
+| `inventory-responder` | Đồng bộ **tồn khả dụng Shopee** → dashboard | `tonkho`, `dim_kho` | `SHOPEE_PARTNER_ID/KEY` |
 | `swift-task` | Ủy quyền **Ads** (OAuth 1 lần) | `shopee_ads_token` | `SHOPEE_ADS_PARTNER_ID/KEY`, `ADS_SELF_URL` |
 | `bright-responder` | Đồng bộ **hiệu suất Ads** (campaign daily) | `ads_fact`, `shopee_ads_state` | `SHOPEE_ADS_PARTNER_ID/KEY`, `SHOPEE_START_DATE` |
 | `smart-endpoint` | Đồng bộ **từ khóa Ads** (recommended keywords) | `ads_keyword` | `SHOPEE_ADS_PARTNER_ID/KEY` |
@@ -24,6 +25,18 @@
 | `shopee-sync-daily` | `0 23,5,13 * * *` | 06:00 / 12:00 / 20:00 | `smooth-responder` (đơn hàng) |
 | `shopee-ads-daily` | `10 23,5,13 * * *` | 06:10 / 12:10 / 20:10 | `bright-responder` (chi phí Ads) |
 | `shopee-ads-kw-daily` | `20 23 * * *` | 06:20 | `smart-endpoint` (từ khóa Ads) |
+| `shopee-inventory-daily` | `25 23,5,13 * * *` | 06:25 / 12:25 / 20:25 | `inventory-responder` (tồn kho) |
+
+## Đồng bộ tồn kho Shopee
+
+- Dùng cùng OAuth token của app `Data Sale`; không cần tạo thêm app `Seller Logistics`.
+- Đọc sản phẩm `NORMAL` và `UNLIST` qua Product API v2.
+- SKU có phân loại lấy từ `model_sku`; SKU không phân loại lấy từ `item_sku`.
+- Số tồn ưu tiên `stock_info_v2.summary_info.total_available_stock`.
+- Toàn bộ tồn Shopee được ghi vào `WH04 — Kho Shopee Ecommerce`.
+- Function tải và kiểm tra xong toàn bộ dữ liệu trước khi thay bảng `tonkho`.
+- Nếu Shopee trả về 0 SKU, function mặc định giữ nguyên dữ liệu cũ. Chỉ đặt
+  `SHOPEE_ALLOW_EMPTY_INVENTORY_SYNC=true` nếu thật sự muốn cho phép bảng rỗng.
 
 Các function đều public (`verify_jwt=false`) nên cron gọi URL không cần Authorization header.
 Gỡ 1 job: `select cron.unschedule('<jobname>');`

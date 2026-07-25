@@ -2,7 +2,9 @@
 
 Mục tiêu: đơn hàng Shopee tự đổ vào bảng `sales_fact` trên Supabase, dashboard tự cập nhật (không phải export Excel tay nữa).
 
-Luồng: **Shopee API → shopee-sync (chạy theo lịch) → bảng `sales_fact` → dashboard**.
+Luồng bán hàng: **Shopee API → shopee-sync → `sales_fact` → dashboard**.
+
+Luồng tồn kho: **Shopee Product API → inventory-responder → `tonkho` → snapshot → dashboard**.
 
 ---
 
@@ -86,7 +88,8 @@ select cron.schedule('shopee-3x-daily','0 23,5,13 * * *',  -- 23/05/13 UTC = 06/
 ---
 
 ## Việc còn lại có thể mở rộng
-- Kéo thêm **tồn kho** (`get_item_list` + `get_model_list`) → bảng `tonkho`.
+- Tồn kho đã có connector `inventory-responder`: dùng `get_item_list`,
+  `get_item_base_info` và `get_model_list`, ghi tồn khả dụng vào `tonkho`.
 - Kéo **hoàn trả** (returns API) để cột NMV chính xác hơn.
 - Kéo **Ads** (Shopee Ads API) → bảng `ads_fact` (thay import file ads).
 
