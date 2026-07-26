@@ -35,7 +35,7 @@ const configs: Record<AppKey, { id: number; key: string; paths: string[] }> = {
       "/api/v2/video/get_video_list",
       "/api/v2/video/get_overview_performance",
       "/api/v2/video/get_metric_trend",
-      "/api/v2/video/get_product_performance_list",
+      "/api/v2/video/get_prodcut_performance_list",
       "/api/v2/video/get_video_performance_list",
     ],
   },
@@ -126,7 +126,35 @@ function parameterCandidates(
     );
   }
   if (app === "video") {
-    return [common];
+    const endDate = new Date((now - 86400) * 1000).toISOString().slice(0, 10);
+    if (path.endsWith("/get_video_list")) {
+      return [2].map((listType) => ({
+        page_no: 1,
+        page_size: 20,
+        list_type: listType,
+      }));
+    }
+    if (path.endsWith("/get_video_performance_list")) {
+      return [{
+        page_no: 1,
+        page_size: 20,
+        period_type: "Last7d",
+        end_date: endDate,
+        order_by: "Views",
+        sort: "desc",
+      }];
+    }
+    if (path.endsWith("/get_prodcut_performance_list")) {
+      return [{
+        page_no: 1,
+        page_size: 20,
+        period_type: "Last7d",
+        end_date: endDate,
+        order_by: "PlacedSales",
+        sort: "desc",
+      }];
+    }
+    return [{ period_type: "Last7d", end_date: endDate }];
   }
   return [common];
 }
@@ -166,6 +194,26 @@ Deno.serve(async (req) => {
           accepted_params: acceptedParams,
           attempts,
         });
+        if (!j.error && j.response) {
+          const factDate = String(
+            acceptedParams?.end_date ||
+              new Date((now - 86400) * 1000).toISOString().slice(0, 10),
+          );
+          const entityId = path.split("/").pop() || path;
+          const { error: saveError } = await sb.from("shopee_channel_fact").upsert({
+            source: app,
+            fact_date: factDate,
+            entity_id: entityId,
+            dimensions: {
+              api_path: path,
+              params: acceptedParams || {},
+              user_id: tok.user_id || null,
+            },
+            metrics: j.response,
+            updated_at: new Date().toISOString(),
+          });
+          if (saveError) throw new Error(`Lưu ${app}/${entityId}: ${saveError.message}`);
+        }
       }
       output[app] = { authorized: true, probes };
     }
