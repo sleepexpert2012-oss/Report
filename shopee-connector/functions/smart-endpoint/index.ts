@@ -84,6 +84,48 @@ function json(o, s = 200) {
     }
   });
 }
+function dmy(d) {
+  const p = (n)=>String(n).padStart(2, "0");
+  return `${p(d.getUTCDate())}-${p(d.getUTCMonth() + 1)}-${d.getUTCFullYear()}`;
+}
+async function readApi(shopId, token, path, params = {}) {
+  const u = await shopUrl(path, shopId, token, params);
+  const r = await fetch(u);
+  const j = await r.json();
+  if (j.error) throw Object.assign(new Error(j.message || j.error), { code: j.error });
+  return j.response || {};
+}
+async function saveApi(path, scope, params, response) {
+  const now = new Date().toISOString();
+  const endpoint = path.split("/").pop() || path;
+  const { error } = await sb.from("shopee_api_fact").upsert({
+    app_key: "ads",
+    module: "ads",
+    endpoint: path,
+    scope_key: scope,
+    entity_id: scope,
+    fact_date: now.slice(0, 10),
+    dimensions: { api_path: path, params },
+    metrics: response,
+    raw_payload: response,
+    synced_at: now
+  });
+  if (error) throw error;
+  await sb.from("shopee_sync_checkpoint").upsert({
+    app_key: "ads",
+    module: "ads",
+    endpoint: path,
+    scope_key: scope,
+    status: "complete",
+    rows_synced: Array.isArray(response) ? response.length : 1,
+    pages_synced: 1,
+    data_through: now,
+    last_attempt_at: now,
+    last_success_at: now,
+    cursor: {},
+    metadata: { endpoint }
+  });
+}
 Deno.serve(async ()=>{
   const t0 = Date.now();
   try {
@@ -95,6 +137,37 @@ Deno.serve(async ()=>{
     const tok = await refreshIfNeeded(toks[0]);
     const shopId = tok.shop_id, token = tok.access_token;
     const ids = await getCampaigns(shopId, token);
+    const extraResults = [];
+    const end = new Date();
+    end.setUTCDate(end.getUTCDate() - 1);
+    const start = new Date(end);
+    start.setUTCDate(start.getUTCDate() - 29);
+    const extraEndpoints = [
+      ["/api/v2/ads/get_total_balance", {}],
+      ["/api/v2/ads/get_shop_toggle_info", {}],
+      ["/api/v2/ads/get_recommended_item_list", {}],
+      ["/api/v2/ads/get_all_cpc_ads_hourly_performance", { performance_date: dmy(end) }],
+      ["/api/v2/ads/get_gms_campaign_performance", { start_date: dmy(start), end_date: dmy(end) }],
+      ["/api/v2/ads/get_gms_item_performance", { start_date: dmy(start), end_date: dmy(end), offset: 0, limit: 100 }]
+    ];
+    for (const [path, params] of extraEndpoints) {
+      try {
+        const response = await readApi(shopId, token, path, params);
+        await saveApi(path, "default", params, response);
+        extraResults.push({ path, ok: true });
+      } catch (e) {
+        const now = new Date().toISOString();
+        await sb.from("shopee_sync_checkpoint").upsert({
+          app_key: "ads", module: "ads", endpoint: path, scope_key: "default",
+          status: /permission|scope|authorize|ads_error_param/i.test(`${e?.code || ""} ${e?.message || e}`) ? "blocked" : "error",
+          rows_synced: 0, pages_synced: 0, cursor: {}, last_attempt_at: now,
+          error_code: String(e?.code || "sync_error"),
+          error_message: String(e?.message || e).slice(0, 1000),
+          next_retry_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        });
+        extraResults.push({ path, ok: false, error: String(e?.code || ""), message: String(e?.message || e) });
+      }
+    }
     const rows = [];
     const items = new Set();
     for(let i = 0; i < ids.length; i += 50){
@@ -155,7 +228,8 @@ Deno.serve(async ()=>{
     return json({
       ok: true,
       keywords: rows.length,
-      items: items.size
+      items: items.size,
+      extra_endpoints: extraResults
     });
   } catch (e) {
     return json({

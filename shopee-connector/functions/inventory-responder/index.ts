@@ -245,6 +245,53 @@ async function replaceInventory(rows: InventoryRow[]) {
   }
 }
 
+async function saveProductRaw(
+  path: string,
+  scope: string,
+  params: Record<string, string | number | boolean>,
+  response: unknown,
+) {
+  const now = new Date().toISOString();
+  await sb.from("shopee_api_fact").upsert({
+    app_key: "sale", module: "product", endpoint: path, scope_key: scope,
+    entity_id: scope, fact_date: now.slice(0, 10),
+    dimensions: { api_path: path, params }, metrics: response || {},
+    raw_payload: response || {}, synced_at: now,
+  });
+  await sb.from("shopee_sync_checkpoint").upsert({
+    app_key: "sale", module: "product", endpoint: path, scope_key: scope,
+    status: "complete", rows_synced: 1, pages_synced: 1,
+    data_through: now, last_attempt_at: now, last_success_at: now,
+    cursor: {}, metadata: { params }, error_code: null,
+    error_message: null, next_retry_at: null,
+  });
+}
+
+async function syncProductExtra(
+  path: string,
+  scope: string,
+  shopId: number,
+  token: string,
+  params: Record<string, string | number | boolean>,
+) {
+  try {
+    const response = await shopeeGet(path, shopId, token, params);
+    await saveProductRaw(path, scope, params, response);
+    return { path, ok: true };
+  } catch (error) {
+    const now = new Date().toISOString();
+    await sb.from("shopee_sync_checkpoint").upsert({
+      app_key: "sale", module: "product", endpoint: path, scope_key: scope,
+      status: /permission|scope|authorize/i.test(String(error)) ? "blocked" : "error",
+      rows_synced: 0, pages_synced: 0, last_attempt_at: now,
+      error_code: "sync_error", error_message: String(error).slice(0, 1000),
+      next_retry_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      cursor: {}, metadata: { params },
+    });
+    return { path, ok: false, message: String(error) };
+  }
+}
+
 Deno.serve(async () => {
   const startedAt = Date.now();
   try {
@@ -260,6 +307,7 @@ Deno.serve(async () => {
     let modelCount = 0;
     const skipped: Array<{ item_id: number; reason: string }> = [];
     const unknownLocations = new Set<string>();
+    const extraApiResults: Array<Record<string, unknown>> = [];
 
     const addStock = (
       sku: string,
@@ -303,6 +351,20 @@ Deno.serve(async () => {
             need_complaint_policy: false,
           },
         );
+        const scope = `batch-${index / 50 + 1}`;
+        const ids = batch.join(",");
+        await saveProductRaw(
+          "/api/v2/product/get_item_base_info",
+          scope,
+          { item_id_list: ids, need_tax_info: false, need_complaint_policy: false },
+          base,
+        );
+        extraApiResults.push(...await Promise.all([
+          syncProductExtra("/api/v2/product/get_item_extra_info", scope, token.shop_id, token.access_token, { item_id_list: ids }),
+          syncProductExtra("/api/v2/product/get_item_promotion", scope, token.shop_id, token.access_token, { item_id_list: ids }),
+          syncProductExtra("/api/v2/product/get_item_violation_info", scope, token.shop_id, token.access_token, { item_id_list: ids }),
+          syncProductExtra("/api/v2/product/get_item_content_diagnosis_result", scope, token.shop_id, token.access_token, { item_id_list: ids }),
+        ]));
         for (const item of base.item_list || []) {
           const itemId = Number(item.item_id);
           const itemName = String(item.item_name || "");
@@ -342,6 +404,19 @@ Deno.serve(async () => {
     }
 
     const rows = [...rowsBySkuWarehouse.values()];
+    const firstToken = await refreshIfNeeded(tokens[0] as TokenRow);
+    extraApiResults.push(await syncProductExtra(
+      "/api/v2/product/get_comment", "first-page",
+      firstToken.shop_id, firstToken.access_token,
+      { cursor: "", page_size: 100 },
+    ));
+    // get_item_content_diagnosis_result đã trả diagnosis cho toàn bộ item_id.
+    // Endpoint list theo filter trùng dữ liệu và bị Shopee VN trả HTTP 400, nên
+    // xoá checkpoint thử nghiệm cũ để độ phủ chỉ phản ánh luồng đang sử dụng.
+    await sb.from("shopee_sync_checkpoint")
+      .delete()
+      .eq("app_key", "sale")
+      .eq("endpoint", "/api/v2/product/get_item_list_by_content_diagnosis");
     if (!rows.length && !ALLOW_EMPTY) {
       throw new Error(
         "Shopee trả về 0 SKU; giữ nguyên bảng tonkho để tránh mất dữ liệu",
@@ -385,6 +460,7 @@ Deno.serve(async () => {
         ]),
       ),
       skipped: skipped.slice(0, 30),
+      product_extra_endpoints: extraApiResults,
       duration_ms: Date.now() - startedAt,
       synced_at: new Date().toISOString(),
     });

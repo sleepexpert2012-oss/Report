@@ -79,6 +79,72 @@ async function concurrent<T>(items: T[], limit: number, fn: (x: T) => Promise<vo
     }
   }));
 }
+async function saveRaw(
+  module: string,
+  path: string,
+  scope: string,
+  params: Record<string, unknown>,
+  response: unknown,
+) {
+  const now = new Date().toISOString();
+  const { error } = await sb.from("shopee_api_fact").upsert({
+    app_key: "sale",
+    module,
+    endpoint: path,
+    scope_key: scope,
+    entity_id: scope,
+    fact_date: now.slice(0, 10),
+    dimensions: { api_path: path, params },
+    metrics: response || {},
+    raw_payload: response || {},
+    synced_at: now,
+  });
+  if (error) throw error;
+  await sb.from("shopee_sync_checkpoint").upsert({
+    app_key: "sale",
+    module,
+    endpoint: path,
+    scope_key: scope,
+    status: "complete",
+    rows_synced: Array.isArray(response) ? response.length : 1,
+    pages_synced: 1,
+    data_through: now,
+    last_attempt_at: now,
+    last_success_at: now,
+    cursor: {},
+    metadata: { params },
+    error_code: null,
+    error_message: null,
+    next_retry_at: null,
+  });
+}
+async function safeRaw(
+  module: string,
+  path: string,
+  scope: string,
+  shopId: number,
+  token: string,
+  params: Record<string, unknown>,
+) {
+  try {
+    const j = await get(path, shopId, token, params);
+    if (j.error) throw Object.assign(new Error(j.message || j.error), { code: j.error });
+    await saveRaw(module, path, scope, params, j.response || {});
+    return { path, scope, ok: true };
+  } catch (error) {
+    const now = new Date().toISOString();
+    await sb.from("shopee_sync_checkpoint").upsert({
+      app_key: "sale", module, endpoint: path, scope_key: scope,
+      status: /permission|scope|authorize|only applicable/i.test(String(error?.message || error)) ? "blocked" : "error",
+      rows_synced: 0, pages_synced: 0, cursor: {}, last_attempt_at: now,
+      error_code: String(error?.code || "sync_error"),
+      error_message: String(error?.message || error).slice(0, 1000),
+      next_retry_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      metadata: { params },
+    });
+    return { path, scope, ok: false, error: String(error?.code || ""), message: String(error?.message || error) };
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers });
@@ -122,6 +188,23 @@ Deno.serve(async (req) => {
     if (mode === "sync") {
       const cutoff = now - Number(body.days || 120) * 86400;
       const work = unique.filter((x) => parseDate(x.ngay_dat_hang) >= cutoff);
+      const extraEndpoints = await Promise.all([
+        safeRaw("shop", "/api/v2/shop/get_shop_info", "default", shopId, token, {}),
+        safeRaw("shop", "/api/v2/shop/get_profile", "default", shopId, token, {}),
+        safeRaw("shop", "/api/v2/shop/get_warehouse_detail", "default", shopId, token, {}),
+        safeRaw("logistics", "/api/v2/logistics/get_channel_list", "default", shopId, token, {}),
+        safeRaw("order", "/api/v2/order/get_shipment_list", "first_page", shopId, token, { page_size: 100 }),
+        safeRaw("payment", "/api/v2/payment/get_income_overview", "default", shopId, token, {}),
+        safeRaw("payment", "/api/v2/payment/get_escrow_list", "recent", shopId, token, {
+          release_time_from: cutoff, release_time_to: now, page_size: 100, page_no: 1,
+        }),
+        safeRaw("payment", "/api/v2/payment/get_payout_detail", "recent", shopId, token, {
+          payout_time_from: cutoff, payout_time_to: now, page_size: 100, page_no: 1,
+        }),
+        safeRaw("payment", "/api/v2/payment/get_wallet_transaction_list", "recent", shopId, token, {
+          create_time_from: cutoff, create_time_to: now, page_size: 100, page_no: 1,
+        }),
+      ]);
       let paymentOk = 0, logisticsOk = 0, paymentErrors = 0, logisticsErrors = 0;
       for (let i = 0; i < work.length; i += 50) {
         const batch = work.slice(i, i + 50).map((x) => String(x.ma_don_hang));
@@ -191,6 +274,11 @@ Deno.serve(async (req) => {
       for (const ret of returnRows) {
         const sn = String(ret.order_sn || "");
         if (!sn) continue;
+        const returnSn = String(ret.return_sn || "");
+        if (returnSn) {
+          await safeRaw("returns", "/api/v2/returns/get_return_detail", returnSn, shopId, token, { return_sn: returnSn });
+          await safeRaw("returns", "/api/v2/returns/get_reverse_tracking_info", returnSn, shopId, token, { return_sn: returnSn });
+        }
         const qty = (ret.item || ret.item_list || []).reduce((s: number, x: Record<string, unknown>) =>
           s + Number(x.refund_quantity || x.quantity || x.model_quantity_purchased || 0), 0);
         await sb.from("sales_fact").update({
@@ -204,6 +292,7 @@ Deno.serve(async (req) => {
         orders: work.length, payment_ok: paymentOk, payment_errors: paymentErrors,
         logistics_ok: logisticsOk, logistics_errors: logisticsErrors,
         returns_found: returnRows.length,
+        extra_endpoints: extraEndpoints,
       }), { headers });
     }
 

@@ -43,7 +43,7 @@ async function all(table: string, select = "*") {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
-    const [sales, ads, stock, sku, channelFacts] = await Promise.all([
+    const [sales, ads, stock, sku, channelFacts, checkpoints] = await Promise.all([
       all("sales_fact",
         "ma_don_hang,ngay_dat_hang,trang_thai_don_hang,ly_do_huy,don_vi_van_chuyen,ngay_xuat_hang,ngay_giao_hang_du_kien,thoi_gian_hoan_thanh_don_hang,trang_thai_tra_hang_hoan_tien,sku_phan_loai_hang,sku_san_pham,ten_san_pham,so_luong,so_luong_san_pham_duoc_hoan_tra,tong_gia_ban_san_pham,phi_co_dinh,phi_dich_vu,phi_thanh_toan,tien_ky_quy,tinh_thanh_pho"),
       all("ads_fact",
@@ -51,6 +51,7 @@ Deno.serve(async (req) => {
       all("tonkho", "sku_khoa,ten_san_pham,ma_kho_khoa,ton_hien_tai,ton_kha_dung"),
       all("sku", "sku,ma_san_pham,nganh_hang,brand,subcategory_name,gia_von_vat,unit_cost_vnd"),
       all("shopee_channel_fact", "source,fact_date,entity_id,dimensions,metrics,updated_at"),
+      all("shopee_sync_checkpoint", "app_key,module,endpoint,scope_key,status,rows_synced,pages_synced,data_through,last_success_at,error_code,error_message"),
     ]);
     const dates = sales.map((r) => day(r.ngay_dat_hang)).filter(Boolean).sort();
     const maxDate = dates.at(-1) || new Date().toISOString().slice(0, 10);
@@ -205,7 +206,8 @@ Deno.serve(async (req) => {
       generated_at: new Date().toISOString(), period: { from: cut, to: maxDate, days: 90 },
       sync_status: {
         shopee_data_latest: maxDate,
-        shopee_channel_synced_at: channelFacts.map((x) => String(x.updated_at || "")).sort().at(-1) || "",
+        shopee_channel_synced_at: checkpoints.map((x) => String(x.last_success_at || "")).sort().at(-1) ||
+          channelFacts.map((x) => String(x.updated_at || "")).sort().at(-1) || "",
         app_loaded_at: new Date().toISOString(),
       },
       summary: { gross_gmv: gross, net_gmv: gross - cancelGmv, cancel_gmv: cancelGmv,
@@ -225,6 +227,11 @@ Deno.serve(async (req) => {
         { key: "video", name: "Shopee Video", status: channelFacts.some((x) => x.source === "video") ? "connected" : "pending",
           rows: channelFacts.filter((x) => x.source === "video").length, coverage: channelFacts.some((x) => x.source === "video") ? 1 : 0,
           note: channelFacts.some((x) => x.source === "video") ? "Video Analytics API đã đồng bộ" : "Chưa có dữ liệu Video" },
+        { key: "live", name: "Livestream Management", status: channelFacts.some((x) => x.source === "live") ? "connected" : "pending",
+          rows: channelFacts.filter((x) => x.source === "live").length, coverage: channelFacts.some((x) => x.source === "live") ? 1 : 0,
+          note: channelFacts.some((x) => x.source === "live") ? "Livestream API đã đồng bộ" : "Cần uỷ quyền lại và session_id" },
+        { key: "brand", name: "Brand Portal", status: "pending", rows: 0, coverage: 0,
+          note: "Chưa có Partner Key/OAuth trong Supabase" },
       ],
       issues: issues.slice(0, 30),
       daily: [...daily.values()].sort((a, b) => a.date.localeCompare(b.date)).map((x) => ({ ...x, orders: x.orders.size })),
@@ -256,6 +263,24 @@ Deno.serve(async (req) => {
           .sort((a, b) => String(b.fact_date).localeCompare(String(a.fact_date))),
         live: channelFacts.filter((x) => x.source === "live")
           .sort((a, b) => String(b.fact_date).localeCompare(String(a.fact_date))),
+      },
+      api_coverage: {
+        total: checkpoints.length,
+        complete: checkpoints.filter((x) => x.status === "complete").length,
+        blocked: checkpoints.filter((x) => x.status === "blocked").length,
+        error: checkpoints.filter((x) => x.status === "error").length,
+        modules: [...new Set(checkpoints.map((x) => String(x.module || "other")))].sort().map((module) => {
+          const rows = checkpoints.filter((x) => x.module === module);
+          return {
+            module,
+            total: rows.length,
+            complete: rows.filter((x) => x.status === "complete").length,
+            blocked: rows.filter((x) => x.status === "blocked").length,
+            error: rows.filter((x) => x.status === "error").length,
+            last_success_at: rows.map((x) => String(x.last_success_at || "")).sort().at(-1) || "",
+            endpoints: rows,
+          };
+        }),
       },
       data_quality: { sales_rows: sales.length, ads_rows: ads.length, inventory_rows: stock.length,
         finance_coverage: recent.length ? financeRows.length / recent.length : 0,

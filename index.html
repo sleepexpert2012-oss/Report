@@ -1025,7 +1025,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
   <h1>📝 Nhật ký cập nhật &amp; đồng bộ</h1>
   <div class="sub" style="margin-bottom:14px">Theo dõi phiên bản GitHub, API Shopee đang sử dụng, độ mới dữ liệu và nội dung thay đổi của từng bản phát hành.</div>
   <div class="ops-kpis">
-    <div class="ops-kpi"><div class="lab">Bản phát hành GitHub</div><div class="val">R50</div><div class="hint">Nhánh main · phát hành 26/07/2026</div></div>
+    <div class="ops-kpi"><div class="lab">Bản phát hành GitHub</div><div class="val">R51</div><div class="hint">Nhánh main · phát hành 26/07/2026</div></div>
     <div class="ops-kpi"><div class="lab">Dữ liệu Shopee mới nhất</div><div class="val" id="logDataLatest">Đang đọc…</div><div class="hint">Ngày nghiệp vụ mới nhất từ API</div></div>
     <div class="ops-kpi"><div class="lab">API đồng bộ gần nhất</div><div class="val" id="logApiSync">Đang đọc…</div><div class="hint">Lần ghi dữ liệu API vào Supabase</div></div>
     <div class="ops-kpi"><div class="lab">App nạp dữ liệu gần nhất</div><div class="val" id="logAppSync">Đang đọc…</div><div class="hint">Thời điểm app tổng hợp báo cáo</div></div>
@@ -1036,17 +1036,18 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <div class="ops-sub">Chỉ liệt kê endpoint đang phục vụ dữ liệu trên app</div>
       <table class="ops-table"><thead><tr><th>Nhóm dữ liệu</th><th>Endpoint</th><th>Mục đích</th></tr></thead><tbody>
         <tr><td><b>Sales</b></td><td>/order/get_order_list<br>/order/get_order_detail</td><td>Đơn hàng, sản phẩm, trạng thái, GMV</td></tr>
-        <tr><td><b>Ads</b></td><td>/ads/get_all_cpc_ads_daily_performance<br>/ads/get_product_campaign_daily_performance</td><td>Chi phí, GMV Ads, click, chuyển đổi</td></tr>
-        <tr><td><b>Tồn kho</b></td><td>/product/get_item_list<br>/product/get_item_base_info<br>/product/get_model_list</td><td>SKU, model và tồn theo kho</td></tr>
-        <tr><td><b>Tài chính &amp; giao vận</b></td><td>/payment/get_escrow_detail<br>/logistics/get_tracking_info<br>/returns/get_return_list</td><td>Phí sàn, thực nhận, tracking, hoàn trả</td></tr>
-        <tr><td><b>Affiliate</b></td><td>/ams/get_affiliate_performance<br>/ams/get_product_performance<br>/ams/get_open_campaign_performance<br>/ams/get_targeted_campaign_performance<br>/ams/get_managed_affiliate_list</td><td>GMV, publisher, sản phẩm và campaign</td></tr>
-        <tr><td><b>Shopee Video</b></td><td>/video/get_video_list<br>/video/get_overview_performance<br>/video/get_metric_trend<br>/video/get_prodcut_performance_list<br>/video/get_video_performance_list</td><td>Video, tương tác, xu hướng và chuyển đổi</td></tr>
+        <tr><td><b>Ads</b></td><td>Daily / Hourly performance<br>Campaign / keyword / balance<br>Recommended item / GMS</td><td>Chi phí, GMV Ads, click, chuyển đổi, số dư và gợi ý</td></tr>
+        <tr><td><b>Sản phẩm &amp; tồn</b></td><td>Item / model / extra info<br>Promotion / comment / violation<br>Content diagnosis</td><td>SKU, tồn theo kho, khuyến mãi và chất lượng nội dung</td></tr>
+        <tr><td><b>Tài chính &amp; giao vận</b></td><td>Escrow / income / wallet<br>Shipment / tracking / channel<br>Returns / reverse tracking</td><td>Phí sàn, thực nhận, giao vận và hoàn trả</td></tr>
+        <tr><td><b>Affiliate</b></td><td>Shop / product / publisher / content<br>Campaign / conversion / validation</td><td>GMV, publisher, nội dung, hoa hồng và đối soát</td></tr>
+        <tr><td><b>Shopee Video</b></td><td>Overview / trend / demographics<br>Video detail / audience / product</td><td>Video, tương tác, ATC thật, audience và chuyển đổi</td></tr>
       </tbody></table>
     </div>
     <div class="ops-card">
       <h2>Lịch sử thay đổi</h2>
       <div class="ops-sub">Ghi nhận từ R50 trở đi; mỗi lần phát hành phải tạo một mục mới</div>
       <table class="ops-table"><thead><tr><th>Bản</th><th>Ngày</th><th>Thay đổi</th></tr></thead><tbody>
+        <tr><td><b>R51</b></td><td>26/07/2026</td><td>Mở rộng đồng bộ có phân trang/checkpoint cho Affiliate và Video; bổ sung Product, Shop, Payment, Shipment, Logistics và Ads nâng cao; làm mới báo cáo Affiliate/Video và bảng độ phủ API.</td></tr>
         <tr><td><b>R50</b></td><td>26/07/2026</td><td>Kết nối báo cáo Affiliate và Shopee Video với dữ liệu API; bổ sung trạng thái dữ liệu Khách hàng; thêm nhật ký phiên bản, API và thời gian đồng bộ.</td></tr>
       </tbody></table>
     </div>
@@ -1057,7 +1058,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
   <div class="sub" style="margin-bottom:10px">SKU phát sinh trong dữ liệu bán hàng nhưng chưa có trong danh mục sản phẩm (master). Nên bổ sung chính thức để đảm bảo giá vốn & phân tích chính xác.</div>
   <div id="warnHost"></div>
 </section>
-  <footer>Phòng Supply Chain — Sleep Expert · GM = GP/DT · Nội bộ · R50 · 26/07/2026</footer>
+  <footer>Phòng Supply Chain — Sleep Expert · GM = GP/DT · Nội bộ · R51 · 26/07/2026</footer>
 </main>
 <div id="xlsDlg" style="display:none;position:fixed;inset:0;background:rgba(10,20,40,.45);z-index:9000;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:12px;padding:18px 22px;min-width:320px;box-shadow:0 10px 40px rgba(0,0,0,.3)">
@@ -4784,6 +4785,11 @@ function _opsLoad(force){
  return _OPS_LOADING;
 }
 function _opsSources(p){return '<div class="ops-source-grid">'+(p.sources||[]).map(function(s){return '<div class="ops-source"><b><i class="ops-dot '+s.status+'"></i>'+_opsEsc(s.name)+'</b><small>'+_opsEsc(s.note)+' · '+(s.status==='connected'?'Đã kết nối':s.status==='partial'?'Độ phủ '+_opsPct(s.coverage):'Chờ kết nối')+'</small></div>';}).join('')+'</div>';}
+function _opsCoverage(p){
+ var c=p.api_coverage||{},mods=c.modules||[];
+ if(!mods.length)return '';
+ return '<div class="ops-card"><h2>Độ phủ các luồng API đang vận hành</h2><div class="ops-sub">'+Number(c.complete||0)+' / '+Number(c.total||0)+' luồng đã cấu hình đồng bộ thành công · xem Sức khoẻ nguồn dữ liệu cho app còn thiếu quyền</div><table class="ops-table"><thead><tr><th>Module</th><th>Hoàn tất</th><th>Bị chặn</th><th>Lỗi / retry</th><th>Đồng bộ gần nhất</th></tr></thead><tbody>'+mods.map(function(m){return '<tr><td><b>'+_opsEsc(m.module)+'</b></td><td class="ops-num" style="color:#079455">'+m.complete+' / '+m.total+'</td><td class="ops-num">'+m.blocked+'</td><td class="ops-num" style="'+(m.error?'color:#D92D20':'')+'">'+m.error+'</td><td>'+_opsEsc(m.last_success_at?new Date(m.last_success_at).toLocaleString('vi-VN'):'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
+}
 function _opsKpis(p){var s=p.summary;return '<div class="ops-kpis">'+[
  ['GMV gộp',_opsMoney(s.gross_gmv),'90 ngày gần nhất'],['Doanh thu sau huỷ',_opsMoney(s.net_gmv),'GMV gộp − GMV huỷ'],
  ['Tỷ lệ huỷ theo GMV',_opsPct(s.cancel_rate_gmv),_opsMoney(s.cancel_gmv)+' bị ảnh hưởng'],['Đơn hàng',Number(s.orders||0).toLocaleString('vi-VN'),s.cancelled_orders+' đơn huỷ'],
@@ -4826,6 +4832,45 @@ function _opsChannel(title,desc,rows){
   return '<div class="ops-card"><h2>'+_opsEsc(labels[r.entity_id]||r.entity_id)+'</h2><div class="ops-sub">Dữ liệu '+_opsEsc(r.fact_date)+' · cập nhật '+new Date(r.updated_at).toLocaleString('vi-VN')+'</div>'+(pairs.length?'<div class="ops-kpis" style="margin-top:12px">'+pairs.map(function(x){return '<div class="ops-kpi"><div class="lab">'+_opsEsc(x[0])+'</div><div class="val" style="font-size:21px">'+_opsMetricValue(x[1])+'</div></div>';}).join('')+'</div>':'')+listHtml+'</div>';
  }).join('')+'</div>';
 }
+function _opsFind(rows,id){
+ return (rows||[]).find(function(r){return r.entity_id===id||String(r.entity_id||'').indexOf(id+':')===0;})||null;
+}
+function _opsLists(obj,out){
+ out=out||[];if(!obj||typeof obj!=='object')return out;
+ if(Array.isArray(obj)){if(obj.length&&obj.every(function(x){return x&&typeof x==='object'&&!Array.isArray(x);}))out.push.apply(out,obj);else obj.forEach(function(x){_opsLists(x,out);});}
+ else Object.keys(obj).forEach(function(k){_opsLists(obj[k],out);});
+ return out;
+}
+function _opsMiniKpis(items){
+ return '<div class="ops-kpis">'+items.map(function(x){return '<div class="ops-kpi"><div class="lab">'+x[0]+'</div><div class="val">'+x[1]+'</div><div class="hint">'+(x[2]||'')+'</div></div>';}).join('')+'</div>';
+}
+function _opsAffiliate(rows){
+ if(!rows||!rows.length)return _opsPending('Hiệu suất Affiliate','GMV, hoa hồng, publisher, nội dung và chiến dịch.','Affiliate API');
+ var shop=(_opsFind(rows,'get_shop_performance')||{}).metrics||{};
+ var product=_opsLists(((_opsFind(rows,'get_product_performance')||{}).metrics)||{}).filter(function(x){return x.item_id;});
+ var creators=_opsLists(((_opsFind(rows,'get_affiliate_performance')||{}).metrics)||{}).filter(function(x){return x.affiliate_id!=null&&x.affiliate_name;});
+ var content=_opsLists(((_opsFind(rows,'get_content_performance')||{}).metrics)||{}).filter(function(x){return x.content_id;});
+ var period=shop.fetched_date_range||'30 ngày gần nhất';
+ var table=function(title,list,nameKey){return '<div class="ops-card"><h2>'+title+'</h2><div class="ops-sub">Xếp theo doanh thu ghi nhận · nguồn Affiliate API</div>'+(list.length?'<table class="ops-table"><thead><tr><th>#</th><th>Tên</th><th>Doanh thu</th><th>Đơn</th><th>Click / View</th><th>Hoa hồng</th><th>ROI</th></tr></thead><tbody>'+list.slice().sort(function(a,b){return Number(b.sales||0)-Number(a.sales||0);}).slice(0,15).map(function(x,i){return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x[nameKey]||x.content_title||x.item_name||'—')+'</b></td><td class="ops-num">'+_opsMoney(x.sales)+'</td><td class="ops-num">'+Number(x.orders||0).toLocaleString('vi-VN')+'</td><td class="ops-num">'+Number(x.clicks||x.views||0).toLocaleString('vi-VN')+'</td><td class="ops-num">'+_opsMoney(x.est_commission||0)+'</td><td class="ops-num">'+Number(x.roi||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+'</td></tr>';}).join('')+'</tbody></table>':'<div class="ops-empty"><b>Không phát sinh dữ liệu trong kỳ</b>Endpoint đã kết nối và trả danh sách rỗng.</div>')+'</div>';};
+ return _opsHead('Hiệu suất Affiliate','GMV, hoa hồng, publisher, nội dung và chiến dịch từ Shopee AMS.')+
+  _opsMiniKpis([['Doanh thu Affiliate',_opsMoney(shop.sales),period],['Hoa hồng dự kiến',_opsMoney(shop.est_commission),'ROI '+Number(shop.roi||0).toLocaleString('vi-VN',{maximumFractionDigits:1})],['Đơn Affiliate',Number(shop.orders||0).toLocaleString('vi-VN'),Number(shop.gross_item_sold||0)+' sản phẩm'],['Publisher có doanh thu',Number(creators.length).toLocaleString('vi-VN'),Number(shop.new_buyers||0)+' khách mới'],['Click',Number(shop.clicks||0).toLocaleString('vi-VN'),'Nguồn AMS'],['Nội dung tạo doanh thu',Number(content.length).toLocaleString('vi-VN'),'Video / Live']])+
+  '<div class="ops-grid">'+table('Top publisher',creators,'affiliate_name')+table('Top sản phẩm Affiliate',product,'item_name')+table('Nội dung tạo chuyển đổi',content,'content_title')+'</div>';
+}
+function _opsVideo(rows){
+ if(!rows||!rows.length)return _opsPending('Livestream & Shopee Video','Lượt xem, tương tác, ATC, đơn hàng và GMV.','Shopee Video API');
+ var overview=((_opsFind(rows,'get_overview_performance')||{}).metrics)||{},key=overview.key_metric||{},eng=overview.engagement||{},conv=overview.conversion||{};
+ var videos=_opsLists(((_opsFind(rows,'get_video_list:2')||_opsFind(rows,'get_video_list')||{}).metrics)||{}).filter(function(x){return x.post_id||x.video_upload_id;});
+ var trend=_opsLists(((_opsFind(rows,'get_metric_trend')||{}).metrics)||{}).filter(function(x){return x.data_period;});
+ var detailRows=(rows||[]).filter(function(r){return String(r.entity_id||'').indexOf('get_video_detail_performance:')===0;}).map(function(r){var m=r.metrics||{};m.post_id=String(r.entity_id).split(':').slice(1).join(':');return m;});
+ var maxView=Math.max.apply(null,trend.map(function(x){return Number(x.total_views||0);}).concat([1]));
+ var trendHtml='<div class="ops-card"><h2>Xu hướng lượt xem & thêm vào giỏ</h2><div class="ops-sub">30 ngày gần nhất · cột thể hiện lượt xem</div><div style="height:190px;display:flex;align-items:flex-end;gap:4px;padding:18px 4px 4px">'+trend.map(function(x){var h=Math.max(3,Number(x.total_views||0)/maxView*150);return '<div title="'+_opsEsc(x.data_period)+' · '+Number(x.total_views||0)+' view · '+Number(x.total_atc||0)+' ATC" style="height:'+h+'px;flex:1;min-width:3px;background:'+(Number(x.total_atc||0)>0?'#E9A11A':'#4149A8')+';border-radius:3px 3px 0 0"></div>';}).join('')+'</div><div class="ops-sub">Cam: ngày có thêm vào giỏ · Xanh: ngày chỉ có lượt xem</div></div>';
+ var listHtml='<div class="ops-card"><h2>Thư viện Video</h2><div class="ops-sub">'+videos.length+' video · '+detailRows.length+' video có báo cáo chi tiết</div>'+(videos.length?'<table class="ops-table"><thead><tr><th>#</th><th>Video</th><th>Trạng thái</th><th>Đăng lúc</th></tr></thead><tbody>'+videos.slice(0,20).map(function(x,i){return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.caption||x.title||x.post_id||x.video_upload_id)+'</b></td><td>'+_opsEsc(x.status||x.video_status||'—')+'</td><td>'+_opsEsc(x.post_time||x.create_time||'—')+'</td></tr>';}).join('')+'</tbody></table>':'<div class="ops-empty"><b>Chưa có Video trong danh sách</b>API đã kết nối nhưng kỳ hiện tại chưa trả video.</div>')+'</div>';
+ var live=(rows||[]).filter(function(r){return r.source==='live';});
+ return _opsHead('Livestream & Shopee Video','Hiệu quả nội dung từ API chính thức; không dùng dữ liệu ước tính.')+
+  _opsMiniKpis([['Tổng lượt xem',Number(eng.total_views||0).toLocaleString('vi-VN'),Number(key.total_viewers||0)+' người xem'],['Lượt xem hiệu quả',Number(key.effective_views||0).toLocaleString('vi-VN'),'Theo định nghĩa Shopee'],['Thêm vào giỏ',Number(key.atc||conv.total_atc||0).toLocaleString('vi-VN'),'Dữ liệu ATC thật từ Video API'],['CTR sản phẩm',_opsPct(conv.ctr||0),Number(conv.video_with_products||0)+' video gắn SP'],['Đơn xác nhận',Number(key.confirmed_orders||0).toLocaleString('vi-VN'),_opsMoney(key.confirmed_sales||0)],['Follower mới',Number(eng.video_new_followers||0).toLocaleString('vi-VN'),Number(eng.total_likes||0)+' like · '+Number(eng.total_shares||0)+' share']])+
+  '<div class="ops-grid">'+trendHtml+listHtml+'</div>'+
+  (!live.length?'<div class="ops-card"><div class="ops-empty"><b>Livestream chưa có dữ liệu phiên</b>Livestream Management yêu cầu session_id và token Live cần được uỷ quyền lại. Video đã được đồng bộ đầy đủ riêng ở phía trên.</div></div>':'');
+}
 function renderShopeePage(){
  var hosts={shopops:'shopopsHost',shopfinance:'shopfinanceHost',shopreturns:'shopreturnsHost',shoplogistics:'shoplogisticsHost',shopaffiliate:'shopaffiliateHost',shopcontent:'shopcontentHost',shopissues:'shopissuesHost',shopregions:'shopregionsHost'};
  var host=document.getElementById(hosts[S.page]);if(!host)return;
@@ -4833,7 +4878,7 @@ function renderShopeePage(){
  _opsLoad(false).then(function(p){
   if(S.page==='shopops'){
    var top=(p.issues||[]).slice(0,6);
-   host.innerHTML=_opsHead('Tổng quan vận hành Shopee','Bức tranh 90 ngày: kết quả, rủi ro và tình trạng kết nối nguồn dữ liệu.')+_opsKpis(p)+'<div class="ops-grid"><div class="ops-card"><h2>Ưu tiên cần xử lý</h2><div class="ops-sub">Xếp theo mức độ nghiêm trọng và giá trị ảnh hưởng</div>'+_opsIssueRows(top)+'</div><div class="ops-card"><h2>Sức khoẻ nguồn dữ liệu</h2><div class="ops-sub">Không sử dụng số liệu ước đoán cho API chưa kết nối</div>'+_opsSources(p)+'</div></div>';
+   host.innerHTML=_opsHead('Tổng quan vận hành Shopee','Bức tranh 90 ngày: kết quả, rủi ro và tình trạng kết nối nguồn dữ liệu.')+_opsKpis(p)+'<div class="ops-grid"><div class="ops-card"><h2>Ưu tiên cần xử lý</h2><div class="ops-sub">Xếp theo mức độ nghiêm trọng và giá trị ảnh hưởng</div>'+_opsIssueRows(top)+'</div><div class="ops-card"><h2>Sức khoẻ nguồn dữ liệu</h2><div class="ops-sub">Không sử dụng số liệu ước đoán cho API chưa kết nối</div>'+_opsSources(p)+'</div></div>'+_opsCoverage(p);
   }else if(S.page==='shopissues'){
    var types=[['all','Tất cả'],['cancel','Huỷ đơn'],['ads','Ads lãng phí'],['stock','Tồn chậm'],['stockout','Hết hàng']];
    var arr=(p.issues||[]).filter(function(x){return _OPS_FILTER==='all'||x.type===_OPS_FILTER;});
@@ -4859,8 +4904,8 @@ function renderShopeePage(){
    '<div class="ops-kpis"><div class="ops-kpi"><div class="lab">Đơn có tracking</div><div class="val">'+(l.orders_with_tracking||0)+'</div><div class="hint">trong 90 ngày gần nhất</div></div><div class="ops-kpi"><div class="lab">Chuẩn bị trung bình</div><div class="val">'+Number(l.avg_prepare_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</div><div class="hint">đặt hàng → xuất hàng</div></div><div class="ops-kpi"><div class="lab">Giao hàng trung bình</div><div class="val">'+Number(l.avg_delivery_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</div><div class="hint">xuất hàng → giao thành công</div></div></div>'+
    '<div class="ops-card"><h2>Hiệu suất theo đơn vị vận chuyển</h2><div class="ops-sub">Chỉ sử dụng đơn có mốc tracking hợp lệ</div>'+(cc.length?'<table class="ops-table"><thead><tr><th>Đơn vị vận chuyển</th><th>Đơn</th><th>Đã hoàn thành</th><th>Chuẩn bị TB</th><th>Giao TB</th></tr></thead><tbody>'+cc.map(function(x){return '<tr><td><b>'+_opsEsc(x.carrier)+'</b></td><td class="ops-num">'+x.orders+'</td><td class="ops-num">'+x.completed+'</td><td class="ops-num">'+Number(x.avg_prepare_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</td><td class="ops-num">'+Number(x.avg_delivery_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</td></tr>';}).join('')+'</tbody></table>':'<div class="ops-empty"><b>Chưa có mốc tracking đủ để phân tích</b>API đã kết nối nhưng đơn hiện tại chưa có đủ mốc xuất và giao.</div>')+'</div>';
   }
-  else if(S.page==='shopaffiliate')host.innerHTML=_opsChannel('Hiệu suất Affiliate','Đánh giá GMV, hoa hồng, ROAS và publisher theo sản phẩm/campaign.',p.channels&&p.channels.affiliate);
-  else if(S.page==='shopcontent')host.innerHTML=_opsChannel('Livestream & Shopee Video','Đo lượt xem, tương tác, đơn hàng và GMV do Live/Video tạo ra.',(p.channels&&p.channels.video||[]).concat(p.channels&&p.channels.live||[]));
+  else if(S.page==='shopaffiliate')host.innerHTML=_opsAffiliate(p.channels&&p.channels.affiliate);
+  else if(S.page==='shopcontent')host.innerHTML=_opsVideo((p.channels&&p.channels.video||[]).concat(p.channels&&p.channels.live||[]));
   var u=host.querySelector('#opsUpdated');if(u)u.textContent='Dữ liệu đến '+p.period.to+' · tổng hợp lúc '+new Date(p.generated_at).toLocaleString('vi-VN');
   var b=host.querySelector('#opsRefresh');if(b)b.onclick=function(){b.disabled=true;b.textContent='Đang đồng bộ...';_opsLoad(true).then(renderShopeePage).catch(function(e){alert(e.message);}).finally(function(){b.disabled=false;});};
  }).catch(function(e){host.innerHTML=_opsHead('Không tải được dữ liệu vận hành','Kiểm tra Edge Function và quyền truy cập dữ liệu.')+'<div class="ops-empty"><b>Lỗi kết nối</b>'+_opsEsc(e.message)+'</div>';});
