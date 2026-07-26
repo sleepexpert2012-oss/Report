@@ -1,6 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const HOST = (Deno.env.get("SHOPEE_HOST") || "https://partner.shopeemobile.com").trim();
+const PUBLIC_CALLBACK = (Deno.env.get("SHOPEE_PUBLIC_CALLBACK_BASE") ||
+  "https://sleepexpert2012-oss.github.io/Report/shopee-callback.html").trim();
 const sb = createClient(
   Deno.env.get("SUPABASE_URL") || "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
@@ -64,7 +66,7 @@ Deno.serve(async (req) => {
   }
   const path = "/api/v2/shop/auth_partner";
   const sig = await sign(cfg.key, `${cfg.id}${path}${ts}`);
-  const callback = `${url.origin}${url.pathname}?app=${encodeURIComponent(app)}`;
+  const callback = `${PUBLIC_CALLBACK}?app=${encodeURIComponent(app)}`;
   const authUrl = `${HOST}${path}?partner_id=${cfg.id}&timestamp=${ts}&sign=${sig}&redirect=${encodeURIComponent(callback)}`;
   return Response.redirect(authUrl, 302);
 });
