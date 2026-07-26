@@ -4748,7 +4748,10 @@ function _opsHead(title,sub){return '<div class="ops-head"><div><div class="eyeb
 function _opsLoad(force){
  if(_OPS&&!force)return Promise.resolve(_OPS);
  if(_OPS_LOADING&&!force)return _OPS_LOADING;
- var sync=force?fetch(SUPA_URL+'/functions/v1/ops-sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'sync',days:30})}).then(function(r){return r.json();}).then(function(j){if(!j.ok)throw new Error(j.error||'Đồng bộ Shopee thất bại');return j;}):Promise.resolve();
+ var sync=force?Promise.all([
+  fetch(SUPA_URL+'/functions/v1/ops-sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'sync',days:30})}).then(function(r){return r.json();}).then(function(j){if(!j.ok)throw new Error(j.error||'Đồng bộ Shopee thất bại');return j;}),
+  fetch(SUPA_URL+'/functions/v1/shopee-channel-sync',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(function(r){return r.json();}).then(function(j){if(!j.ok)throw new Error(j.error||'Đồng bộ kênh Shopee thất bại');return j;})
+ ]):Promise.resolve();
  _OPS_LOADING=sync.then(function(){return fetch(SUPA_URL+'/functions/v1/ops-responder',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});})
   .then(function(r){return r.json();}).then(function(j){if(!j.ok)throw new Error(j.error||'Không tải được dữ liệu');_OPS=j.payload;return _OPS;})
   .finally(function(){_OPS_LOADING=null;});
@@ -4768,6 +4771,35 @@ function _opsIssueRows(arr){
 function _opsPending(title,desc,source){
  return _opsHead(title,desc)+'<div class="ops-card"><div class="ops-empty"><b>Đang chờ dữ liệu từ '+source+'</b>Khung phân tích đã sẵn sàng. Hệ thống sẽ tự hiển thị KPI và bảng chi tiết sau khi app được xác thực và đồng bộ thành công.</div></div>';
 }
+function _opsMetricPairs(obj,prefix,out){
+ out=out||[];prefix=prefix||'';
+ if(!obj||typeof obj!=='object')return out;
+ Object.keys(obj).forEach(function(k){
+  var v=obj[k],label=(prefix?prefix+' · ':'')+k.replace(/_/g,' ');
+  if(v!=null&&(typeof v==='number'||typeof v==='string'||typeof v==='boolean'))out.push([label,v]);
+  else if(v&&typeof v==='object'&&!Array.isArray(v))_opsMetricPairs(v,label,out);
+ });
+ return out;
+}
+function _opsMetricValue(v){
+ if(typeof v==='number'){
+  if(Math.abs(v)>=100000)return _opsMoney(v);
+  return v.toLocaleString('vi-VN',{maximumFractionDigits:2});
+ }
+ return _opsEsc(v);
+}
+function _opsChannel(title,desc,rows){
+ if(!rows||!rows.length)return _opsPending(title,desc,'Shopee API');
+ var labels={get_video_list:'Video đã đăng',get_overview_performance:'Hiệu suất tổng quan',get_metric_trend:'Xu hướng Video',get_prodcut_performance_list:'Hiệu suất sản phẩm',get_video_performance_list:'Hiệu suất từng Video',get_managed_affiliate_list:'Danh sách Affiliate quản lý'};
+ return _opsHead(title,desc)+'<div class="ops-grid">'+rows.map(function(r){
+  var pairs=_opsMetricPairs(r.metrics).slice(0,12);
+  var lists=[];function scan(o,n){if(!o||typeof o!=='object')return;Object.keys(o).forEach(function(k){var v=o[k];if(Array.isArray(v)&&v.length)lists.push([k,v]);else if(v&&typeof v==='object')scan(v,k);});}scan(r.metrics,'');
+  var listHtml=lists.slice(0,1).map(function(entry){var a=entry[1].slice(0,20),cols=[];a.forEach(function(x){if(x&&typeof x==='object')Object.keys(x).forEach(function(k){if(cols.length<8&&!cols.includes(k)&&typeof x[k]!=='object')cols.push(k);});});if(!cols.length)return '';
+   return '<div style="overflow:auto;margin-top:12px"><table class="ops-table"><thead><tr>'+cols.map(function(c){return '<th>'+_opsEsc(c.replace(/_/g,' '))+'</th>';}).join('')+'</tr></thead><tbody>'+a.map(function(x){return '<tr>'+cols.map(function(c){return '<td>'+_opsMetricValue(x[c])+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div>';
+  }).join('');
+  return '<div class="ops-card"><h2>'+_opsEsc(labels[r.entity_id]||r.entity_id)+'</h2><div class="ops-sub">Dữ liệu '+_opsEsc(r.fact_date)+' · cập nhật '+new Date(r.updated_at).toLocaleString('vi-VN')+'</div>'+(pairs.length?'<div class="ops-kpis" style="margin-top:12px">'+pairs.map(function(x){return '<div class="ops-kpi"><div class="lab">'+_opsEsc(x[0])+'</div><div class="val" style="font-size:21px">'+_opsMetricValue(x[1])+'</div></div>';}).join('')+'</div>':'')+listHtml+'</div>';
+ }).join('')+'</div>';
+}
 function renderShopeePage(){
  var hosts={shopops:'shopopsHost',shopfinance:'shopfinanceHost',shopreturns:'shopreturnsHost',shoplogistics:'shoplogisticsHost',shopaffiliate:'shopaffiliateHost',shopcontent:'shopcontentHost',shopissues:'shopissuesHost',shopregions:'shopregionsHost'};
  var host=document.getElementById(hosts[S.page]);if(!host)return;
@@ -4784,7 +4816,8 @@ function renderShopeePage(){
   }else if(S.page==='shopregions'){
    var rr=p.regions||[],mx=Math.max.apply(null,rr.map(function(x){return x.gmv;}));
    host.innerHTML=_opsHead('Khách hàng theo khu vực','Xếp hạng tỉnh/thành theo GMV, đơn hàng, AOV và tỷ lệ huỷ; không lưu thông tin nhận diện khách hàng.')+
-   '<div class="ops-card"><h2>Xếp hạng tỉnh/thành</h2><div class="ops-sub">Bấm đồng bộ đơn hàng sau khi trường tỉnh/thành được cấp từ Shopee API</div>'+(rr.length?'<table class="ops-table"><thead><tr><th>#</th><th>Tỉnh / thành</th><th>Doanh thu</th><th>Tỷ trọng</th><th>Đơn</th><th>AOV</th><th>Tỷ lệ huỷ</th><th>Top sản phẩm</th></tr></thead><tbody>'+rr.map(function(x,i){return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.province)+'</b><div class="ops-bar"><i style="width:'+((x.gmv/mx)*100).toFixed(1)+'%"></i></div></td><td class="ops-num">'+_opsMoney(x.gmv-x.cancelled_gmv)+'</td><td class="ops-num">'+_opsPct(x.gmv/(p.summary.gross_gmv||1))+'</td><td class="ops-num">'+x.orders+'</td><td class="ops-num">'+_opsMoney(x.aov)+'</td><td class="ops-num">'+_opsPct(x.cancel_rate)+'</td><td>'+_opsEsc((x.top_products||[]).map(function(y){return y.name;}).join(' · '))+'</td></tr>';}).join('')+'</tbody></table>':'<div class="ops-empty"><b>API chưa trả trường tỉnh/thành trong dữ liệu hiện tại</b>Hệ thống đã sẵn sàng nhận trường tỉnh/thành ở lần đồng bộ Data Sale tiếp theo. Không cần import thủ công.</div>')+'</div>';
+   (rr.length?'<div class="ops-card"><h2>Xếp hạng tỉnh/thành</h2><div class="ops-sub">Nguồn: recipient_address từ Shopee Order API</div><table class="ops-table"><thead><tr><th>#</th><th>Tỉnh / thành</th><th>Doanh thu</th><th>Tỷ trọng</th><th>Đơn</th><th>AOV</th><th>Tỷ lệ huỷ</th><th>Top sản phẩm</th></tr></thead><tbody>'+rr.map(function(x,i){return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.province)+'</b><div class="ops-bar"><i style="width:'+((x.gmv/mx)*100).toFixed(1)+'%"></i></div></td><td class="ops-num">'+_opsMoney(x.gmv-x.cancelled_gmv)+'</td><td class="ops-num">'+_opsPct(x.gmv/(p.summary.gross_gmv||1))+'</td><td class="ops-num">'+x.orders+'</td><td class="ops-num">'+_opsMoney(x.aov)+'</td><td class="ops-num">'+_opsPct(x.cancel_rate)+'</td><td>'+_opsEsc((x.top_products||[]).map(function(y){return y.name;}).join(' · '))+'</td></tr>';}).join('')+'</tbody></table></div>':
+   '<div class="ops-kpis"><div class="ops-kpi"><div class="lab">Đơn hàng</div><div class="val">'+Number(p.summary.orders||0).toLocaleString('vi-VN')+'</div><div class="hint">90 ngày gần nhất</div></div><div class="ops-kpi"><div class="lab">Doanh thu sau huỷ</div><div class="val">'+_opsMoney(p.summary.net_gmv)+'</div><div class="hint">Từ Data Sale API</div></div><div class="ops-kpi"><div class="lab">Giá trị đơn TB</div><div class="val">'+_opsMoney((p.summary.net_gmv||0)/(p.summary.orders||1))+'</div><div class="hint">Doanh thu ÷ số đơn</div></div><div class="ops-kpi"><div class="lab">Tỷ lệ huỷ theo GMV</div><div class="val">'+_opsPct(p.summary.cancel_rate_gmv)+'</div><div class="hint">GMV huỷ ÷ GMV gộp</div></div></div><div class="ops-card"><div class="ops-empty"><b>Shopee đang che dữ liệu tỉnh/thành thành ****</b>Order API đã trả trường recipient_address nhưng địa chỉ bị ẩn theo chính sách dữ liệu. Vì vậy hệ thống chỉ hiển thị các KPI khách hàng có thể xác thực và không tự suy đoán khu vực.</div></div>');
   }else if(S.page==='shopreturns'){
    var canc=(p.issues||[]).filter(function(x){return x.type==='cancel';});
    host.innerHTML=_opsHead('Huỷ, trả hàng & hoàn tiền','Theo dõi thất thoát GMV và SKU phát sinh vấn đề sau bán.')+'<div class="ops-kpis"><div class="ops-kpi"><div class="lab">GMV huỷ</div><div class="val">'+_opsMoney(p.summary.cancel_gmv)+'</div><div class="hint">'+_opsPct(p.summary.cancel_rate_gmv)+' GMV gộp</div></div><div class="ops-kpi"><div class="lab">Đơn huỷ</div><div class="val">'+p.summary.cancelled_orders+'</div><div class="hint">trong '+p.summary.orders+' đơn</div></div><div class="ops-kpi"><div class="lab">Sản phẩm hoàn</div><div class="val">'+p.summary.returned_units+'</div><div class="hint">Độ phủ Returns API đang được kiểm tra</div></div></div><div class="ops-card">'+_opsIssueRows(canc)+'</div>';
@@ -4800,8 +4833,8 @@ function renderShopeePage(){
    '<div class="ops-kpis"><div class="ops-kpi"><div class="lab">Đơn có tracking</div><div class="val">'+(l.orders_with_tracking||0)+'</div><div class="hint">trong 90 ngày gần nhất</div></div><div class="ops-kpi"><div class="lab">Chuẩn bị trung bình</div><div class="val">'+Number(l.avg_prepare_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</div><div class="hint">đặt hàng → xuất hàng</div></div><div class="ops-kpi"><div class="lab">Giao hàng trung bình</div><div class="val">'+Number(l.avg_delivery_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</div><div class="hint">xuất hàng → giao thành công</div></div></div>'+
    '<div class="ops-card"><h2>Hiệu suất theo đơn vị vận chuyển</h2><div class="ops-sub">Chỉ sử dụng đơn có mốc tracking hợp lệ</div>'+(cc.length?'<table class="ops-table"><thead><tr><th>Đơn vị vận chuyển</th><th>Đơn</th><th>Đã hoàn thành</th><th>Chuẩn bị TB</th><th>Giao TB</th></tr></thead><tbody>'+cc.map(function(x){return '<tr><td><b>'+_opsEsc(x.carrier)+'</b></td><td class="ops-num">'+x.orders+'</td><td class="ops-num">'+x.completed+'</td><td class="ops-num">'+Number(x.avg_prepare_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</td><td class="ops-num">'+Number(x.avg_delivery_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</td></tr>';}).join('')+'</tbody></table>':'<div class="ops-empty"><b>Chưa có mốc tracking đủ để phân tích</b>API đã kết nối nhưng đơn hiện tại chưa có đủ mốc xuất và giao.</div>')+'</div>';
   }
-  else if(S.page==='shopaffiliate')host.innerHTML=_opsPending('Hiệu suất Affiliate','Đánh giá GMV, hoa hồng, ROAS và publisher theo sản phẩm/campaign.','Affiliate Marketing Solution API');
-  else if(S.page==='shopcontent')host.innerHTML=_opsPending('Livestream & Shopee Video','Đo lượt xem, tương tác, đơn hàng và GMV do Live/Video tạo ra.','Livestream & Shopee Video API');
+  else if(S.page==='shopaffiliate')host.innerHTML=_opsChannel('Hiệu suất Affiliate','Đánh giá GMV, hoa hồng, ROAS và publisher theo sản phẩm/campaign.',p.channels&&p.channels.affiliate);
+  else if(S.page==='shopcontent')host.innerHTML=_opsChannel('Livestream & Shopee Video','Đo lượt xem, tương tác, đơn hàng và GMV do Live/Video tạo ra.',(p.channels&&p.channels.video||[]).concat(p.channels&&p.channels.live||[]));
   var u=host.querySelector('#opsUpdated');if(u)u.textContent='Dữ liệu đến '+p.period.to+' · tổng hợp lúc '+new Date(p.generated_at).toLocaleString('vi-VN');
   var b=host.querySelector('#opsRefresh');if(b)b.onclick=function(){b.disabled=true;b.textContent='Đang đồng bộ...';_opsLoad(true).then(renderShopeePage).catch(function(e){alert(e.message);}).finally(function(){b.disabled=false;});};
  }).catch(function(e){host.innerHTML=_opsHead('Không tải được dữ liệu vận hành','Kiểm tra Edge Function và quyền truy cập dữ liệu.')+'<div class="ops-empty"><b>Lỗi kết nối</b>'+_opsEsc(e.message)+'</div>';});

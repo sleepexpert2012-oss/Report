@@ -114,16 +114,25 @@ function parameterCandidates(
   now: number,
 ) {
   const common = baseParams(now);
-  if (app === "affiliate" && path.includes("campaign_performance")) {
-    return [0, 1, 2, 3, "DAY", "DAILY", "WEEK", "MONTH"].map((periodType) => ({
-      ...common,
-      period_type: periodType,
-    }));
-  }
-  if (app === "affiliate" && path.includes("_performance")) {
-    return [0, 1, 2, 3, "ALL", "VALIDATED", "PENDING", "COMPLETED"].map(
-      (orderType) => ({ ...common, order_type: orderType }),
-    );
+  if (app === "affiliate") {
+    if (path.endsWith("/get_managed_affiliate_list")) {
+      return [{ page_no: 1, page_size: 100 }];
+    }
+    const end = new Date((now - 2 * 86400) * 1000);
+    const start = new Date(end.getTime() - 29 * 86400 * 1000);
+    const ymd = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, "");
+    const period = {
+      period_type: "Last30d",
+      start_date: ymd(start),
+      end_date: ymd(end),
+      page_no: 1,
+      page_size: 20,
+    };
+    if (path.endsWith("/get_affiliate_performance") ||
+      path.endsWith("/get_product_performance")) {
+      return [{ ...period, order_type: "ConfirmedOrder", channel: "AllChannel" }];
+    }
+    return [period];
   }
   if (app === "video") {
     const endDate = new Date((now - 86400) * 1000).toISOString().slice(0, 10);

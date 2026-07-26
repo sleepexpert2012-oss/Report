@@ -104,6 +104,21 @@ Deno.serve(async (req) => {
     const orderSn = String((active[0] || unique[0] || {}).ma_don_hang || "");
     if (!orderSn) throw new Error("Không tìm thấy order_sn để kiểm tra");
 
+    if (mode === "address_probe") {
+      const detail = await get("/api/v2/order/get_order_detail", shopId, token, {
+        order_sn_list: orderSn,
+        response_optional_fields: "recipient_address",
+      });
+      const address = detail.response?.order_list?.[0]?.recipient_address || {};
+      return new Response(JSON.stringify({
+        ok: !detail.error,
+        error: detail.error || "",
+        message: detail.message || "",
+        address_keys: Object.keys(address),
+        province: address.state || address.region || address.city || "",
+      }), { headers });
+    }
+
     if (mode === "sync") {
       const cutoff = now - Number(body.days || 120) * 86400;
       const work = unique.filter((x) => parseDate(x.ngay_dat_hang) >= cutoff);
@@ -112,15 +127,19 @@ Deno.serve(async (req) => {
         const batch = work.slice(i, i + 50).map((x) => String(x.ma_don_hang));
         const detail = await get("/api/v2/order/get_order_detail", shopId, token, {
           order_sn_list: batch.join(","),
-          response_optional_fields: "shipping_carrier,package_list,order_status",
+          response_optional_fields: "shipping_carrier,package_list,order_status,recipient_address",
         });
         for (const order of detail.response?.order_list || []) {
           const pkg = order.package_list?.[0] || {};
           const carrier = order.shipping_carrier || pkg.shipping_carrier || "";
           const tracking = pkg.tracking_number || "";
+          const province = order.recipient_address?.state ||
+            order.recipient_address?.region ||
+            order.recipient_address?.city || "";
           const upd: Record<string, string> = {};
           if (carrier) upd.don_vi_van_chuyen = String(carrier);
           if (tracking) upd.ma_van_don = String(tracking);
+          if (province) upd.tinh_thanh_pho = String(province);
           if (Object.keys(upd).length) await sb.from("sales_fact").update(upd).eq("ma_don_hang", order.order_sn);
         }
       }

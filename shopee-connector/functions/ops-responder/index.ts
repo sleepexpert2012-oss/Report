@@ -43,13 +43,14 @@ async function all(table: string, select = "*") {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
-    const [sales, ads, stock, sku] = await Promise.all([
+    const [sales, ads, stock, sku, channelFacts] = await Promise.all([
       all("sales_fact",
         "ma_don_hang,ngay_dat_hang,trang_thai_don_hang,ly_do_huy,don_vi_van_chuyen,ngay_xuat_hang,ngay_giao_hang_du_kien,thoi_gian_hoan_thanh_don_hang,trang_thai_tra_hang_hoan_tien,sku_phan_loai_hang,sku_san_pham,ten_san_pham,so_luong,so_luong_san_pham_duoc_hoan_tra,tong_gia_ban_san_pham,phi_co_dinh,phi_dich_vu,phi_thanh_toan,tien_ky_quy,tinh_thanh_pho"),
       all("ads_fact",
         "ngay,thang,nam,ma_san_pham,noi_dung_dich_vu_hien_thi,so_luot_xem,so_luot_click,luot_chuyen_doi,doanh_so,chi_phi"),
       all("tonkho", "sku_khoa,ten_san_pham,ma_kho_khoa,ton_hien_tai,ton_kha_dung"),
       all("sku", "sku,ma_san_pham,nganh_hang,brand,subcategory_name,gia_von_vat,unit_cost_vnd"),
+      all("shopee_channel_fact", "source,fact_date,entity_id,dimensions,metrics,updated_at"),
     ]);
     const dates = sales.map((r) => day(r.ngay_dat_hang)).filter(Boolean).sort();
     const maxDate = dates.at(-1) || new Date().toISOString().slice(0, 10);
@@ -213,7 +214,12 @@ Deno.serve(async (req) => {
         { key: "payment", name: "Payment / Escrow", status: financeRows.length ? "partial" : "pending", rows: financeRows.length, coverage: recent.length ? financeRows.length / recent.length : 0, note: "Phí sàn & tiền thực nhận" },
         { key: "returns", name: "Returns", status: "connected", rows: returnedUnits, coverage: 1, note: returnedUnits ? "Lý do hoàn & giá trị hoàn" : "Đã kết nối · chưa có yêu cầu hoàn" },
         { key: "logistics", name: "Seller Logistics", status: logisticsRows.length ? "partial" : "pending", rows: logisticsRows.length, coverage: recent.length ? logisticsRows.length / recent.length : 0, note: "SLA giao vận" },
-        { key: "affiliate", name: "Affiliate", status: "pending", rows: 0, coverage: 0, note: "Chờ xác thực app riêng" },
+        { key: "affiliate", name: "Affiliate", status: channelFacts.some((x) => x.source === "affiliate") ? "connected" : "pending",
+          rows: channelFacts.filter((x) => x.source === "affiliate").length, coverage: channelFacts.some((x) => x.source === "affiliate") ? 1 : 0,
+          note: channelFacts.some((x) => x.source === "affiliate") ? "Affiliate API đã đồng bộ" : "Chưa có phản hồi dữ liệu hợp lệ" },
+        { key: "video", name: "Shopee Video", status: channelFacts.some((x) => x.source === "video") ? "connected" : "pending",
+          rows: channelFacts.filter((x) => x.source === "video").length, coverage: channelFacts.some((x) => x.source === "video") ? 1 : 0,
+          note: channelFacts.some((x) => x.source === "video") ? "Video Analytics API đã đồng bộ" : "Chưa có dữ liệu Video" },
       ],
       issues: issues.slice(0, 30),
       daily: [...daily.values()].sort((a, b) => a.date.localeCompare(b.date)).map((x) => ({ ...x, orders: x.orders.size })),
@@ -238,6 +244,14 @@ Deno.serve(async (req) => {
         orders: x.orders.size, aov: x.orders.size ? (x.gmv - x.cancelled_gmv) / x.orders.size : 0,
         top_products: [...x.products.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([name, gmv]) => ({ name, gmv })),
       })).sort((a, b) => b.gmv - a.gmv),
+      channels: {
+        affiliate: channelFacts.filter((x) => x.source === "affiliate")
+          .sort((a, b) => String(b.fact_date).localeCompare(String(a.fact_date))),
+        video: channelFacts.filter((x) => x.source === "video")
+          .sort((a, b) => String(b.fact_date).localeCompare(String(a.fact_date))),
+        live: channelFacts.filter((x) => x.source === "live")
+          .sort((a, b) => String(b.fact_date).localeCompare(String(a.fact_date))),
+      },
       data_quality: { sales_rows: sales.length, ads_rows: ads.length, inventory_rows: stock.length,
         finance_coverage: recent.length ? financeRows.length / recent.length : 0,
         logistics_coverage: recent.length ? logisticsRows.length / recent.length : 0 },
