@@ -4748,7 +4748,8 @@ function _opsHead(title,sub){return '<div class="ops-head"><div><div class="eyeb
 function _opsLoad(force){
  if(_OPS&&!force)return Promise.resolve(_OPS);
  if(_OPS_LOADING&&!force)return _OPS_LOADING;
- _OPS_LOADING=fetch(SUPA_URL+'/functions/v1/ops-responder',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+ var sync=force?fetch(SUPA_URL+'/functions/v1/ops-sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'sync',days:30})}).then(function(r){return r.json();}).then(function(j){if(!j.ok)throw new Error(j.error||'Đồng bộ Shopee thất bại');return j;}):Promise.resolve();
+ _OPS_LOADING=sync.then(function(){return fetch(SUPA_URL+'/functions/v1/ops-responder',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});})
   .then(function(r){return r.json();}).then(function(j){if(!j.ok)throw new Error(j.error||'Không tải được dữ liệu');_OPS=j.payload;return _OPS;})
   .finally(function(){_OPS_LOADING=null;});
  return _OPS_LOADING;
@@ -4787,8 +4788,18 @@ function renderShopeePage(){
   }else if(S.page==='shopreturns'){
    var canc=(p.issues||[]).filter(function(x){return x.type==='cancel';});
    host.innerHTML=_opsHead('Huỷ, trả hàng & hoàn tiền','Theo dõi thất thoát GMV và SKU phát sinh vấn đề sau bán.')+'<div class="ops-kpis"><div class="ops-kpi"><div class="lab">GMV huỷ</div><div class="val">'+_opsMoney(p.summary.cancel_gmv)+'</div><div class="hint">'+_opsPct(p.summary.cancel_rate_gmv)+' GMV gộp</div></div><div class="ops-kpi"><div class="lab">Đơn huỷ</div><div class="val">'+p.summary.cancelled_orders+'</div><div class="hint">trong '+p.summary.orders+' đơn</div></div><div class="ops-kpi"><div class="lab">Sản phẩm hoàn</div><div class="val">'+p.summary.returned_units+'</div><div class="hint">Độ phủ Returns API đang được kiểm tra</div></div></div><div class="ops-card">'+_opsIssueRows(canc)+'</div>';
-  }else if(S.page==='shopfinance')host.innerHTML=_opsPending('Tài chính & phí Shopee','Đối soát GMV, phí cố định, phí dịch vụ, phí thanh toán và tiền thực nhận.','Payment / Escrow API');
-  else if(S.page==='shoplogistics')host.innerHTML=_opsPending('Hiệu suất giao vận','Theo dõi thời gian chuẩn bị, giao đúng hạn, giao thất bại và hiệu suất đơn vị vận chuyển.','Seller Logistics API');
+  }else if(S.page==='shopfinance'){
+   var f=p.finance||{},feeMax=Math.max(f.fixed_fee||0,f.service_fee||0,f.payment_fee||0,1);
+   var feeRows=[['Phí cố định',f.fixed_fee],['Phí dịch vụ & campaign',f.service_fee],['Phí thanh toán',f.payment_fee]];
+   host.innerHTML=_opsHead('Tài chính & phí Shopee','Đối soát phí sàn và tiền thực nhận từ Payment / Escrow API; mỗi đơn chỉ được tính một lần.')+
+   '<div class="ops-kpis"><div class="ops-kpi"><div class="lab">Tiền thực nhận</div><div class="val">'+_opsMoney(f.escrow)+'</div><div class="hint">'+(f.orders_with_payment||0)+' đơn có đối soát</div></div><div class="ops-kpi"><div class="lab">Tổng phí Shopee</div><div class="val">'+_opsMoney(f.total_fee)+'</div><div class="hint">'+_opsPct(f.fee_rate)+' GMV gộp</div></div><div class="ops-kpi"><div class="lab">DT sau huỷ & phí</div><div class="val">'+_opsMoney(f.net_after_fees)+'</div><div class="hint">chưa trừ giá vốn</div></div></div>'+
+   '<div class="ops-card"><h2>Cơ cấu phí Shopee</h2><div class="ops-sub">Nguồn: Payment / get_escrow_detail</div><table class="ops-table"><thead><tr><th>Loại phí</th><th>Giá trị</th><th>Cơ cấu</th></tr></thead><tbody>'+feeRows.map(function(x){return '<tr><td><b>'+x[0]+'</b></td><td class="ops-num">'+_opsMoney(x[1])+'</td><td><div class="ops-bar"><i style="width:'+((x[1]/feeMax)*100).toFixed(1)+'%"></i></div></td></tr>';}).join('')+'</tbody></table></div>';
+  }else if(S.page==='shoplogistics'){
+   var l=p.logistics||{},cc=l.carriers||[];
+   host.innerHTML=_opsHead('Hiệu suất giao vận','Theo dõi thời gian chuẩn bị và hoàn thành giao hàng từ Seller Logistics API.')+
+   '<div class="ops-kpis"><div class="ops-kpi"><div class="lab">Đơn có tracking</div><div class="val">'+(l.orders_with_tracking||0)+'</div><div class="hint">trong 90 ngày gần nhất</div></div><div class="ops-kpi"><div class="lab">Chuẩn bị trung bình</div><div class="val">'+Number(l.avg_prepare_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</div><div class="hint">đặt hàng → xuất hàng</div></div><div class="ops-kpi"><div class="lab">Giao hàng trung bình</div><div class="val">'+Number(l.avg_delivery_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</div><div class="hint">xuất hàng → giao thành công</div></div></div>'+
+   '<div class="ops-card"><h2>Hiệu suất theo đơn vị vận chuyển</h2><div class="ops-sub">Chỉ sử dụng đơn có mốc tracking hợp lệ</div>'+(cc.length?'<table class="ops-table"><thead><tr><th>Đơn vị vận chuyển</th><th>Đơn</th><th>Đã hoàn thành</th><th>Chuẩn bị TB</th><th>Giao TB</th></tr></thead><tbody>'+cc.map(function(x){return '<tr><td><b>'+_opsEsc(x.carrier)+'</b></td><td class="ops-num">'+x.orders+'</td><td class="ops-num">'+x.completed+'</td><td class="ops-num">'+Number(x.avg_prepare_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</td><td class="ops-num">'+Number(x.avg_delivery_hours||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ</td></tr>';}).join('')+'</tbody></table>':'<div class="ops-empty"><b>Chưa có mốc tracking đủ để phân tích</b>API đã kết nối nhưng đơn hiện tại chưa có đủ mốc xuất và giao.</div>')+'</div>';
+  }
   else if(S.page==='shopaffiliate')host.innerHTML=_opsPending('Hiệu suất Affiliate','Đánh giá GMV, hoa hồng, ROAS và publisher theo sản phẩm/campaign.','Affiliate Marketing Solution API');
   else if(S.page==='shopcontent')host.innerHTML=_opsPending('Livestream & Shopee Video','Đo lượt xem, tương tác, đơn hàng và GMV do Live/Video tạo ra.','Livestream & Shopee Video API');
   var u=host.querySelector('#opsUpdated');if(u)u.textContent='Dữ liệu đến '+p.period.to+' · tổng hợp lúc '+new Date(p.generated_at).toLocaleString('vi-VN');

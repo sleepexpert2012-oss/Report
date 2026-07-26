@@ -65,6 +65,10 @@ Deno.serve(async (req) => {
 
     const skuMap = new Map(sku.map((r) => [String(r.sku || "").trim(), r]));
     const orders = new Map<string, { cancel: boolean; gmv: number }>();
+    const orderOps = new Map<string, {
+      fees: number; fixed: number; service: number; payment: number; escrow: number;
+      placed: string; shipped: string; completed: string; carrier: string;
+    }>();
     let gross = 0, cancelGmv = 0, units = 0, returnedUnits = 0;
     const cancelSku = new Map<string, { name: string; gmv: number; units: number; reason: string }>();
     const soldSku = new Map<string, number>();
@@ -83,6 +87,16 @@ Deno.serve(async (req) => {
       oo.cancel ||= isCancel;
       oo.gmv += value;
       orders.set(sn, oo);
+      if (!orderOps.has(sn)) {
+        orderOps.set(sn, {
+          fees: num(r.phi_co_dinh) + num(r.phi_dich_vu) + num(r.phi_thanh_toan),
+          fixed: num(r.phi_co_dinh), service: num(r.phi_dich_vu),
+          payment: num(r.phi_thanh_toan), escrow: num(r.tien_ky_quy),
+          placed: String(r.ngay_dat_hang || ""), shipped: String(r.ngay_xuat_hang || ""),
+          completed: String(r.thoi_gian_hoan_thanh_don_hang || ""),
+          carrier: String(r.don_vi_van_chuyen || "Chưa xác định"),
+        });
+      }
       const province = String(r.tinh_thanh_pho || "").trim();
       if (province && !/^\*+$/.test(province) && !/masked|ẩn thông tin/i.test(province)) {
         const rx = regions.get(province) || { province, gmv: 0, cancelled_gmv: 0, units: 0, orders: new Set<string>(), products: new Map<string, number>() };
@@ -163,8 +177,29 @@ Deno.serve(async (req) => {
     });
     issues.sort((a, b) => (b.severity === "critical" ? 1 : 0) - (a.severity === "critical" ? 1 : 0) || num(b.impact) - num(a.impact));
 
-    const financeRows = recent.filter((r) => num(r.phi_co_dinh) || num(r.phi_dich_vu) || num(r.phi_thanh_toan) || num(r.tien_ky_quy));
+    const opsOrders = [...orderOps.values()];
+    const financeRows = opsOrders.filter((r) => r.fees || r.escrow);
     const logisticsRows = recent.filter((r) => r.don_vi_van_chuyen || r.ngay_xuat_hang || r.thoi_gian_hoan_thanh_don_hang);
+    const finance = financeRows.reduce((a, x) => {
+      a.fixed_fee += x.fixed; a.service_fee += x.service; a.payment_fee += x.payment;
+      a.total_fee += x.fees; a.escrow += x.escrow; return a;
+    }, { fixed_fee: 0, service_fee: 0, payment_fee: 0, total_fee: 0, escrow: 0 });
+    const toMs = (v: string) => {
+      const d = new Date(v.replace(" ", "T") + (/[zZ]|[+-]\d\d:?\d\d$/.test(v) ? "" : "+07:00"));
+      return Number.isFinite(d.getTime()) ? d.getTime() : 0;
+    };
+    const carriers = new Map<string, { carrier: string; orders: number; prep: number; delivery: number; completed: number }>();
+    let prepHours = 0, prepCount = 0, deliveryHours = 0, deliveryCount = 0;
+    for (const x of opsOrders) {
+      const placed = toMs(x.placed), shipped = toMs(x.shipped), completed = toMs(x.completed);
+      const prep = placed && shipped && shipped >= placed ? (shipped - placed) / 3600000 : 0;
+      const delivery = shipped && completed && completed >= shipped ? (completed - shipped) / 3600000 : 0;
+      if (prep) { prepHours += prep; prepCount++; }
+      if (delivery) { deliveryHours += delivery; deliveryCount++; }
+      const c = carriers.get(x.carrier) || { carrier: x.carrier, orders: 0, prep: 0, delivery: 0, completed: 0 };
+      c.orders++; if (prep) c.prep += prep; if (delivery) { c.delivery += delivery; c.completed++; }
+      carriers.set(x.carrier, c);
+    }
     const payload = {
       generated_at: new Date().toISOString(), period: { from: cut, to: maxDate, days: 90 },
       summary: { gross_gmv: gross, net_gmv: gross - cancelGmv, cancel_gmv: cancelGmv,
@@ -176,7 +211,7 @@ Deno.serve(async (req) => {
         { key: "ads", name: "Data Ads", status: "connected", rows: ads.length, coverage: 1, note: "Hiệu suất quảng cáo" },
         { key: "stock", name: "Tồn kho", status: "connected", rows: stock.length, coverage: 1, note: `${stockQty} unit · ${new Set(stock.map((r) => r.ma_kho_khoa)).size} kho` },
         { key: "payment", name: "Payment / Escrow", status: financeRows.length ? "partial" : "pending", rows: financeRows.length, coverage: recent.length ? financeRows.length / recent.length : 0, note: "Phí sàn & tiền thực nhận" },
-        { key: "returns", name: "Returns", status: returnedUnits ? "partial" : "pending", rows: returnedUnits, coverage: returnedUnits ? 0.5 : 0, note: "Lý do hoàn & giá trị hoàn" },
+        { key: "returns", name: "Returns", status: "connected", rows: returnedUnits, coverage: 1, note: returnedUnits ? "Lý do hoàn & giá trị hoàn" : "Đã kết nối · chưa có yêu cầu hoàn" },
         { key: "logistics", name: "Seller Logistics", status: logisticsRows.length ? "partial" : "pending", rows: logisticsRows.length, coverage: recent.length ? logisticsRows.length / recent.length : 0, note: "SLA giao vận" },
         { key: "affiliate", name: "Affiliate", status: "pending", rows: 0, coverage: 0, note: "Chờ xác thực app riêng" },
       ],
@@ -184,6 +219,19 @@ Deno.serve(async (req) => {
       daily: [...daily.values()].sort((a, b) => a.date.localeCompare(b.date)).map((x) => ({ ...x, orders: x.orders.size })),
       ads_products: [...adProducts.values()].sort((a, b) => b.spend - a.spend).slice(0, 20).map((x) => ({ ...x, roas: x.spend ? x.gmv / x.spend : 0 })),
       stock_risks: issues.filter((x) => x.type === "stock" || x.type === "stockout").slice(0, 20),
+      finance: { ...finance, fee_rate: gross ? finance.total_fee / gross : 0,
+        net_after_fees: (gross - cancelGmv) - finance.total_fee, orders_with_payment: financeRows.length },
+      logistics: {
+        avg_prepare_hours: prepCount ? prepHours / prepCount : 0,
+        avg_delivery_hours: deliveryCount ? deliveryHours / deliveryCount : 0,
+        orders_with_tracking: new Set(recent.filter((r) => r.ngay_xuat_hang || r.thoi_gian_hoan_thanh_don_hang).map((r) => r.ma_don_hang)).size,
+        carriers: [...carriers.values()].map((x) => ({
+          carrier: x.carrier, orders: x.orders,
+          avg_prepare_hours: x.orders ? x.prep / x.orders : 0,
+          avg_delivery_hours: x.completed ? x.delivery / x.completed : 0,
+          completed: x.completed,
+        })).sort((a, b) => b.orders - a.orders),
+      },
       regions: [...regions.values()].map((x) => ({
         province: x.province, gmv: x.gmv, cancelled_gmv: x.cancelled_gmv,
         cancel_rate: x.gmv ? x.cancelled_gmv / x.gmv : 0, units: x.units,
