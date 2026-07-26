@@ -203,6 +203,11 @@ Deno.serve(async (req) => {
     }
     const payload = {
       generated_at: new Date().toISOString(), period: { from: cut, to: maxDate, days: 90 },
+      sync_status: {
+        shopee_data_latest: maxDate,
+        shopee_channel_synced_at: channelFacts.map((x) => String(x.updated_at || "")).sort().at(-1) || "",
+        app_loaded_at: new Date().toISOString(),
+      },
       summary: { gross_gmv: gross, net_gmv: gross - cancelGmv, cancel_gmv: cancelGmv,
         cancel_rate_gmv: gross ? cancelGmv / gross : 0, orders: orders.size, cancelled_orders: cancelledOrders,
         units, returned_units: returnedUnits, ad_spend: adSpend, ad_gmv: adGmv,

@@ -1022,16 +1022,42 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
 <section class="page" id="pg-shopregions"><div id="shopregionsHost"></div></section>
 
 <section class="page" id="pg-log">
-  <h1>📝 Nhật ký cập nhật (Changelog)</h1>
-  <div class="sub" style="margin-bottom:10px">Ghi lại các bản cập nhật của công cụ. Người phát triển: <b>Sleep Expert — Phòng Supply Chain</b> · nội bộ.</div>
-  <div class="card"><div class="card" style="font-size:12.5px;color:#5F5F63;line-height:1.75">Bản dựng nội bộ cho <b>Sleep Expert</b> — nguồn dữ liệu bán hàng Shopee (shop Tuft&amp;Needle), cập nhật theo tháng. Console phân tích SKU/Class do Phòng Supply Chain vận hành nội bộ. Nhật ký phát triển kỹ thuật của công cụ do đối tác cung cấp.</div></div>
+  <h1>📝 Nhật ký cập nhật &amp; đồng bộ</h1>
+  <div class="sub" style="margin-bottom:14px">Theo dõi phiên bản GitHub, API Shopee đang sử dụng, độ mới dữ liệu và nội dung thay đổi của từng bản phát hành.</div>
+  <div class="ops-kpis">
+    <div class="ops-kpi"><div class="lab">Bản phát hành GitHub</div><div class="val">R50</div><div class="hint">Nhánh main · phát hành 26/07/2026</div></div>
+    <div class="ops-kpi"><div class="lab">Dữ liệu Shopee mới nhất</div><div class="val" id="logDataLatest">Đang đọc…</div><div class="hint">Ngày nghiệp vụ mới nhất từ API</div></div>
+    <div class="ops-kpi"><div class="lab">API đồng bộ gần nhất</div><div class="val" id="logApiSync">Đang đọc…</div><div class="hint">Lần ghi dữ liệu API vào Supabase</div></div>
+    <div class="ops-kpi"><div class="lab">App nạp dữ liệu gần nhất</div><div class="val" id="logAppSync">Đang đọc…</div><div class="hint">Thời điểm app tổng hợp báo cáo</div></div>
+  </div>
+  <div class="ops-grid">
+    <div class="ops-card">
+      <h2>Shopee API đang gọi</h2>
+      <div class="ops-sub">Chỉ liệt kê endpoint đang phục vụ dữ liệu trên app</div>
+      <table class="ops-table"><thead><tr><th>Nhóm dữ liệu</th><th>Endpoint</th><th>Mục đích</th></tr></thead><tbody>
+        <tr><td><b>Sales</b></td><td>/order/get_order_list<br>/order/get_order_detail</td><td>Đơn hàng, sản phẩm, trạng thái, GMV</td></tr>
+        <tr><td><b>Ads</b></td><td>/ads/get_all_cpc_ads_daily_performance<br>/ads/get_product_campaign_daily_performance</td><td>Chi phí, GMV Ads, click, chuyển đổi</td></tr>
+        <tr><td><b>Tồn kho</b></td><td>/product/get_item_list<br>/product/get_item_base_info<br>/product/get_model_list</td><td>SKU, model và tồn theo kho</td></tr>
+        <tr><td><b>Tài chính &amp; giao vận</b></td><td>/payment/get_escrow_detail<br>/logistics/get_tracking_info<br>/returns/get_return_list</td><td>Phí sàn, thực nhận, tracking, hoàn trả</td></tr>
+        <tr><td><b>Affiliate</b></td><td>/ams/get_affiliate_performance<br>/ams/get_product_performance<br>/ams/get_open_campaign_performance<br>/ams/get_targeted_campaign_performance<br>/ams/get_managed_affiliate_list</td><td>GMV, publisher, sản phẩm và campaign</td></tr>
+        <tr><td><b>Shopee Video</b></td><td>/video/get_video_list<br>/video/get_overview_performance<br>/video/get_metric_trend<br>/video/get_prodcut_performance_list<br>/video/get_video_performance_list</td><td>Video, tương tác, xu hướng và chuyển đổi</td></tr>
+      </tbody></table>
+    </div>
+    <div class="ops-card">
+      <h2>Lịch sử thay đổi</h2>
+      <div class="ops-sub">Ghi nhận từ R50 trở đi; mỗi lần phát hành phải tạo một mục mới</div>
+      <table class="ops-table"><thead><tr><th>Bản</th><th>Ngày</th><th>Thay đổi</th></tr></thead><tbody>
+        <tr><td><b>R50</b></td><td>26/07/2026</td><td>Kết nối báo cáo Affiliate và Shopee Video với dữ liệu API; bổ sung trạng thái dữ liệu Khách hàng; thêm nhật ký phiên bản, API và thời gian đồng bộ.</td></tr>
+      </tbody></table>
+    </div>
+  </div>
 </section>
 <section class="page" id="pg-warn">
   <h1>⚠ Cảnh báo dữ liệu</h1>
   <div class="sub" style="margin-bottom:10px">SKU phát sinh trong dữ liệu bán hàng nhưng chưa có trong danh mục sản phẩm (master). Nên bổ sung chính thức để đảm bảo giá vốn & phân tích chính xác.</div>
   <div id="warnHost"></div>
 </section>
-  <footer>Phòng Supply Chain — Sleep Expert · GM = GP/DT · Nội bộ · v49 · 11/07/2026</footer>
+  <footer>Phòng Supply Chain — Sleep Expert · GM = GP/DT · Nội bộ · R50 · 26/07/2026</footer>
 </main>
 <div id="xlsDlg" style="display:none;position:fixed;inset:0;background:rgba(10,20,40,.45);z-index:9000;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:12px;padding:18px 22px;min-width:320px;box-shadow:0 10px 40px rgba(0,0,0,.3)">
@@ -4839,6 +4865,16 @@ function renderShopeePage(){
   var b=host.querySelector('#opsRefresh');if(b)b.onclick=function(){b.disabled=true;b.textContent='Đang đồng bộ...';_opsLoad(true).then(renderShopeePage).catch(function(e){alert(e.message);}).finally(function(){b.disabled=false;});};
  }).catch(function(e){host.innerHTML=_opsHead('Không tải được dữ liệu vận hành','Kiểm tra Edge Function và quyền truy cập dữ liệu.')+'<div class="ops-empty"><b>Lỗi kết nối</b>'+_opsEsc(e.message)+'</div>';});
 }
+function renderReleaseLog(){
+ _opsLoad(false).then(function(p){
+  var s=p.sync_status||{};
+  var d=document.getElementById('logDataLatest');if(d)d.textContent=s.shopee_data_latest||p.period&&p.period.to||'Chưa có';
+  var a=document.getElementById('logApiSync');if(a)a.textContent=s.shopee_channel_synced_at?new Date(s.shopee_channel_synced_at).toLocaleString('vi-VN'):'Chưa có';
+  var l=document.getElementById('logAppSync');if(l)l.textContent=s.app_loaded_at?new Date(s.app_loaded_at).toLocaleString('vi-VN'):'Chưa có';
+ }).catch(function(){
+  ['logDataLatest','logApiSync','logAppSync'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent='Không đọc được';});
+ });
+}
 
 function render(){try{var _aif=document.getElementById("aiFabWrap");if(_aif)_aif.style.display="block";}catch(e){}
 
@@ -4866,6 +4902,7 @@ function render(){try{var _aif=document.getElementById("aiFabWrap");if(_aif)_aif
  else if(S.page==='stock'){if(!['t1','t3'].includes(S.stkTab))S.stkTab='t1';renderStock();applyStkTab();}
  else if(S.page==='forecast'){if(!['t2','t4'].includes(S.stkTab))S.stkTab='t2';renderStock();renderFcOverview();applyStkTab();}
  else if(S.page==='classes')renderClasses();
+ else if(S.page==='log')renderReleaseLog();
  else if(/^shop/.test(S.page))renderShopeePage();
  scanUI();
 }
