@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const HOST = (Deno.env.get("SHOPEE_HOST") || "https://partner.shopeemobile.com").trim();
+const OPEN_HOST = "https://open.shopee.com";
 const PUBLIC_CALLBACK = (Deno.env.get("SHOPEE_PUBLIC_CALLBACK_BASE") ||
   "https://sleepexpert2012-oss.github.io/Report").replace(/\/+$/, "");
 const sb = createClient(
@@ -46,27 +47,36 @@ Deno.serve(async (req) => {
   const ts = Math.floor(Date.now() / 1000);
   const code = url.searchParams.get("code");
   const shopId = Number(url.searchParams.get("shop_id"));
-  if (code && shopId) {
-    const path = "/api/v2/auth/token/get";
+  const isUserApp = app === "live" || app === "video";
+  if (code && (isUserApp || shopId)) {
+    const path = isUserApp ? "/api/v2/public/get_access_token" : "/api/v2/auth/token/get";
     const sig = await sign(cfg.key, `${cfg.id}${path}${ts}`);
-    const r = await fetch(`${HOST}${path}?partner_id=${cfg.id}&timestamp=${ts}&sign=${sig}`, {
+    const r = await fetch(`${isUserApp ? OPEN_HOST : HOST}${path}?partner_id=${cfg.id}&timestamp=${ts}&sign=${sig}`, {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ code, shop_id: shopId, partner_id: cfg.id }),
+      body: JSON.stringify(isUserApp ? { code } : { code, shop_id: shopId, partner_id: cfg.id }),
     });
     const j = await r.json();
     if (!j.access_token) return text(`Không lấy được token ${app}: ${j.error || j.message || "unknown"}`, 400);
+    const resolvedShopId = Number(j.shop_id_list?.[0] || shopId || 0);
+    const userId = Number(j.user_id_list?.[0] || j.user_id || 0);
+    if (isUserApp && !userId) return text(`Shopee không trả về user_id cho ${app}.`, 400);
     const { error } = await sb.from("shopee_app_token").upsert({
-      app_key: app, shop_id: shopId, access_token: j.access_token,
+      app_key: app, shop_id: resolvedShopId, user_id: userId || null, access_token: j.access_token,
       refresh_token: j.refresh_token,
       expire_at: new Date((ts + (j.expire_in || 14400)) * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     });
     if (error) return text(`Không lưu được token ${app}: ${error.message}`, 500);
-    return text(`OK - Đã uỷ quyền ${app} cho shop ${shopId}. Có thể đóng tab này.`);
+    return text(`OK - Đã uỷ quyền ${app}${userId ? ` cho user ${userId}` : ` cho shop ${resolvedShopId}`}. Có thể đóng tab này.`);
   }
-  const path = "/api/v2/shop/auth_partner";
-  const sig = await sign(cfg.key, `${cfg.id}${path}${ts}`);
   const callback = `${PUBLIC_CALLBACK}/shopee-${app}-callback.html`;
-  const authUrl = `${HOST}${path}?partner_id=${cfg.id}&timestamp=${ts}&sign=${sig}&redirect=${encodeURIComponent(callback)}`;
+  let authUrl: string;
+  if (isUserApp) {
+    authUrl = `${OPEN_HOST}/auth?partner_id=${cfg.id}&auth_type=seller&redirect_uri=${encodeURIComponent(callback)}&response_type=code`;
+  } else {
+    const path = "/api/v2/shop/auth_partner";
+    const sig = await sign(cfg.key, `${cfg.id}${path}${ts}`);
+    authUrl = `${HOST}${path}?partner_id=${cfg.id}&timestamp=${ts}&sign=${sig}&redirect=${encodeURIComponent(callback)}`;
+  }
   return Response.redirect(authUrl, 302);
 });
