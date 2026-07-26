@@ -49,13 +49,21 @@ Deno.serve(async (req) => {
   const shopId = Number(url.searchParams.get("shop_id"));
   const isUserApp = app === "live" || app === "video";
   if (code && (isUserApp || shopId)) {
-    const path = isUserApp ? "/api/v2/public/get_access_token" : "/api/v2/auth/token/get";
+    const path = "/api/v2/auth/token/get";
     const sig = await sign(cfg.key, `${cfg.id}${path}${ts}`);
-    const r = await fetch(`${isUserApp ? OPEN_HOST : HOST}${path}?partner_id=${cfg.id}&timestamp=${ts}&sign=${sig}`, {
+    const r = await fetch(`${HOST}${path}?partner_id=${cfg.id}&timestamp=${ts}&sign=${sig}`, {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify(isUserApp ? { code } : { code, shop_id: shopId, partner_id: cfg.id }),
+      body: JSON.stringify(isUserApp
+        ? { code, partner_id: cfg.id }
+        : { code, shop_id: shopId, partner_id: cfg.id }),
     });
-    const j = await r.json();
+    const raw = await r.text();
+    let j: Record<string, any>;
+    try {
+      j = JSON.parse(raw);
+    } catch {
+      return text(`Shopee trả phản hồi không hợp lệ (${r.status}): ${raw.slice(0, 160)}`, 502);
+    }
     if (!j.access_token) return text(`Không lấy được token ${app}: ${j.error || j.message || "unknown"}`, 400);
     const resolvedShopId = Number(j.shop_id_list?.[0] || shopId || 0);
     const userId = Number(j.user_id_list?.[0] || j.user_id || 0);

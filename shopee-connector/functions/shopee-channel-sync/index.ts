@@ -56,12 +56,10 @@ async function sign(key: string, base: string) {
 async function refresh(app: AppKey, row: Record<string, unknown>) {
   if (row.expire_at && new Date(String(row.expire_at)).getTime() - Date.now() > 10 * 60 * 1000) return row;
   const isUserApp = app === "live" || app === "video";
-  const cfg = configs[app], path = isUserApp
-    ? "/api/v2/public/refresh_access_token"
-    : "/api/v2/auth/access_token/get";
+  const cfg = configs[app], path = "/api/v2/auth/access_token/get";
   const ts = Math.floor(Date.now() / 1000);
   const sig = await sign(cfg.key, `${cfg.id}${path}${ts}`);
-  const r = await fetch(`${isUserApp ? "https://open.shopee.com" : HOST}${path}?partner_id=${cfg.id}&timestamp=${ts}&sign=${sig}`, {
+  const r = await fetch(`${HOST}${path}?partner_id=${cfg.id}&timestamp=${ts}&sign=${sig}`, {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({
       refresh_token: row.refresh_token,
