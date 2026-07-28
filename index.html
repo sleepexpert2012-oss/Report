@@ -5201,11 +5201,15 @@ function _ops2FinCalc(win,DIM){
  var gross=0,cancel=0;
  win.forEach(function(r){gross+=r.gmv;if(!paidSn[r.sn])cancel+=r.gmv;});
  var net=gross-cancel;
- /* HOÀN TRẢ: Returns API của Shopee trả 0 bản ghi. Dấu hiệu thật là ĐƠN ĐÃ RỜI KHO
-    (có mốc xuất hàng hoặc hoàn thành) MÀ SHOPEE KHÔNG TRẢ TIỀN — hàng đi rồi quay về.
-    Không dùng trạng thái đơn vì Shopee vẫn để "Hoàn thành" cho đơn bị trả. */
+ /* HOÀN TRẢ — ƯỚC TÍNH, chưa phải số chuẩn.
+    Nguồn chuẩn là cột "Trạng thái Trả hàng/Hoàn tiền" = "Đã Chấp Thuận Yêu Cầu" trong file
+    xuất từ Seller Centre. Cột đó có trong bảng (trang_thai_tra_hang_hoan_tien) nhưng đang
+    TRỐNG vì hàm đồng bộ gộp mọi trạng thái ≠ CANCELLED thành "Hoàn thành", nuốt mất trạng
+    thái TO_RETURN của Shopee.
+    Tạm ước tính: hàng đã rời kho + không nhận được tiền + GMV > 0 (loại hàng tặng). */
  var retGmv=0,retN=0;
- ords.forEach(function(o){if(!o.paid&&(o.shipMs||o.doneMs)){retGmv+=o.gmv;retN++;}});
+ /* Loại đơn GMV = 0: hàng TẶNG cũng rời kho với tiền về = 0, không phải hàng bị trả. */
+ ords.forEach(function(o){if(!o.paid&&o.gmv>0&&(o.shipMs||o.doneMs)){retGmv+=o.gmv;retN++;}});
  var cancelPre=cancel-retGmv;
  /* Khối B = đơn ĐÃ được Shopee đối soát. Lọc theo "đã có dữ liệu" chứ không theo dấu của
     số tiền, vì đơn đã hoàn tiền có escrow ÂM và từng bị loại oan. */
@@ -5250,7 +5254,7 @@ function _ops2FinPivot(SF,DIM,months){
   [0,'Số đơn',function(C){return C.ords.length;},fmI,null],
   [0,'GMV tổng (gồm cả đơn huỷ)',function(C){return C.gross;},fmM,null],
   [1,'(−) Huỷ trước khi giao',function(C){return -C.cancelPre;},fmM,gA],
-  [1,'(−) Hoàn trả sau bán (đã xuất hàng rồi bị trả)',function(C){return -C.retGmv;},fmM,gA],
+  [1,'(−) Hoàn trả sau bán (ước tính)',function(C){return -C.retGmv;},fmM,gA],
   [1,'(−) Đơn chưa được đối soát',function(C){return -C.noRecGmv;},fmM,gA],
   [1,'(−) Giảm giá, voucher của shop',function(C){return C.hasB?-C.other:null;},fmM,gA],
   [0,'= DOANH THU THUẦN',function(C){return C.netRev;},fmM,gA],
