@@ -6,6 +6,12 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R61 — 28/07/2026
+
+- Bổ sung chi phí Ads nhập tay cho 13 tháng Shopee API không còn lưu (01/2025–12/2025 và 03/2026), tổng 217,5 triệu. Nay cả 19 tháng đều có chi phí Ads nên bảng P&L tính được lợi nhuận cho toàn kỳ.
+- Sửa cách kiểm tra dữ liệu Ads: đếm độ phủ theo từng ngày trong kỳ thay vì chỉ so ngày đầu và ngày cuối. Cách cũ bỏ sót trường hợp một tháng trống nằm lọt giữa vùng có dữ liệu, dẫn tới tính chi phí bằng 0 và thổi phồng lợi nhuận.
+- Khi kỳ chỉ có dữ liệu Ads một phần, bảng nêu rõ phủ bao nhiêu trên tổng số ngày và cảnh báo lợi nhuận thật thấp hơn số hiển thị.
+
 ## R60 — 28/07/2026
 
 - Lấp toàn bộ dữ liệu đối soát cho đơn cũ: 1.825 đơn từ 01/2025 đến 03/2026 nay đã có phí sàn, tiền thực nhận, phương thức thanh toán và đơn vị vận chuyển. Độ phủ đạt 100% ở cả 19 tháng.

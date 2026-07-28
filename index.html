@@ -5170,21 +5170,30 @@ function _ops2Finance(host,p,SF,DIM){
  /* Chi phí Ads: Shopee Ads API chỉ lưu khoảng 6 tháng. Kỳ nằm ngoài vùng còn dữ liệu thì
     PHẢI để trống chứ không được coi là 0 — coi là 0 sẽ thổi phồng lợi nhuận vì thiếu một
     khoản chi phí có thật. Phủ một phần kỳ thì cảnh báo rõ. */
+ /* Chi phí Ads: đếm ĐỘ PHỦ THEO NGÀY trong kỳ, không chỉ so đầu-cuối. Vì có tháng nằm
+    LỌT GIỮA vùng có dữ liệu mà vẫn trống (vd 03/2026) — so min/max sẽ không bắt được và
+    lại coi chi phí = 0, thổi phồng lợi nhuận. Thiếu thì để trống, đừng bao giờ điền 0. */
  var adsSp=null,adsNote='',adsPartial=false;
  try{
   if(RAW.ads&&RAW.ads.shopD){
    var mn='9999-99-99',mx='';win.forEach(function(r){if(r.d<mn)mn=r.d;if(r.d>mx)mx=r.d;});
-   var shopD=RAW.ads.shopD;
-   var aKeys=Object.keys(shopD).map(function(k){return k.replace(/\./g,'-');}).sort();
-   var aMin=aKeys.length?aKeys[0]:'',aMax=aKeys.length?aKeys[aKeys.length-1]:'';
-   if(!aKeys.length||aMax<mn||aMin>mx){
+   var shopD=RAW.ads.shopD,aSet={};
+   Object.keys(shopD).forEach(function(k){aSet[k.replace(/\./g,'-')]=1;});
+   var nDay=0,nCov=0,t0d=Date.parse(mn+'T00:00:00Z'),t1d=Date.parse(mx+'T00:00:00Z');
+   for(var t=t0d;t<=t1d;t+=86400000){
+    nDay++;
+    if(aSet[new Date(t).toISOString().slice(0,10)])nCov++;
+   }
+   if(!nCov){
     adsSp=null;
-    adsNote='Shopee Ads API chỉ lưu ~6 tháng — kỳ này không còn dữ liệu Ads'+(aMin?' (sớm nhất còn: '+aMin+')':'');
+    adsNote='Kỳ này không có dữ liệu chi phí Ads — không tính được lợi nhuận';
    }else{
     adsSp=0;
     Object.keys(shopD).forEach(function(k){var dk=k.replace(/\./g,'-');if(dk>=mn&&dk<=mx)adsSp+=(shopD[k][8]||0)*1e6;});
-    if(aMin>mn){adsPartial=true;adsNote='⚠ CHỈ phủ từ '+aMin+' — chi phí Ads trước mốc đó Shopee không còn lưu, lợi nhuận thật THẤP HƠN số này';}
-    else adsNote='Ads phủ toàn shop, không riêng nhóm đối soát';
+    if(nCov<nDay){
+     adsPartial=true;
+     adsNote='⚠ CHỈ phủ '+nCov+'/'+nDay+' ngày trong kỳ — thiếu chi phí Ads của '+(nDay-nCov)+' ngày, lợi nhuận thật THẤP HƠN số này';
+    }else adsNote='Ads phủ toàn shop, không riêng nhóm đối soát';
    }
   }
  }catch(e){adsSp=null;adsNote='Không đọc được dữ liệu Ads';}
