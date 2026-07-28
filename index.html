@@ -5298,7 +5298,7 @@ function _ops2Finance(host,p,SF,DIM){
   [1,'(−) GMV đơn huỷ',-cancel,gross,_opsPct(gross?cancel/gross:0)+' GMV'],
   [0,'= Doanh thu sau huỷ',net,gross,''],
   [1,'(−) Hoàn trả sau bán ghi nhận qua Returns API',0,gross,refund.length?'Returns API trả 0 bản ghi — nhưng '+refund.length+' đơn dưới đây có dấu hiệu đã hoàn tiền':'Chưa phát sinh trong dữ liệu Returns'],
-  (refund.length?[1,'trong đó: đơn escrow ≤ 0 (nghi đã hoàn tiền)',-refundGmv,gross,refund.length+' đơn đã giao xong nhưng Shopee trả về tiền thực nhận ≤ 0']:null),
+  (refund.length?[1,'Đơn đã giao nhưng tiền về ≤ 0 (nghi bị hoàn tiền)',refundGmv,gross,refund.length+' đơn · số tham khảo, KHÔNG trừ vào tổng — Returns API không ghi nhận nên phát hiện qua tiền Shopee trả về']:null),
   [1,'(−) Đơn chưa được Shopee đối soát',-noRecGmv,gross,noRec.length?noRec.length+' đơn chưa có dữ liệu phí/escrow — chạy Đồng bộ phân tích để lấy':'Không có — mọi đơn không huỷ đều đã đối soát'],
   [0,'= Doanh thu đã đối soát (bắc cầu sang khối B)',net-noRecGmv,gross,''],
   ['h','KHỐI B — ĐƠN CÓ ĐỐI SOÁT PHÍ / ESCROW ('+B.length.toLocaleString('vi-VN')+' đơn · phủ '+_opsPct(gross?gB/gross:0)+' GMV kỳ)'+(hasB?'':' — CHƯA CÓ DỮ LIỆU, CÁC DÒNG DƯỚI ĐỂ TRỐNG')],
