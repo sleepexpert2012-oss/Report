@@ -4884,6 +4884,7 @@ var _OPS2_SF=null,_OPS2_SF_P=null,_OPS2_DIM=null,_OPS2_DIM_P=null,OPSCH={};
 /* màu CỐ ĐỊNH cho từng chỉ số trên mọi màn vận hành */
 var OPSC={gmv:'#363E99',net:'#1D9E75',cancel:'#E24B4A',orders:'#5761AC',fee0:'#1B1C4C',fee1:'#EF9F27',fee2:'#8C93C9',esc:'#0E7C4A',ads:'#B4823B',p90:'#8C93C9'};
 if(!S.opsDays)S.opsDays=90;
+if(!S.opsMode)S.opsMode='days';
 function _ops2Pad(n){return (n<10?'0':'')+n;}
 function _ops2N(v){if(typeof v==='number')return isFinite(v)?v:0;var s=String(v==null?'':v).trim().replace(/\s/g,'');if(!s)return 0;s=(s.indexOf(',')>=0&&s.indexOf('.')<0)?s.replace(',','.'):s.replace(/,/g,'');var n=Number(s.replace(/[^\d.-]/g,''));return isFinite(n)?n:0;}
 function _ops2D(v){var s=String(v==null?'':v).trim();var m=s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);if(m)return m[1]+'-'+_ops2Pad(+m[2])+'-'+_ops2Pad(+m[3]);return '';}
@@ -4942,6 +4943,29 @@ function _ops2Win(SF,days){
  var cut=dt.getFullYear()+'-'+_ops2Pad(dt.getMonth()+1)+'-'+_ops2Pad(dt.getDate());
  return SF.filter(function(r){return r.d>=cut;});
 }
+/* danh sách tháng có dữ liệu + cửa sổ theo kỳ đang chọn (ngày gần nhất HOẶC khoảng tháng) */
+function _ops2Months(SF){var seen={},out=[];SF.forEach(function(r){var m=r.d.slice(0,7);if(!seen[m]){seen[m]=1;out.push(m);}});out.sort();return out;}
+function _ops2MRange(SF){
+ var ms=_ops2Months(SF);if(!ms.length)return null;
+ var a=S.opsM0,b=S.opsM1;
+ if(!a||ms.indexOf(a)<0)a=ms[Math.max(0,ms.length-3)];
+ if(!b||ms.indexOf(b)<0)b=ms[ms.length-1];
+ if(a>b){var t=a;a=b;b=t;}
+ return {months:ms,a:a,b:b};
+}
+function _ops2Wsel(SF){
+ if(S.opsMode==='month'){
+  var r=_ops2MRange(SF);if(!r)return [];
+  return SF.filter(function(x){var m=x.d.slice(0,7);return m>=r.a&&m<=r.b;});
+ }
+ return _ops2Win(SF,S.opsDays);
+}
+function _ops2MLab(m){return m.slice(5)+'/'+m.slice(0,4);}
+function _ops2PLabel(SF){
+ if(S.opsMode==='month'){var r=SF?_ops2MRange(SF):null;
+  if(r)return r.a===r.b?('tháng '+_ops2MLab(r.a)):('tháng '+_ops2MLab(r.a)+' → '+_ops2MLab(r.b));}
+ return S.opsDays>=9999?'toàn bộ dữ liệu':S.opsDays+' ngày gần nhất';
+}
 function _ops2Span(win){if(!win.length)return 0;var mn='9999-99-99',mx='';win.forEach(function(r){if(r.d<mn)mn=r.d;if(r.d>mx)mx=r.d;});
  var a=new Date(+mn.slice(0,4),+mn.slice(5,7)-1,+mn.slice(8,10)),b=new Date(+mx.slice(0,4),+mx.slice(5,7)-1,+mx.slice(8,10));
  return Math.round((b-a)/86400000)+1;}
@@ -4988,15 +5012,35 @@ function _ops2Opts(yTitle,y1Title){
  return o;
 }
 function _ops2Line(label,data,color,extra){var d={type:'line',label:label,data:data,borderColor:color,backgroundColor:color,tension:.25,pointRadius:2,borderWidth:2};if(extra)Object.keys(extra).forEach(function(k){d[k]=extra[k];});return d;}
-function _ops2DaysSel(list){list=list||[30,60,90];
- return '<div class="ops-filter" style="margin:14px 0 10px">'+list.map(function(d){return '<button data-od="'+d+'" class="'+(S.opsDays===d?'on':'')+'">'+(d>=9999?'Toàn bộ':d+' ngày')+'</button>';}).join('')+'</div>';}
-function _ops2BindDays(host){host.querySelectorAll('[data-od]').forEach(function(b){b.onclick=function(){S.opsDays=+b.dataset.od;renderShopeePage();};});}
+function _ops2PeriodSel(SF,list){
+ list=list||[30,60,90];
+ var r=_ops2MRange(SF),isM=S.opsMode==='month';
+ var selCss='padding:5px 7px;border:1px solid #D4DCE8;border-radius:7px;background:#fff;color:#1B1C4C;font-weight:700;font-size:10.5px;cursor:pointer;font-family:inherit';
+ var opt=function(sel){return (r?r.months:[]).map(function(m){return '<option value="'+m+'"'+(m===sel?' selected':'')+'>'+_ops2MLab(m)+'</option>';}).join('');};
+ var quick=list.map(function(d){return '<button data-od="'+d+'" class="'+(!isM&&S.opsDays===d?'on':'')+'">'+(d>=9999?'Toàn bộ':d+' ngày')+'</button>';}).join('');
+ var months=r?('<span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 12px;border-radius:9px;border:1px solid '+(isM?'#1B1C4C':'#D4DCE8')+';background:'+(isM?'#F1F3FB':'#fff')+'">'+
+   '<span style="font-size:10.5px;font-weight:700;color:'+(isM?'#1B1C4C':'#526177')+'">Từ tháng</span>'+
+   '<select id="opsM0" style="'+selCss+'">'+opt(r.a)+'</select>'+
+   '<span style="font-size:10.5px;font-weight:700;color:'+(isM?'#1B1C4C':'#526177')+'">đến</span>'+
+   '<select id="opsM1" style="'+selCss+'">'+opt(r.b)+'</select>'+
+   (isM?'<button data-oclr="1" title="Bỏ chọn khoảng tháng, quay lại kỳ theo ngày" style="padding:4px 8px;border:1px solid #D4DCE8;border-radius:7px;background:#fff;color:#8494A8;font-weight:700;font-size:10.5px;cursor:pointer">✕</button>':'')+
+  '</span>'):'';
+ return '<div class="ops-filter" style="margin:14px 0 10px;align-items:center">'+quick+months+'</div>'+
+  '<div class="ops-sub" style="margin:-4px 0 12px">Đang xem: <b>'+_ops2PLabel(SF)+'</b>'+(r?' · dữ liệu có từ '+_ops2MLab(r.months[0])+' đến '+_ops2MLab(r.months[r.months.length-1]):'')+'</div>';
+}
+function _ops2BindDays(host){
+ host.querySelectorAll('[data-od]').forEach(function(b){b.onclick=function(){S.opsMode='days';S.opsDays=+b.dataset.od;renderShopeePage();};});
+ var m0=host.querySelector('#opsM0'),m1=host.querySelector('#opsM1');
+ if(m0&&m1){var f=function(){S.opsMode='month';S.opsM0=m0.value;S.opsM1=m1.value;renderShopeePage();};m0.onchange=f;m1.onchange=f;}
+ var clr=host.querySelector('[data-oclr]');
+ if(clr)clr.onclick=function(){S.opsMode='days';renderShopeePage();};
+}
 function _ops2Miss(items){
  return '<div class="ops-card"><h2>Dữ liệu API còn thiếu cho màn này</h2><div class="ops-sub">Không hiển thị số ước lượng — các phân tích dưới đây sẽ tự xuất hiện khi connector bổ sung trường</div><table class="ops-table"><tbody>'+items.map(function(x){return '<tr><td style="width:40%"><b>'+x[0]+'</b></td><td>'+x[1]+'</td></tr>';}).join('')+'</tbody></table></div>';
 }
 /* ================= MÀN: DOANH THU & ĐƠN HÀNG SHOPEE ================= */
 function _ops2Orders(host,p,SF,DIM){
- var win=_ops2Win(SF,S.opsDays),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
+ var win=_ops2Wsel(SF),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
  var gross=0,cancel=0,units=0;
  win.forEach(function(r){gross+=r.gmv;if(r.cancel)cancel+=r.gmv;else units+=r.qty;});
  var net=gross-cancel,oc=0;ords.forEach(function(o){if(o.cancel)oc++;});
@@ -5017,7 +5061,7 @@ function _ops2Orders(host,p,SF,DIM){
   return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.sku)+'</b><div class="ops-sub">'+_opsEsc((x.name||'').slice(0,46))+'</div></td><td>'+_opsEsc([mst.nganh,mst.brand,mst.cls].filter(Boolean).join(' · ')||'Chưa khai báo')+'</td><td>'+_opsEsc(mst.abc||'—')+'</td><td class="ops-num">'+x.q.toLocaleString('vi-VN')+'</td><td class="ops-num">'+_opsMoney(nv)+'</td><td class="ops-num">'+_opsPct(net?nv/net:0)+'</td><td class="ops-num"'+(cr>=0.3?' style="color:#D92D20;font-weight:700"':'')+'>'+_opsPct(cr)+'</td></tr>';
  }).join('')+'</tbody></table></div>';
  host.innerHTML=_opsHead('Doanh thu & đơn hàng Shopee','GMV, đơn, huỷ và SKU dẫn dắt theo kỳ chọn — tính trực tiếp từ Data Sale (sales_fact).')+
-  _ops2DaysSel([30,60,90,180,9999])+
+  _ops2PeriodSel(SF,[30,60,90,180,9999])+
   _opsMiniKpis([
    ['GMV đặt hàng',_opsMoney(gross),ords.length.toLocaleString('vi-VN')+' đơn trong kỳ'],
    ['DT sau huỷ',_opsMoney(net),_opsPct(gross?net/gross:0)+' GMV đặt'],
@@ -5044,7 +5088,7 @@ function _ops2Orders(host,p,SF,DIM){
 }
 /* ================= MÀN: HUỶ, TRẢ & HOÀN TIỀN ================= */
 function _ops2Returns(host,p,SF,DIM){
- var win=_ops2Win(SF,S.opsDays),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
+ var win=_ops2Wsel(SF),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
  var gross=0,cancel=0,ret=0;
  win.forEach(function(r){gross+=r.gmv;if(r.cancel)cancel+=r.gmv;ret+=r.ret;});
  var oc=0;ords.forEach(function(o){if(o.cancel)oc++;});
@@ -5075,7 +5119,7 @@ function _ops2Returns(host,p,SF,DIM){
  var se=_ops2Series(win,g,function(){return {g:0,c:0};},function(a,r){a.g+=r.gmv;if(r.cancel)a.c+=r.gmv;});
  var labs=se.keys.map(function(k){return _ops2Lab(k,g);});
  host.innerHTML=_opsHead('Huỷ, trả hàng & hoàn tiền','Thất thoát GMV theo lý do, SKU và thời gian — tính trực tiếp từ Data Sale.')+
-  _ops2DaysSel([30,60,90,180,9999])+
+  _ops2PeriodSel(SF,[30,60,90,180,9999])+
   _opsMiniKpis([
    ['GMV huỷ',_opsMoney(cancel),_opsPct(gross?cancel/gross:0)+' GMV đặt trong kỳ'],
    ['Đơn huỷ',oc.toLocaleString('vi-VN'),'trong '+ords.length.toLocaleString('vi-VN')+' đơn'],
@@ -5098,7 +5142,7 @@ function _ops2Returns(host,p,SF,DIM){
 }
 /* ================= MÀN: TÀI CHÍNH & PHÍ — BẢNG P&L ================= */
 function _ops2Finance(host,p,SF,DIM){
- var win=_ops2Win(SF,S.opsDays),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
+ var win=_ops2Wsel(SF),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
  var gross=0,cancel=0;win.forEach(function(r){gross+=r.gmv;if(r.cancel)cancel+=r.gmv;});
  var net=gross-cancel;
  var B=ords.filter(function(o){return (o.f0+o.f1+o.f2)>0||o.esc>0;});
@@ -5155,14 +5199,14 @@ function _ops2Finance(host,p,SF,DIM){
  })();
  var labsB=seB.keys.map(function(k){return _ops2Lab(k,g);});
  host.innerHTML=_opsHead('Tài chính & phí Shopee — P&L','Chuỗi khấu trừ từ GMV đến lợi nhuận vận hành; mỗi đơn chỉ tính một lần; số liệu từ Data Sale + đối soát escrow.')+
-  _ops2DaysSel([30,60,90])+
+  _ops2PeriodSel(SF,[30,60,90])+
   _opsMiniKpis([
    ['Tiền thực nhận',_opsMoney(esc),B.length.toLocaleString('vi-VN')+' đơn có đối soát'],
    ['Tổng phí sàn',_opsMoney(fee),_opsPct(netB?fee/netB:0)+' DT đối soát'],
    ['Lãi gộp sau phí & giá vốn',_opsMoney(gp),_opsPct(netB?gp/netB:0)+' DT đối soát'],
    [opProfit==null?'LN sau Ads':'LN vận hành sau Ads',opProfit==null?'—':_opsMoney(opProfit),opProfit==null?'Thiếu dữ liệu Ads':_opsPct(netB?opProfit/netB:0)+' DT đối soát']
   ])+
-  _ops2Card('Bảng phân tích P&L — kỳ '+(S.opsDays>=9999?'toàn bộ':S.opsDays+' ngày'),'Khối A: toàn bộ đơn · Khối B: đơn có đối soát phí/escrow (chủ yếu ~90 ngày gần nhất)',pl)+
+  _ops2Card('Bảng phân tích P&L — kỳ '+_ops2PLabel(SF),'Khối A: toàn bộ đơn · Khối B: đơn có đối soát phí/escrow (chủ yếu ~90 ngày gần nhất)',pl)+
   '<div class="ops-grid">'+
   _ops2Card('Cơ cấu phí sàn theo thời gian','Cột chồng: 3 loại phí (triệu) · đường: % tổng phí / DT đối soát — '+_ops2GLabel(g),_ops2Canvas('opsFeeTrend'))+
   _ops2Miss([
@@ -5181,7 +5225,7 @@ function _ops2Finance(host,p,SF,DIM){
 }
 /* ================= MÀN: HIỆU SUẤT GIAO VẬN ================= */
 function _ops2Logistics(host,p,SF,DIM){
- var win=_ops2Win(SF,S.opsDays),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
+ var win=_ops2Wsel(SF),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
  var prep=[],full=[];
  var carriers={};
  ords.forEach(function(o){
@@ -5208,7 +5252,7 @@ function _ops2Logistics(host,p,SF,DIM){
  })();
  var labs=se.keys.map(function(k){return _ops2Lab(k,g);});
  host.innerHTML=_opsHead('Hiệu suất giao vận','Thời gian xử lý từng chặng theo đơn vị vận chuyển — chỉ dùng đơn có mốc thời gian thật từ Order API.')+
-  _ops2DaysSel([30,60,90,180,9999])+
+  _ops2PeriodSel(SF,[30,60,90,180,9999])+
   _opsMiniKpis([
    ['Đơn có mốc vận hành',withTrack.toLocaleString('vi-VN'),_opsPct(ords.length?withTrack/ords.length:0)+' đơn trong kỳ'],
    ['Chuẩn bị hàng TB',prep.length?_ops2H(avg(prep)):'—','đặt → xuất hàng · '+prep.length+' đơn'],
@@ -5231,7 +5275,7 @@ function _ops2Logistics(host,p,SF,DIM){
 }
 /* ================= MÀN: KHÁCH HÀNG KHU VỰC ================= */
 function _ops2Regions(host,p,SF,DIM){
- var win=_ops2Win(SF,S.opsDays),ords=_ops2Ords(win);
+ var win=_ops2Wsel(SF),ords=_ops2Ords(win);
  var rr=p.regions||[];
  var regHtml;
  if(rr.length){
@@ -5251,9 +5295,9 @@ function _ops2Regions(host,p,SF,DIM){
    return '<tr><td><b>'+_opsEsc(x.pay)+'</b>'+(cod?' <span style="font-size:10px;color:#B54708;background:#FEF0C7;border-radius:8px;padding:1px 7px">COD</span>':'')+'</td><td class="ops-num">'+x.n+'</td><td class="ops-num">'+_opsMoney(x.g)+'</td><td class="ops-num">'+_opsPct(pg?x.g/pg:0)+'<div class="ops-bar"><i style="width:'+(pg?(x.g/pg*100).toFixed(1):0)+'%"></i></div></td><td class="ops-num"'+(x.n&&x.cn/x.n>=0.2?' style="color:#D92D20;font-weight:700"':'')+'>'+_opsPct(x.n?x.cn/x.n:0)+'</td></tr>';
   }).join('')+'</tbody></table></div><div class="ops-sub" style="margin-top:8px">Phương thức thanh toán chỉ có ở '+payOrds.length+' đơn đồng bộ từ Order API (~90 ngày gần nhất); đơn cũ import không có trường này.</div>':'<div class="ops-empty"><b>Chưa có đơn nào kèm phương thức thanh toán trong kỳ chọn</b></div>';
  host.innerHTML=_opsHead('Khách hàng theo khu vực','Khu vực, phương thức thanh toán và rủi ro huỷ; không lưu thông tin nhận diện khách hàng.')+
-  _ops2DaysSel([30,60,90])+
+  _ops2PeriodSel(SF,[30,60,90])+
   _opsMiniKpis([
-   ['Đơn trong kỳ',ords.length.toLocaleString('vi-VN'),(S.opsDays>=9999?'toàn bộ dữ liệu':S.opsDays+' ngày gần nhất')],
+   ['Đơn trong kỳ',ords.length.toLocaleString('vi-VN'),_ops2PLabel(SF)],
    ['DT sau huỷ',_opsMoney(ords.reduce(function(a,o){return a+(o.cancel?0:o.gmv);},0)),'Từ Data Sale'],
    ['Đơn có PTTT',payOrds.length.toLocaleString('vi-VN'),_opsPct(ords.length?payOrds.length/ords.length:0)+' đơn kỳ']
   ])+

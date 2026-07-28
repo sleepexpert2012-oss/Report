@@ -8,6 +8,7 @@
 ## Thư mục
 - `prompt/` — prompt giao việc cho Claude Code (`done/` = đã chạy xong)
 - `knowledge/` — báo cáo audit, quyết định lớn
+  - `LESSONS.md` — bài học tích lũy qua các round
   - `2026-07-28_audit-vung-van-hanh-shopee.md` — audit Giai đoạn 1 Vùng Vận hành Shopee (chờ duyệt đề xuất)
 - `docs/` — tài liệu kỹ thuật (SHOPEE-DATA-COVERAGE.md: ma trận API)
 - `supabase/` — migrations + config dự án Supabase

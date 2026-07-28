@@ -6,6 +6,13 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R53 — 28/07/2026
+
+- Vùng Vận hành Shopee: thêm bộ chọn khoảng thời gian tuỳ ý "Từ tháng → đến tháng" bên cạnh các nút nhanh 30/60/90/180 ngày; áp dụng cho Doanh thu & đơn hàng, Huỷ/trả, Tài chính P&L, Giao vận và Khách hàng khu vực.
+- Chọn ngược tháng (tháng sau → tháng trước) tự đảo lại đúng thứ tự; nút ✕ để quay về kỳ theo ngày.
+- Dòng trạng thái "Đang xem: ..." hiển thị rõ kỳ đang lọc và phạm vi tháng dữ liệu hiện có.
+- Biểu đồ tự đổi mức gộp ngày/tuần/tháng theo độ dài khoảng tháng đã chọn.
+
 ## R52 — 28/07/2026
 
 - Nâng cấp toàn diện Vùng Vận hành Shopee: thêm màn "Doanh thu & đơn hàng Shopee" riêng (xu hướng GMV/huỷ/đơn, phễu mốc vận hành, top SKU gắn ngành/brand/class/ABC), kỳ chọn 30/60/90/180/toàn bộ, tự gộp ngày→tuần→tháng.
