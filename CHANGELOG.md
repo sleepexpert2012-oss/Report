@@ -6,6 +6,12 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R63 — 28/07/2026
+
+- Màn Tài chính có thêm chế độ xem P&L theo tháng: mỗi tháng một cột, cột TỔNG ở cuối, kèm dòng số đơn, tỷ lệ huỷ và biên lợi nhuận để so sánh giữa các tháng.
+- Thêm nút chọn nhanh "Năm 2025" và "Năm 2026" bên cạnh các nút 30/60/90 ngày.
+- Phần tính toán P&L được tách thành một hàm dùng chung cho cả hai chế độ xem, đảm bảo hai bảng không bao giờ ra số khác nhau; đã đối chiếu tổng các tháng bằng đúng số tính một lần cho cả kỳ.
+
 ## R62 — 28/07/2026
 
 - Đối chiếu chi phí Ads 2026 với báo cáo Seller Centre và ghi dòng điều chỉnh cho cả 6 tháng 01–06. Tổng chi phí Ads 2026 tăng từ 58,7 lên 94,7 triệu — con số cũ thiếu 61%.

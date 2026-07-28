@@ -5022,6 +5022,13 @@ function _ops2PeriodSel(SF,list){
  var selCss='padding:5px 7px;border:1px solid #D4DCE8;border-radius:7px;background:#fff;color:#1B1C4C;font-weight:700;font-size:10.5px;cursor:pointer;font-family:inherit';
  var opt=function(sel){return (r?r.months:[]).map(function(m){return '<option value="'+m+'"'+(m===sel?' selected':'')+'>'+_ops2MLab(m)+'</option>';}).join('');};
  var quick=list.map(function(d){return '<button data-od="'+d+'" class="'+(!isM&&S.opsDays===d?'on':'')+'">'+(d>=9999?'Toàn bộ':d+' ngày')+'</button>';}).join('');
+ /* Nút chọn nguyên năm — bấm 1 phát là ra đủ 12 tháng của năm đó */
+ var yrs=[];if(r)r.months.forEach(function(m){var y=m.slice(0,4);if(yrs.indexOf(y)<0)yrs.push(y);});
+ quick+=yrs.map(function(y){
+  var lo=r.months.filter(function(m){return m.slice(0,4)===y;});
+  var on=isM&&r.a===lo[0]&&r.b===lo[lo.length-1];
+  return '<button data-oy="'+y+'" class="'+(on?'on':'')+'">Năm '+y+'</button>';
+ }).join('');
  var months=r?('<span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 12px;border-radius:9px;border:1px solid '+(isM?'#1B1C4C':'#D4DCE8')+';background:'+(isM?'#F1F3FB':'#fff')+'">'+
    '<span style="font-size:10.5px;font-weight:700;color:'+(isM?'#1B1C4C':'#526177')+'">Từ tháng</span>'+
    '<select id="opsM0" style="'+selCss+'">'+opt(r.a)+'</select>'+
@@ -5034,10 +5041,17 @@ function _ops2PeriodSel(SF,list){
 }
 function _ops2BindDays(host){
  host.querySelectorAll('[data-od]').forEach(function(b){b.onclick=function(){S.opsMode='days';S.opsDays=+b.dataset.od;renderShopeePage();};});
+ host.querySelectorAll('[data-oy]').forEach(function(b){b.onclick=function(){
+  var y=b.dataset.oy,m0=null,m1=null;
+  (host.__plMonths||[]).forEach(function(m){if(m.slice(0,4)===y){if(!m0)m0=m;m1=m;}});
+  if(m0){S.opsMode='month';S.opsM0=m0;S.opsM1=m1;renderShopeePage();}
+ };});
  var m0=host.querySelector('#opsM0'),m1=host.querySelector('#opsM1');
+ if(m0)host.__plMonths=[].map.call(m0.options,function(o){return o.value;});
  if(m0&&m1){var f=function(){S.opsMode='month';S.opsM0=m0.value;S.opsM1=m1.value;renderShopeePage();};m0.onchange=f;m1.onchange=f;}
  var clr=host.querySelector('[data-oclr]');
  if(clr)clr.onclick=function(){S.opsMode='days';renderShopeePage();};
+ host.querySelectorAll('[data-plv]').forEach(function(b){b.onclick=function(){S.plView=b.dataset.plv;renderShopeePage();};});
 }
 function _ops2Miss(items){
  return '<div class="ops-card"><h2>Dữ liệu API còn thiếu cho màn này</h2><div class="ops-sub">Không hiển thị số ước lượng — các phân tích dưới đây sẽ tự xuất hiện khi connector bổ sung trường</div><table class="ops-table"><tbody>'+items.map(function(x){return '<tr><td style="width:40%"><b>'+x[0]+'</b></td><td>'+x[1]+'</td></tr>';}).join('')+'</tbody></table></div>';
@@ -5145,13 +5159,39 @@ function _ops2Returns(host,p,SF,DIM){
  ]},options:_ops2Opts('triệu','%')});
 }
 /* ================= MÀN: TÀI CHÍNH & PHÍ — BẢNG P&L ================= */
-function _ops2Finance(host,p,SF,DIM){
- var win=_ops2Wsel(SF),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
+/* Chi phí Ads cho một cửa sổ ngày: đếm ĐỘ PHỦ THEO NGÀY chứ không chỉ so đầu-cuối,
+   vì có tháng nằm lọt giữa vùng có dữ liệu mà vẫn trống. Thiếu thì trả null, không trả 0. */
+/* Danh sách tháng nằm trong kỳ đang chọn, dùng làm cột cho bảng P&L theo tháng */
+function _ops2MonthsIn(SF){
+ var w=_ops2Wsel(SF),seen={},out=[];
+ w.forEach(function(r){var m=r.d.slice(0,7);if(!seen[m]){seen[m]=1;out.push(m);}});
+ out.sort();return out;
+}
+function _ops2AdsFor(win){
+ var out={sp:null,note:'',partial:false};
+ try{
+  if(!(RAW.ads&&RAW.ads.shopD)||!win.length)return out;
+  var mn='9999-99-99',mx='';win.forEach(function(r){if(r.d<mn)mn=r.d;if(r.d>mx)mx=r.d;});
+  var shopD=RAW.ads.shopD,aSet={};
+  Object.keys(shopD).forEach(function(k){aSet[k.replace(/\./g,'-')]=1;});
+  var nDay=0,nCov=0,t0d=Date.parse(mn+'T00:00:00Z'),t1d=Date.parse(mx+'T00:00:00Z');
+  for(var t=t0d;t<=t1d;t+=86400000){nDay++;if(aSet[new Date(t).toISOString().slice(0,10)])nCov++;}
+  if(!nCov){out.note='Kỳ này không có dữ liệu chi phí Ads — không tính được lợi nhuận';return out;}
+  out.sp=0;
+  Object.keys(shopD).forEach(function(k){var dk=k.replace(/\./g,'-');if(dk>=mn&&dk<=mx)out.sp+=(shopD[k][8]||0)*1e6;});
+  if(nCov<nDay){out.partial=true;out.note='⚠ CHỈ phủ '+nCov+'/'+nDay+' ngày trong kỳ — thiếu chi phí Ads của '+(nDay-nCov)+' ngày, lợi nhuận thật THẤP HƠN số này';}
+  else out.note='Ads phủ toàn shop, không riêng nhóm đối soát';
+ }catch(e){out.sp=null;out.note='Không đọc được dữ liệu Ads';}
+ return out;
+}
+/* Toàn bộ số liệu P&L của một tập dòng bán hàng. Dùng CHUNG cho xem tổng kỳ và xem theo
+   tháng, để hai chế độ không bao giờ ra số khác nhau. */
+function _ops2FinCalc(win,DIM){
+ var ords=_ops2Ords(win);
  var gross=0,cancel=0;win.forEach(function(r){gross+=r.gmv;if(r.cancel)cancel+=r.gmv;});
  var net=gross-cancel;
- /* Khối B = đơn ĐÃ được Shopee đối soát. Trước đây lọc bằng (phí>0 || escrow>0) nên
-    đơn escrow ÂM — thực chất là đơn đã hoàn tiền — bị loại oan, tạo chênh lệch khó hiểu
-    giữa doanh thu sau huỷ và doanh thu nhóm đối soát. */
+ /* Khối B = đơn ĐÃ được Shopee đối soát. Lọc theo "đã có dữ liệu" chứ không theo dấu của
+    số tiền, vì đơn đã hoàn tiền có escrow ÂM và từng bị loại oan. */
  var B=ords.filter(function(o){return o.hasRec;});
  var gB=0,netB=0,f0=0,f1=0,f2=0,esc=0;
  B.forEach(function(o){gB+=o.gmv;if(!o.cancel)netB+=o.gmv;f0+=o.f0;f1+=o.f1;f2+=o.f2;esc+=o.esc;});
@@ -5163,41 +5203,84 @@ function _ops2Finance(host,p,SF,DIM){
  var snB={};B.forEach(function(o){if(!o.cancel)snB[o.sn]=1;});
  var cogs=0,qMatch=0,qTot=0;
  win.forEach(function(r){if(r.cancel||!snB[r.sn])return;qTot+=r.qty;var m=DIM.sku[r.sku];if(m&&m.cost>0){cogs+=m.cost*r.qty;qMatch+=r.qty;}});
- /* Khối B rỗng = kỳ này CHƯA có đơn nào được đối soát escrow. Khi đó lãi gộp và lợi
-    nhuận vận hành KHÔNG tính được — hiển thị "—" thay vì 0 và một số âm gây hiểu nhầm. */
  var hasB=B.length>0&&netB>0;
  var gp=hasB?esc-cogs:null;
- /* Chi phí Ads: Shopee Ads API chỉ lưu khoảng 6 tháng. Kỳ nằm ngoài vùng còn dữ liệu thì
-    PHẢI để trống chứ không được coi là 0 — coi là 0 sẽ thổi phồng lợi nhuận vì thiếu một
-    khoản chi phí có thật. Phủ một phần kỳ thì cảnh báo rõ. */
- /* Chi phí Ads: đếm ĐỘ PHỦ THEO NGÀY trong kỳ, không chỉ so đầu-cuối. Vì có tháng nằm
-    LỌT GIỮA vùng có dữ liệu mà vẫn trống (vd 03/2026) — so min/max sẽ không bắt được và
-    lại coi chi phí = 0, thổi phồng lợi nhuận. Thiếu thì để trống, đừng bao giờ điền 0. */
- var adsSp=null,adsNote='',adsPartial=false;
- try{
-  if(RAW.ads&&RAW.ads.shopD){
-   var mn='9999-99-99',mx='';win.forEach(function(r){if(r.d<mn)mn=r.d;if(r.d>mx)mx=r.d;});
-   var shopD=RAW.ads.shopD,aSet={};
-   Object.keys(shopD).forEach(function(k){aSet[k.replace(/\./g,'-')]=1;});
-   var nDay=0,nCov=0,t0d=Date.parse(mn+'T00:00:00Z'),t1d=Date.parse(mx+'T00:00:00Z');
-   for(var t=t0d;t<=t1d;t+=86400000){
-    nDay++;
-    if(aSet[new Date(t).toISOString().slice(0,10)])nCov++;
-   }
-   if(!nCov){
-    adsSp=null;
-    adsNote='Kỳ này không có dữ liệu chi phí Ads — không tính được lợi nhuận';
-   }else{
-    adsSp=0;
-    Object.keys(shopD).forEach(function(k){var dk=k.replace(/\./g,'-');if(dk>=mn&&dk<=mx)adsSp+=(shopD[k][8]||0)*1e6;});
-    if(nCov<nDay){
-     adsPartial=true;
-     adsNote='⚠ CHỈ phủ '+nCov+'/'+nDay+' ngày trong kỳ — thiếu chi phí Ads của '+(nDay-nCov)+' ngày, lợi nhuận thật THẤP HƠN số này';
-    }else adsNote='Ads phủ toàn shop, không riêng nhóm đối soát';
-   }
+ var ads=_ops2AdsFor(win);
+ var opProfit=(ads.sp==null||gp==null)?null:gp-ads.sp;
+ return {ords:ords,gross:gross,cancel:cancel,net:net,B:B,gB:gB,netB:netB,f0:f0,f1:f1,f2:f2,
+  fee:fee,other:other,esc:esc,noRec:noRec,noRecGmv:noRecGmv,refund:refund,refundGmv:refundGmv,
+  cogs:cogs,qMatch:qMatch,qTot:qTot,hasB:hasB,gp:gp,
+  adsSp:ads.sp,adsNote:ads.note,adsPartial:ads.partial,opProfit:opProfit};
+}
+/* Bảng P&L xoay ngang: mỗi tháng một cột. Dùng CHUNG _ops2FinCalc với bảng tổng kỳ nên
+   hai chế độ luôn ra cùng con số. */
+function _ops2FinPivot(SF,DIM,months){
+ var M=months.map(function(m){
+  return {m:m,C:_ops2FinCalc(SF.filter(function(r){return r.d.slice(0,7)===m;}),DIM)};
+ });
+ var lo=months[0],hi=months[months.length-1];
+ var T=_ops2FinCalc(SF.filter(function(r){var k=r.d.slice(0,7);return k>=lo&&k<=hi;}),DIM);
+ var fmM=function(v){return v==null?'—':(v<0?'−':'')+(Math.round(Math.abs(v)/1e5)/10).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1});};
+ var fmI=function(v){return v==null?'—':Math.round(v).toLocaleString('vi-VN');};
+ var fmP=function(v){return v==null?'—':(v<0?'−':'')+(Math.round(Math.abs(v)*1000)/10).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';};
+ var L=[
+  ['h','KHỐI A — TOÀN BỘ ĐƠN TRONG KỲ'],
+  [0,'Số đơn',function(C){return C.ords.length;},fmI],
+  [0,'Doanh thu đặt hàng (GMV gộp)',function(C){return C.gross;},fmM],
+  [1,'(−) GMV đơn huỷ',function(C){return -C.cancel;},fmM],
+  [1,'Tỷ lệ huỷ theo GMV',function(C){return C.gross?C.cancel/C.gross:null;},fmP],
+  [0,'= Doanh thu sau huỷ',function(C){return C.net;},fmM],
+  [1,'(−) Đơn chưa được đối soát',function(C){return -C.noRecGmv;},fmM],
+  ['h','KHỐI B — ĐƠN CÓ ĐỐI SOÁT PHÍ / ESCROW'],
+  [0,'Doanh thu nhóm đối soát',function(C){return C.hasB?C.netB:null;},fmM],
+  [1,'(−) Phí cố định',function(C){return C.hasB?-C.f0:null;},fmM],
+  [1,'(−) Phí dịch vụ',function(C){return C.hasB?-C.f1:null;},fmM],
+  [1,'(−) Phí thanh toán',function(C){return C.hasB?-C.f2:null;},fmM],
+  [0,'= Tổng phí sàn Shopee',function(C){return C.hasB?-C.fee:null;},fmM],
+  [1,'(−) Giảm trừ đối soát khác',function(C){return C.hasB?-C.other:null;},fmM],
+  [0,'= Tiền thực nhận (escrow)',function(C){return C.hasB?C.esc:null;},fmM],
+  [1,'(−) Giá vốn hàng bán',function(C){return C.hasB?-C.cogs:null;},fmM],
+  [0,'= Lãi gộp sau phí & giá vốn',function(C){return C.gp;},fmM],
+  [1,'(−) Chi phí Ads',function(C){return C.adsSp==null?null:-C.adsSp;},fmM],
+  [0,'= LỢI NHUẬN VẬN HÀNH',function(C){return C.opProfit;},fmM],
+  [1,'Biên lợi nhuận / DT sau huỷ',function(C){return (C.opProfit==null||!C.net)?null:C.opProfit/C.net;},fmP]
+ ];
+ var stick='position:sticky;left:0;z-index:2;';
+ var h='<div style="overflow-x:auto"><table class="ops-table" style="min-width:'+(260+months.length*92+104)+'px">'+
+  '<thead><tr><th style="'+stick+'background:#1B1C4C">Chỉ tiêu (triệu đ)</th>'+
+  months.map(function(m){return '<th style="text-align:right;white-space:nowrap">'+m.slice(5)+'/'+m.slice(2,4)+'</th>';}).join('')+
+  '<th style="text-align:right;background:#363E99;white-space:nowrap">TỔNG</th></tr></thead><tbody>';
+ L.forEach(function(x){
+  if(x[0]==='h'){
+   h+='<tr><td colspan="'+(months.length+2)+'" style="background:#F2F5FA;font-weight:800;color:#1B1C4C;font-size:11px;letter-spacing:.4px">'+x[1]+'</td></tr>';
+   return;
   }
- }catch(e){adsSp=null;adsNote='Không đọc được dữ liệu Ads';}
- var opProfit=(adsSp==null||gp==null)?null:gp-adsSp;
+  var ind=x[0],label=x[1],fn=x[2],fmt=x[3];
+  var isSum=label.indexOf('=')===0;
+  var big=label.indexOf('LỢI NHUẬN')>=0;
+  var rowBg=big?'#EEF1FA':(isSum?'#FAFBFE':'#fff');
+  h+='<tr'+(rowBg!=='#fff'?' style="background:'+rowBg+'"':'')+'>'+
+   '<td style="'+stick+'background:'+rowBg+';padding-left:'+(10+ind*18)+'px;'+(isSum?'font-weight:800':'')+'">'+label+'</td>';
+  M.forEach(function(c){
+   var v=fn(c.C);
+   h+='<td class="ops-num" style="'+(isSum?'font-weight:800;':'')+(big?'font-size:13px;':'')+(typeof v==='number'&&v<0?'color:#D92D20':'')+'">'+fmt(v)+'</td>';
+  });
+  var tv=fn(T);
+  h+='<td class="ops-num" style="background:'+(big?'#DDE3F5':'#F1F3FB')+';font-weight:800;'+(big?'font-size:13px;':'')+(typeof tv==='number'&&tv<0?'color:#D92D20':'')+'">'+fmt(tv)+'</td></tr>';
+ });
+ h+='</tbody></table></div>';
+ var warn=M.filter(function(c){return c.C.adsSp==null||c.C.adsPartial;}).map(function(c){return c.m.slice(5)+'/'+c.m.slice(0,4);});
+ if(warn.length)h+='<div class="ops-sub" style="margin-top:8px;color:#B54708">⚠ Các tháng thiếu hoặc chưa đủ chi phí Ads: '+warn.join(', ')+' — lợi nhuận thật của những tháng này thấp hơn số hiển thị.</div>';
+ return h;
+}
+function _ops2Finance(host,p,SF,DIM){
+ var win=_ops2Wsel(SF),g=_ops2G(_ops2Span(win));
+ var C=_ops2FinCalc(win,DIM);
+ var ords=C.ords,gross=C.gross,cancel=C.cancel,net=C.net,B=C.B,gB=C.gB,netB=C.netB;
+ var f0=C.f0,f1=C.f1,f2=C.f2,fee=C.fee,other=C.other,esc=C.esc;
+ var noRec=C.noRec,noRecGmv=C.noRecGmv,refund=C.refund,refundGmv=C.refundGmv;
+ var cogs=C.cogs,qMatch=C.qMatch,qTot=C.qTot,hasB=C.hasB,gp=C.gp;
+ var adsSp=C.adsSp,adsNote=C.adsNote,adsPartial=C.adsPartial,opProfit=C.opProfit;
  function plRow(x){
   if(x[0]==='h')return '<tr><td colspan="4" style="background:#F2F5FA;font-weight:800;color:#1B1C4C;font-size:11px;letter-spacing:.4px">'+x[1]+'</td></tr>';
   var ind=x[0],label=x[1],val=x[2],base=x[3],note=x[4]||'';
@@ -5248,7 +5331,15 @@ function _ops2Finance(host,p,SF,DIM){
    ['LN vận hành sau Ads',opProfit==null?'—':_opsMoney(opProfit),opProfit==null?(gp==null?'Chưa tính được — thiếu đối soát':'Thiếu chi phí Ads kỳ này'):(adsPartial?'⚠ thiếu một phần chi phí Ads':_opsPct(netB?opProfit/netB:0)+' DT đối soát')]
   ])+
   (hasB?'':'<div class="ops-card" style="border-left:4px solid #D92D20"><h2 style="color:#D92D20">Kỳ này chưa có dữ liệu đối soát escrow</h2><div class="ops-sub" style="margin-bottom:0">Toàn bộ '+ords.length.toLocaleString('vi-VN')+' đơn trong kỳ chưa được đồng bộ phí sàn và tiền thực nhận từ Shopee Payment API, nên <b>không tính được lãi gộp và lợi nhuận vận hành</b> — phần dưới để trống chứ không phải bằng 0, và cũng KHÔNG có nghĩa là kỳ này lỗ. Doanh thu và tỷ lệ huỷ ở Khối A vẫn là số thật.<br>Cách xử lý: bấm <b>↻ Đồng bộ phân tích</b> ở góc trên; nếu vẫn trống thì Edge Function <code>ops-sync</code> chưa chạy tới các đơn này — xem checkpoint <code>order_enrichment/escrow_tracking</code>.</div></div>')+
-  _ops2Card('Bảng phân tích P&L — kỳ '+_ops2PLabel(SF),'Khối A: toàn bộ đơn trong kỳ · Khối B: đơn Shopee đã đối soát phí và tiền thực nhận · các dòng bắc cầu cho thấy chênh lệch giữa hai khối',pl)+
+  (function(){
+   var ms=_ops2MonthsIn(SF);
+   var canPivot=ms.length>1;
+   var view=(S.plView==='month'&&canPivot)?'month':'sum';
+   var tabs=canPivot?('<div class="ops-filter" style="margin:0 0 10px"><button data-plv="sum" class="'+(view==='sum'?'on':'')+'">Tổng cả kỳ</button><button data-plv="month" class="'+(view==='month'?'on':'')+'">Từng tháng một cột</button></div>'):'';
+   return view==='month'
+    ? _ops2Card('Bảng phân tích P&L theo tháng — '+_ops2PLabel(SF),'Mỗi tháng một cột · cột TỔNG là toàn kỳ · đơn vị triệu đồng',tabs+_ops2FinPivot(SF,DIM,ms))
+    : _ops2Card('Bảng phân tích P&L — kỳ '+_ops2PLabel(SF),'Khối A: toàn bộ đơn trong kỳ · Khối B: đơn Shopee đã đối soát phí và tiền thực nhận · các dòng bắc cầu cho thấy chênh lệch giữa hai khối',tabs+pl);
+  })()+
   '<div class="ops-grid">'+
   _ops2Card('Cơ cấu phí sàn theo thời gian','Cột chồng: 3 loại phí (triệu) · đường: % tổng phí / DT đối soát — '+_ops2GLabel(g),_ops2Canvas('opsFeeTrend'))+
   _ops2Miss([
