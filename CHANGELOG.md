@@ -6,6 +6,12 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R64 — 28/07/2026
+
+- Sắp xếp lại bảng P&L theo đúng chuỗi kế toán: GMV tổng → trừ huỷ → trừ hoàn trả → trừ giảm giá và voucher → Doanh thu thuần, rồi mới tới khối phí sàn, giá vốn, quảng cáo và lợi nhuận.
+- Khoản giảm giá và voucher trước đây nằm lẫn trong khối phí với tên "Giảm trừ đối soát khác", nay được đưa lên đúng vị trí trong phần doanh thu.
+- Doanh thu thuần trở thành cơ sở tính phần trăm cho toàn bộ khối dưới, thay cho doanh thu chưa trừ voucher.
+
 ## R63 — 28/07/2026
 
 - Màn Tài chính có thêm chế độ xem P&L theo tháng: mỗi tháng một cột, cột TỔNG ở cuối, kèm dòng số đơn, tỷ lệ huỷ và biên lợi nhuận để so sánh giữa các tháng.
