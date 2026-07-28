@@ -70,10 +70,18 @@ const parseDate = (v: unknown) => {
   if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3]) / 1000;
   return 0;
 };
-async function concurrent<T>(items: T[], limit: number, fn: (x: T) => Promise<void>) {
+/* Dừng sớm khi hết ngân sách thời gian: Edge Function có giới hạn giờ chạy, nếu để
+   chạy tràn thì hàm chết lặng giữa chừng và lần sau lại làm lại từ đầu. */
+async function concurrent<T>(
+  items: T[],
+  limit: number,
+  fn: (x: T) => Promise<void>,
+  stop?: () => boolean,
+) {
   let at = 0;
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
     while (at < items.length) {
+      if (stop?.()) return;
       const item = items[at++];
       await fn(item);
     }
@@ -159,13 +167,18 @@ Deno.serve(async (req) => {
     const orders: Record<string, unknown>[] = [];
     for (let from = 0;; from += 1000) {
       const { data, error } = await sb.from("sales_fact")
-        .select("ma_don_hang,trang_thai_don_hang,ngay_dat_hang")
+        .select("ma_don_hang,trang_thai_don_hang,ngay_dat_hang,tien_ky_quy")
         .not("ma_don_hang", "is", null).range(from, from + 999);
       if (error) throw new Error(`sales_fact: ${error.message}`);
       orders.push(...(data || []));
       if (!data || data.length < 1000) break;
     }
     const unique = [...new Map(orders.map((x) => [x.ma_don_hang, x])).values()];
+    /* Đơn đã có tiền ký quỹ = đã đối soát xong, không cần gọi lại API cho lần sau. */
+    const enriched = new Set(
+      orders.filter((x) => String(x.tien_ky_quy ?? "").trim() !== "")
+        .map((x) => String(x.ma_don_hang)),
+    );
     const active = unique.filter((x) => !/hủy|huỷ|cancel/i.test(String(x.trang_thai_don_hang)));
     const orderSn = String((active[0] || unique[0] || {}).ma_don_hang || "");
     if (!orderSn) throw new Error("Không tìm thấy order_sn để kiểm tra");
@@ -187,7 +200,17 @@ Deno.serve(async (req) => {
 
     if (mode === "sync") {
       const cutoff = now - Number(body.days || 120) * 86400;
-      const work = unique.filter((x) => parseDate(x.ngay_dat_hang) >= cutoff);
+      const budgetMs = Number(body.budget_ms || Deno.env.get("OPS_SYNC_BUDGET_MS") || 90_000);
+      const t0 = Date.now();
+      const outOfTime = () => Date.now() - t0 > budgetMs;
+      /* Xử lý ĐƠN MỚI NHẤT TRƯỚC. Trước đây duyệt theo _id tăng dần (đơn cũ trước) nên khi
+         hết giờ chạy thì đơn gần đây — thứ cần cho quyết định vận hành — không bao giờ tới lượt. */
+      const work = unique.filter((x) => parseDate(x.ngay_dat_hang) >= cutoff)
+        .sort((a, b) => parseDate(b.ngay_dat_hang) - parseDate(a.ngay_dat_hang));
+      /* Bỏ qua đơn đã đối soát xong, trừ khi gọi với force:true để làm lại toàn bộ. */
+      const pending = body.force === true
+        ? work
+        : work.filter((x) => !enriched.has(String(x.ma_don_hang)));
       const extraEndpoints = await Promise.all([
         safeRaw("shop", "/api/v2/shop/get_shop_info", "default", shopId, token, {}),
         safeRaw("shop", "/api/v2/shop/get_profile", "default", shopId, token, {}),
@@ -206,8 +229,9 @@ Deno.serve(async (req) => {
         }),
       ]);
       let paymentOk = 0, logisticsOk = 0, paymentErrors = 0, logisticsErrors = 0;
-      for (let i = 0; i < work.length; i += 50) {
-        const batch = work.slice(i, i + 50).map((x) => String(x.ma_don_hang));
+      for (let i = 0; i < pending.length; i += 50) {
+        if (outOfTime()) break;
+        const batch = pending.slice(i, i + 50).map((x) => String(x.ma_don_hang));
         const detail = await get("/api/v2/order/get_order_detail", shopId, token, {
           order_sn_list: batch.join(","),
           response_optional_fields: "shipping_carrier,package_list,order_status,recipient_address",
@@ -226,7 +250,8 @@ Deno.serve(async (req) => {
           if (Object.keys(upd).length) await sb.from("sales_fact").update(upd).eq("ma_don_hang", order.order_sn);
         }
       }
-      await concurrent(work, 6, async (order) => {
+      let enrichDone = 0, enrichStopped = false;
+      await concurrent(pending, 6, async (order) => {
         const sn = String(order.ma_don_hang);
         const [pay, logi] = await Promise.all([
           get("/api/v2/payment/get_escrow_detail", shopId, token, { order_sn: sn }),
@@ -252,14 +277,41 @@ Deno.serve(async (req) => {
           logisticsOk++;
         } else logisticsErrors++;
         if (Object.keys(update).length) await sb.from("sales_fact").update(update).eq("ma_don_hang", sn);
+        enrichDone++;
+      }, () => {
+        if (outOfTime()) enrichStopped = true;
+        return enrichStopped;
       });
+      /* Ghi lại tiến độ làm giàu đơn để màn Độ phủ API nhìn thấy phần còn thiếu,
+         thay vì hàm chết lặng như trước. */
+      {
+        const stamp = new Date().toISOString();
+        await sb.from("shopee_sync_checkpoint").upsert({
+          app_key: "sale", module: "payment",
+          endpoint: "order_enrichment/escrow_tracking", scope_key: "recent_first",
+          status: enrichStopped ? "partial" : "complete",
+          rows_synced: enrichDone, pages_synced: 1,
+          data_through: stamp, last_attempt_at: stamp,
+          last_success_at: enrichDone ? stamp : null,
+          cursor: { remaining: Math.max(0, pending.length - enrichDone), newest_first: true },
+          metadata: {
+            window_days: Number(body.days || 120), budget_ms: budgetMs,
+            orders_in_window: work.length, already_enriched: work.length - pending.length,
+          },
+          error_code: enrichStopped ? "budget_exhausted" : null,
+          error_message: enrichStopped
+            ? `Hết ngân sách ${budgetMs}ms sau ${enrichDone}/${pending.length} đơn — chạy lại để làm tiếp phần còn lại`
+            : null,
+          next_retry_at: enrichStopped ? new Date(Date.now() + 5 * 60 * 1000).toISOString() : null,
+        });
+      }
 
       const returnRows: Record<string, unknown>[] = [];
       let to = now;
-      while (to > cutoff) {
+      while (to > cutoff && !outOfTime()) {
         const from = Math.max(cutoff, to - 14 * 86400);
         let page = 1, more = true;
-        while (more) {
+        while (more && !outOfTime()) {
           const j = await get("/api/v2/returns/get_return_list", shopId, token, {
             page_no: page, page_size: 50, create_time_from: from, create_time_to: to,
           });
@@ -272,6 +324,7 @@ Deno.serve(async (req) => {
         to = from - 1;
       }
       for (const ret of returnRows) {
+        if (outOfTime()) break;
         const sn = String(ret.order_sn || "");
         if (!sn) continue;
         const returnSn = String(ret.return_sn || "");
@@ -289,7 +342,18 @@ Deno.serve(async (req) => {
       }
       return new Response(JSON.stringify({
         ok: true, mode, shop_id: shopId, period_days: Number(body.days || 120),
-        orders: work.length, payment_ok: paymentOk, payment_errors: paymentErrors,
+        orders: work.length,
+        enrichment: {
+          order: "newest_first",
+          pending_at_start: pending.length,
+          already_enriched: work.length - pending.length,
+          processed: enrichDone,
+          remaining: Math.max(0, pending.length - enrichDone),
+          stopped_by_budget: enrichStopped,
+          budget_ms: budgetMs,
+          elapsed_ms: Date.now() - t0,
+        },
+        payment_ok: paymentOk, payment_errors: paymentErrors,
         logistics_ok: logisticsOk, logistics_errors: logisticsErrors,
         returns_found: returnRows.length,
         extra_endpoints: extraEndpoints,

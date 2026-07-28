@@ -5152,7 +5152,10 @@ function _ops2Finance(host,p,SF,DIM){
  var snB={};B.forEach(function(o){if(!o.cancel)snB[o.sn]=1;});
  var cogs=0,qMatch=0,qTot=0;
  win.forEach(function(r){if(r.cancel||!snB[r.sn])return;qTot+=r.qty;var m=DIM.sku[r.sku];if(m&&m.cost>0){cogs+=m.cost*r.qty;qMatch+=r.qty;}});
- var gp=esc-cogs;
+ /* Khối B rỗng = kỳ này CHƯA có đơn nào được đối soát escrow. Khi đó lãi gộp và lợi
+    nhuận vận hành KHÔNG tính được — hiển thị "—" thay vì 0 và một số âm gây hiểu nhầm. */
+ var hasB=B.length>0&&netB>0;
+ var gp=hasB?esc-cogs:null;
  var adsSp=null;
  try{
   if(RAW.ads&&RAW.ads.shopD){
@@ -5161,7 +5164,7 @@ function _ops2Finance(host,p,SF,DIM){
    Object.keys(shopD).forEach(function(k){var dk=k.replace(/\./g,'-');if(dk>=mn&&dk<=mx)adsSp+=(shopD[k][8]||0)*1e6;});
   }
  }catch(e){adsSp=null;}
- var opProfit=(adsSp==null)?null:gp-adsSp;
+ var opProfit=(adsSp==null||gp==null)?null:gp-adsSp;
  function plRow(x){
   if(x[0]==='h')return '<tr><td colspan="4" style="background:#F2F5FA;font-weight:800;color:#1B1C4C;font-size:11px;letter-spacing:.4px">'+x[1]+'</td></tr>';
   var ind=x[0],label=x[1],val=x[2],base=x[3],note=x[4]||'';
@@ -5177,18 +5180,18 @@ function _ops2Finance(host,p,SF,DIM){
   [1,'(−) GMV đơn huỷ',-cancel,gross,_opsPct(gross?cancel/gross:0)+' GMV'],
   [0,'= Doanh thu sau huỷ',net,gross,''],
   [1,'(−) Hoàn trả sau bán',0,gross,'Chưa phát sinh trong dữ liệu Returns'],
-  ['h','KHỐI B — ĐƠN CÓ ĐỐI SOÁT PHÍ / ESCROW ('+B.length.toLocaleString('vi-VN')+' đơn · phủ '+_opsPct(gross?gB/gross:0)+' GMV kỳ)'],
-  [0,'Doanh thu nhóm đối soát (sau huỷ)',netB,netB,'Cơ sở tính % của khối B'],
-  [1,'(−) Phí cố định',-f0,netB,''],
-  [1,'(−) Phí dịch vụ',-f1,netB,''],
-  [1,'(−) Phí thanh toán',-f2,netB,''],
-  [0,'= Tổng phí sàn Shopee',-fee,netB,_opsPct(netB?fee/netB:0)+' doanh thu đối soát'],
-  [1,'(−) Giảm trừ đối soát khác',-other,netB,'Voucher shop / trợ giá / điều chỉnh — Shopee chưa trả cột chi tiết'],
-  [0,'= Tiền thực nhận (escrow)',esc,netB,''],
-  [1,'(−) Giá vốn hàng bán',-cogs,netB,'Khớp giá vốn '+_opsPct(qTot?qMatch/qTot:0)+' SL nhóm B'],
-  [0,'= Lãi gộp sau phí &amp; giá vốn',gp,netB,''],
+  ['h','KHỐI B — ĐƠN CÓ ĐỐI SOÁT PHÍ / ESCROW ('+B.length.toLocaleString('vi-VN')+' đơn · phủ '+_opsPct(gross?gB/gross:0)+' GMV kỳ)'+(hasB?'':' — CHƯA CÓ DỮ LIỆU, CÁC DÒNG DƯỚI ĐỂ TRỐNG')],
+  [0,'Doanh thu nhóm đối soát (sau huỷ)',hasB?netB:null,netB,hasB?'Cơ sở tính % của khối B':'Chưa có đơn nào được đối soát trong kỳ'],
+  [1,'(−) Phí cố định',hasB?-f0:null,netB,''],
+  [1,'(−) Phí dịch vụ',hasB?-f1:null,netB,''],
+  [1,'(−) Phí thanh toán',hasB?-f2:null,netB,''],
+  [0,'= Tổng phí sàn Shopee',hasB?-fee:null,netB,hasB?_opsPct(netB?fee/netB:0)+' doanh thu đối soát':''],
+  [1,'(−) Giảm trừ đối soát khác',hasB?-other:null,netB,'Voucher shop / trợ giá / điều chỉnh — Shopee chưa trả cột chi tiết'],
+  [0,'= Tiền thực nhận (escrow)',hasB?esc:null,netB,''],
+  [1,'(−) Giá vốn hàng bán',hasB?-cogs:null,netB,hasB?'Khớp giá vốn '+_opsPct(qTot?qMatch/qTot:0)+' SL nhóm B':''],
+  [0,'= Lãi gộp sau phí &amp; giá vốn',gp,netB,gp==null?'Không tính được khi chưa có đối soát':''],
   (adsSp==null?[1,'(−) Chi phí Ads trong kỳ',null,netB,'Thiếu dữ liệu Ads trong kỳ chọn']:[1,'(−) Chi phí Ads toàn shop trong kỳ',-adsSp,netB,'Ads phủ toàn shop, không riêng nhóm đối soát']),
-  (opProfit==null?[0,'= Lợi nhuận vận hành (sau Ads)',null,netB,'Không tính được do thiếu Ads']:[0,'= Lợi nhuận vận hành (sau Ads)',opProfit,netB,''])
+  (opProfit==null?[0,'= Lợi nhuận vận hành (sau Ads)',null,netB,gp==null?'Không tính được — thiếu dữ liệu đối soát escrow, KHÔNG phải lỗ':'Không tính được do thiếu Ads']:[0,'= Lợi nhuận vận hành (sau Ads)',opProfit,netB,''])
  ];
  var pl='<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>Chỉ tiêu</th><th style="text-align:right">Giá trị</th><th style="text-align:right">% cơ sở</th><th>Ghi chú</th></tr></thead><tbody>'+rows.map(plRow).join('')+'</tbody></table></div>';
  var seB=(function(){
@@ -5201,11 +5204,12 @@ function _ops2Finance(host,p,SF,DIM){
  host.innerHTML=_opsHead('Tài chính & phí Shopee — P&L','Chuỗi khấu trừ từ GMV đến lợi nhuận vận hành; mỗi đơn chỉ tính một lần; số liệu từ Data Sale + đối soát escrow.')+
   _ops2PeriodSel(SF,[30,60,90])+
   _opsMiniKpis([
-   ['Tiền thực nhận',_opsMoney(esc),B.length.toLocaleString('vi-VN')+' đơn có đối soát'],
-   ['Tổng phí sàn',_opsMoney(fee),_opsPct(netB?fee/netB:0)+' DT đối soát'],
-   ['Lãi gộp sau phí & giá vốn',_opsMoney(gp),_opsPct(netB?gp/netB:0)+' DT đối soát'],
-   [opProfit==null?'LN sau Ads':'LN vận hành sau Ads',opProfit==null?'—':_opsMoney(opProfit),opProfit==null?'Thiếu dữ liệu Ads':_opsPct(netB?opProfit/netB:0)+' DT đối soát']
+   ['Tiền thực nhận',hasB?_opsMoney(esc):'—',hasB?B.length.toLocaleString('vi-VN')+' đơn có đối soát':'Chưa có đơn nào được đối soát'],
+   ['Tổng phí sàn',hasB?_opsMoney(fee):'—',hasB?_opsPct(netB?fee/netB:0)+' DT đối soát':'Chờ đồng bộ escrow'],
+   ['Lãi gộp sau phí & giá vốn',gp==null?'—':_opsMoney(gp),gp==null?'Chưa tính được':_opsPct(netB?gp/netB:0)+' DT đối soát'],
+   ['LN vận hành sau Ads',opProfit==null?'—':_opsMoney(opProfit),opProfit==null?(gp==null?'Chưa tính được — thiếu đối soát':'Thiếu dữ liệu Ads'):_opsPct(netB?opProfit/netB:0)+' DT đối soát']
   ])+
+  (hasB?'':'<div class="ops-card" style="border-left:4px solid #D92D20"><h2 style="color:#D92D20">Kỳ này chưa có dữ liệu đối soát escrow</h2><div class="ops-sub" style="margin-bottom:0">Toàn bộ '+ords.length.toLocaleString('vi-VN')+' đơn trong kỳ chưa được đồng bộ phí sàn và tiền thực nhận từ Shopee Payment API, nên <b>không tính được lãi gộp và lợi nhuận vận hành</b> — phần dưới để trống chứ không phải bằng 0, và cũng KHÔNG có nghĩa là kỳ này lỗ. Doanh thu và tỷ lệ huỷ ở Khối A vẫn là số thật.<br>Cách xử lý: bấm <b>↻ Đồng bộ phân tích</b> ở góc trên; nếu vẫn trống thì Edge Function <code>ops-sync</code> chưa chạy tới các đơn này — xem checkpoint <code>order_enrichment/escrow_tracking</code>.</div></div>')+
   _ops2Card('Bảng phân tích P&L — kỳ '+_ops2PLabel(SF),'Khối A: toàn bộ đơn · Khối B: đơn có đối soát phí/escrow (chủ yếu ~90 ngày gần nhất)',pl)+
   '<div class="ops-grid">'+
   _ops2Card('Cơ cấu phí sàn theo thời gian','Cột chồng: 3 loại phí (triệu) · đường: % tổng phí / DT đối soát — '+_ops2GLabel(g),_ops2Canvas('opsFeeTrend'))+

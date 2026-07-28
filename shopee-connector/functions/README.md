@@ -13,6 +13,32 @@
 | `bright-responder` | Đồng bộ **hiệu suất Ads** (campaign daily) | `ads_fact`, `shopee_ads_state` | `SHOPEE_ADS_PARTNER_ID/KEY`, `SHOPEE_START_DATE` |
 | `smart-endpoint` | Đồng bộ **từ khóa Ads** (recommended keywords) | `ads_keyword` | `SHOPEE_ADS_PARTNER_ID/KEY` |
 
+## `ops-sync` — làm giàu đơn (phí sàn, escrow, tracking)
+
+Cập nhật 28/07/2026 sau khi phát hiện dữ liệu phí/tiền thực nhận trống toàn bộ từ 01/07/2026.
+
+**Lỗi cũ:** vòng làm giàu đơn duyệt theo `_id` tăng dần (đơn CŨ trước), không có chặn thời gian,
+không có checkpoint. Edge Function hết giờ chạy thì chết lặng; lần chạy sau lại bắt đầu từ đơn cũ nhất
+và gọi lại API cho đơn đã có dữ liệu → đơn mới không bao giờ tới lượt. Đo thực tế: đơn tháng 7 nằm ở
+vị trí 215/287 trong hàng đợi.
+
+**Đã sửa:**
+- Xử lý **đơn mới nhất trước** (`sort` giảm dần theo ngày đặt).
+- **Bỏ qua đơn đã có `tien_ky_quy`** — gọi với `{"force":true}` nếu muốn làm lại toàn bộ.
+- **Chặn thời gian** `budget_ms` (mặc định 90.000ms, đổi qua env `OPS_SYNC_BUDGET_MS` hoặc body).
+  Áp dụng cho cả vòng `get_order_detail`, vòng escrow/tracking và vòng returns.
+- **Ghi checkpoint** `order_enrichment/escrow_tracking`: `status` complete/partial, `cursor->>'remaining'`
+  cho biết còn bao nhiêu đơn chưa làm.
+- Response trả thêm khối `enrichment` (processed / remaining / stopped_by_budget / elapsed_ms).
+
+**Deploy lại:**
+```bash
+supabase link --project-ref jkrczsrhonmqxwzzdgen
+supabase functions deploy ops-sync --project-ref jkrczsrhonmqxwzzdgen
+```
+Sau đó chạy `shopee-connector/3_ops_sync_cron.sql` trong SQL Editor để bật lịch tự động
+(trước đây `ops-sync` KHÔNG có cron, chỉ chạy khi bấm nút trong app).
+
 ## Đặc điểm quan trọng của `smooth-responder` (đồng bộ đơn)
 - **Có nhớ tiến độ** qua bảng `shopee_sync_state` (mỗi shop lưu `next_from`, `done`).
 - **Tự giới hạn thời gian chạy** (`BUDGET` ms) để tránh timeout Edge Function — chạy gần hết giờ thì lưu tiến độ và trả trang HTML tự refresh chạy tiếp.

@@ -6,6 +6,13 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R54 — 28/07/2026
+
+- Sửa lỗi khiến toàn bộ đơn từ 01/07/2026 không có phí sàn và tiền thực nhận: hàm đồng bộ `ops-sync` duyệt đơn cũ trước, hết giờ chạy thì dừng lặng nên đơn mới không bao giờ tới lượt.
+- `ops-sync` nay xử lý đơn mới nhất trước, bỏ qua đơn đã đối soát xong, tự dừng khi hết ngân sách thời gian và ghi lại tiến độ để lượt sau làm tiếp.
+- Thêm lịch chạy tự động cho `ops-sync` (8 lần/ngày, trước cron tồn kho và trước lượt dựng snapshot) — trước đây chỉ chạy khi có người bấm nút trong app.
+- Màn Tài chính P&L: khi kỳ đang xem chưa có dữ liệu đối soát, hiển thị cảnh báo rõ ràng và để trống các dòng khối B thay vì hiện dãy số 0 kèm lợi nhuận âm gây hiểu nhầm là lỗ.
+
 ## R53 — 28/07/2026
 
 - Vùng Vận hành Shopee: thêm bộ chọn khoảng thời gian tuỳ ý "Từ tháng → đến tháng" bên cạnh các nút nhanh 30/60/90/180 ngày; áp dụng cho Doanh thu & đơn hàng, Huỷ/trả, Tài chính P&L, Giao vận và Khách hàng khu vực.
