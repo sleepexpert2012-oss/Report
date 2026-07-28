@@ -4,6 +4,7 @@
 - `index.html` — dashboard chính (1 file, chạy trình duyệt, dữ liệu Supabase)
 - `BAN-GIAO.md`, `BAN-GIAO-TAI-KHOAN-MOI.md` — tài liệu bàn giao hệ thống
 - `CHANGELOG.md` — nhật ký release
+- `MAU-BO-SUNG-CHI-PHI-ADS.xlsx` — mẫu Excel để điền chi phí Ads các tháng Shopee API không còn lưu (2025 + 03/2026)
 
 ## Thư mục
 - `prompt/` — prompt giao việc cho Claude Code (`done/` = đã chạy xong)
