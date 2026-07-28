@@ -5273,10 +5273,11 @@ function _ops2FinPivot(SF,DIM,months){
  var oneYear=months.every(function(m){return m.slice(0,4)===months[0].slice(0,4);});
  var showTot=months.length>1;
  var stick='position:sticky;left:0;z-index:2;';
- var h='<div style="overflow-x:auto"><table class="ops-table" style="min-width:'+(260+months.length*92+104)+'px">'+
+ var h='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">'+
+  '<table class="ops-table" style="min-width:'+(250+months.length*118+130)+'px">'+
   '<thead><tr><th style="'+stick+'background:#1B1C4C">Chỉ tiêu (triệu đ)</th>'+
-  months.map(function(m){return '<th style="text-align:right;white-space:nowrap">T'+(+m.slice(5))+(oneYear?'':'/'+m.slice(2,4))+'</th>';}).join('')+
-  (showTot?'<th style="text-align:right;background:#363E99;white-space:nowrap">TỔNG</th>':'')+'</tr></thead><tbody>';
+  months.map(function(m){return '<th style="text-align:right;white-space:nowrap;padding-right:63px">T'+(+m.slice(5))+(oneYear?'':'/'+m.slice(2,4))+'</th>';}).join('')+
+  (showTot?'<th style="text-align:right;background:#363E99;white-space:nowrap;padding-right:63px">TỔNG</th>':'')+'</tr></thead><tbody>';
  L.forEach(function(x){
   if(x[0]==='h'){
    h+='<tr><td colspan="'+(months.length+(showTot?2:1))+'" style="background:#F2F5FA;font-weight:800;color:#1B1C4C;font-size:11px;letter-spacing:.4px">'+x[1]+'</td></tr>';
@@ -5287,12 +5288,15 @@ function _ops2FinPivot(SF,DIM,months){
   var big=label.indexOf('LỢI NHUẬN')>=0;
   var rowBg=big?'#EEF1FA':(isSum?'#FAFBFE':'#fff');
   /* Số để chữ thường cho đỡ rối; phân cấp bằng nền dòng. Kèm % nhỏ in nghiêng bên cạnh. */
+  /* Nhãn % có BỀ RỘNG CỐ ĐỊNH (48px) và luôn hiện diện (rỗng nếu không có %) — nhờ vậy
+     mọi con số kết thúc ở cùng một mép dọc, cột không bị răng cưa. */
   var cell=function(C,isTot){
-   var v=fn(C),txt=fmt(v),pc='';
+   var v=fn(C),txt=fmt(v),pcTxt='';
    if(baseFn){
     var bs=baseFn(C);
-    if(typeof v==='number'&&bs)pc='<i style="font-style:italic;font-size:9.5px;color:#64748B;font-weight:400;margin-left:5px">'+(Math.round(Math.abs(v)/bs*1000)/10).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1})+'%</i>';
+    if(typeof v==='number'&&bs)pcTxt=((v<0?'−':'')+(Math.round(Math.abs(v)/bs*1000)/10).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1})+'%');
    }
+   var pc='<i style="display:inline-block;width:48px;text-align:right;font-style:italic;font-size:9.5px;color:#64748B;font-weight:400;margin-left:5px">'+pcTxt+'</i>';
    return '<td class="ops-num" style="white-space:nowrap;'+(isTot?'background:'+(big?'#DDE3F5':'#F1F3FB')+';':'')+(big?'font-size:13px;':'')+(typeof v==='number'&&v<0?'color:#D92D20':'')+'">'+txt+pc+'</td>';
   };
   h+='<tr'+(rowBg!=='#fff'?' style="background:'+rowBg+'"':'')+'>'+
