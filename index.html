@@ -5176,123 +5176,39 @@ function _ops2Finance(host,p,SF,DIM){
   }
  }catch(e){adsSp=null;}
  var opProfit=(adsSp==null||gp==null)?null:gp-adsSp;
- /* Bảng P&L — phân cấp bằng cỡ chữ và màu:
-    'h' dải tiêu đề khối · 'b' dòng gốc · 'd' dòng trừ (con, xám, thụt vào)
-    'i' dòng thông tin (không trừ vào tổng) · 'r' dòng kết quả · 'R' kết quả cuối.
-    Phần trăm LUÔN mang cùng dấu với số tiền; chỉ dòng kết quả mới tô màu xanh/đỏ,
-    dòng trừ để xám cho đỡ rối. */
- /* ── Bảng P&L ──────────────────────────────────────────────────────────────
-    Token 3 lớp (primitive → semantic → component) theo skill design-system.
-    Thang chữ MODULAR 12/14/16/24 — trước đây dùng 10 cỡ lẻ (11 · 11,5 · 12 · 12,5
-    · 13 · 13,5 · 14 · 15 · 15,5 · 19) nên các cấp gần bằng nhau, mắt không phân
-    biệt được → cảm giác rối. Mọi màu chữ đạt tương phản WCAG AA ≥ 4.5:1.
-    Ghi chú chuyển xuống dòng 2 dưới nhãn để bảng còn 3 cột, mắt đi quãng ngắn. */
- var plM=function(v){return (Math.round(v/1e5)/10).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1});};
- var plP=function(v){return (Math.round(v*1000)/10).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';};
  function plRow(x){
-  if(x[0]==='h')return '<tr class="pl-band"><th colspan="3" scope="colgroup">'+x[1]+'</th></tr>';
-  var kind=x[0],label=x[1],val=x[2],base=x[3],note=x[4]||'';
-  var cls={b:'pl-base',d:'pl-ded',i:'pl-info',r:'pl-res',R:'pl-final'}[kind]||'pl-base';
-  var money,pct;
-  if(val==null){money='—';pct='—';}
-  else{
-   var sg=(kind==='i'||val>=0)?'':'−';   /* dòng thông tin nêu độ lớn, không mang dấu trừ */
-   money=sg+plM(Math.abs(val));
-   pct=base?(sg+plP(Math.abs(val)/base)):'—';
-  }
-  /* Màu chỉ dùng khi mang nghĩa: kết quả cuối luôn tô, kết quả trung gian chỉ tô khi âm.
-     Dòng khấu trừ để trung tính — trừ là chuyện bình thường, tô đỏ hết thì nhiễu. */
-  var tone='';
-  if(val!=null){
-   if(kind==='R')tone=val<0?' is-neg':' is-pos';
-   else if(kind==='r'&&val<0)tone=' is-neg';
-  }
-  return '<tr class="'+cls+'"><th scope="row"><span class="pl-lb">'+label+'</span>'+
-   (note?'<span class="pl-nt">'+note+'</span>':'')+'</th>'+
-   '<td class="pl-v'+tone+'">'+money+'</td><td class="pl-p'+tone+'">'+pct+'</td></tr>';
+  if(x[0]==='h')return '<tr><td colspan="4" style="background:#F2F5FA;font-weight:800;color:#1B1C4C;font-size:11px;letter-spacing:.4px">'+x[1]+'</td></tr>';
+  var ind=x[0],label=x[1],val=x[2],base=x[3],note=x[4]||'';
+  var isSum=label.indexOf('=')===0;
+  var vTxt=val==null?'—':_opsMoney(Math.abs(val))+(val<0?'':'');
+  var sign=val==null?'':(val<0?'−':'');
+  var pct=(val==null||!base)?'—':_opsPct(Math.abs(val)/base);
+  var pctRed=(x[5]===true&&val!=null&&val<0);   /* dòng lợi nhuận cuối bị lỗ: % cũng đỏ */
+  return '<tr'+(isSum?' style="background:#FAFBFE"':'')+'><td style="padding-left:'+(10+ind*18)+'px;'+(isSum?'font-weight:800':'')+'">'+label+'</td><td class="ops-num" style="'+(isSum?'font-weight:800;':'')+(val!=null&&val<0?'color:#D92D20':'')+'">'+sign+vTxt+'</td><td class="ops-num"'+(pctRed?' style="color:#D92D20;font-weight:800"':'')+'>'+pct+'</td><td style="color:#8494A8;font-size:11px">'+note+'</td></tr>';
  }
- var nCancelOrd=0;ords.forEach(function(x){if(x.cancel)nCancelOrd++;});
  var rows=[
-  ['h','Khối A · Toàn bộ đơn trong kỳ — '+ords.length.toLocaleString('vi-VN')+' đơn · % tính trên GMV gộp'],
-  ['b','Doanh thu đặt hàng (GMV gộp)',gross,gross,''],
-  ['d','GMV đơn huỷ',-cancel,gross,nCancelOrd+' đơn bị huỷ'],
-  ['r','Doanh thu sau huỷ',net,gross,''],
-  ['d','Hoàn trả ghi nhận qua Returns API',0,gross,refund.length?'Returns API trả 0 bản ghi':'Chưa phát sinh'],
-  (refund.length?['i','Đơn nghi đã hoàn tiền (escrow ≤ 0)',refundGmv,gross,refund.length+' đơn đã giao xong nhưng tiền thực nhận ≤ 0 · chỉ để tham khảo, không trừ vào tổng']:null),
-  ['d','Đơn chưa được Shopee đối soát',-noRecGmv,gross,noRec.length?noRec.length+' đơn chưa có dữ liệu phí/escrow':'Không có — mọi đơn không huỷ đều đã đối soát'],
-  ['r','Doanh thu đã đối soát → sang khối B',net-noRecGmv,gross,''],
-  ['h','Khối B · Đơn đã được Shopee đối soát — '+B.length.toLocaleString('vi-VN')+' đơn · phủ '+_opsPct(gross?gB/gross:0)+' GMV kỳ · % tính trên doanh thu đối soát'+(hasB?'':' — CHƯA CÓ DỮ LIỆU')],
-  ['b','Doanh thu nhóm đối soát (sau huỷ)',hasB?netB:null,netB,hasB?'':'Chưa có đơn nào được đối soát trong kỳ'],
-  ['d','Phí cố định',hasB?-f0:null,netB,''],
-  ['d','Phí dịch vụ',hasB?-f1:null,netB,''],
-  ['d','Phí thanh toán',hasB?-f2:null,netB,''],
-  ['i','Tổng phí sàn Shopee (3 dòng trên)',hasB?fee:null,netB,''],
-  ['d','Giảm trừ đối soát khác',hasB?-other:null,netB,'Voucher shop / trợ giá / điều chỉnh — Shopee chưa tách cột'],
-  ['r','Tiền thực nhận (escrow)',hasB?esc:null,netB,''],
-  ['d','Giá vốn hàng bán',hasB?-cogs:null,netB,hasB?'Khớp giá vốn '+_opsPct(qTot?qMatch/qTot:0)+' sản lượng':''],
-  ['r','Lãi gộp sau phí & giá vốn',gp,netB,gp==null?'Không tính được khi chưa có đối soát':''],
-  (adsSp==null?['d','Chi phí Ads trong kỳ',null,netB,'Thiếu dữ liệu Ads trong kỳ chọn']:['d','Chi phí Ads toàn shop trong kỳ',-adsSp,netB,'Ads phủ toàn shop, không riêng nhóm đối soát']),
-  ['R','Lợi nhuận vận hành (sau Ads)',opProfit,netB,opProfit==null?(gp==null?'Chưa tính được — thiếu dữ liệu đối soát, KHÔNG phải lỗ':'Chưa tính được — thiếu dữ liệu Ads'):'']
+  ['h','KHỐI A — TOÀN BỘ ĐƠN TRONG KỲ ('+ords.length.toLocaleString('vi-VN')+' đơn)'],
+  [0,'Doanh thu đặt hàng (GMV gộp)',gross,gross,''],
+  [1,'(−) GMV đơn huỷ',-cancel,gross,_opsPct(gross?cancel/gross:0)+' GMV'],
+  [0,'= Doanh thu sau huỷ',net,gross,''],
+  [1,'(−) Hoàn trả sau bán ghi nhận qua Returns API',0,gross,refund.length?'Returns API trả 0 bản ghi — nhưng '+refund.length+' đơn dưới đây có dấu hiệu đã hoàn tiền':'Chưa phát sinh trong dữ liệu Returns'],
+  (refund.length?[1,'trong đó: đơn escrow ≤ 0 (nghi đã hoàn tiền)',-refundGmv,gross,refund.length+' đơn đã giao xong nhưng Shopee trả về tiền thực nhận ≤ 0']:null),
+  [1,'(−) Đơn chưa được Shopee đối soát',-noRecGmv,gross,noRec.length?noRec.length+' đơn chưa có dữ liệu phí/escrow — chạy Đồng bộ phân tích để lấy':'Không có — mọi đơn không huỷ đều đã đối soát'],
+  [0,'= Doanh thu đã đối soát (bắc cầu sang khối B)',net-noRecGmv,gross,''],
+  ['h','KHỐI B — ĐƠN CÓ ĐỐI SOÁT PHÍ / ESCROW ('+B.length.toLocaleString('vi-VN')+' đơn · phủ '+_opsPct(gross?gB/gross:0)+' GMV kỳ)'+(hasB?'':' — CHƯA CÓ DỮ LIỆU, CÁC DÒNG DƯỚI ĐỂ TRỐNG')],
+  [0,'Doanh thu nhóm đối soát (sau huỷ)',hasB?netB:null,netB,hasB?'Cơ sở tính % của khối B':'Chưa có đơn nào được đối soát trong kỳ'],
+  [1,'(−) Phí cố định',hasB?-f0:null,netB,''],
+  [1,'(−) Phí dịch vụ',hasB?-f1:null,netB,''],
+  [1,'(−) Phí thanh toán',hasB?-f2:null,netB,''],
+  [0,'= Tổng phí sàn Shopee',hasB?-fee:null,netB,hasB?_opsPct(netB?fee/netB:0)+' doanh thu đối soát':''],
+  [1,'(−) Giảm trừ đối soát khác',hasB?-other:null,netB,'Voucher shop / trợ giá / điều chỉnh — Shopee chưa trả cột chi tiết'],
+  [0,'= Tiền thực nhận (escrow)',hasB?esc:null,netB,''],
+  [1,'(−) Giá vốn hàng bán',hasB?-cogs:null,netB,hasB?'Khớp giá vốn '+_opsPct(qTot?qMatch/qTot:0)+' SL nhóm B':''],
+  [0,'= Lãi gộp sau phí &amp; giá vốn',gp,netB,gp==null?'Không tính được khi chưa có đối soát':''],
+  (adsSp==null?[1,'(−) Chi phí Ads trong kỳ',null,netB,'Thiếu dữ liệu Ads trong kỳ chọn']:[1,'(−) Chi phí Ads toàn shop trong kỳ',-adsSp,netB,'Ads phủ toàn shop, không riêng nhóm đối soát']),
+  (opProfit==null?[0,'= Lợi nhuận vận hành (sau Ads)',null,netB,gp==null?'Không tính được — thiếu dữ liệu đối soát escrow, KHÔNG phải lỗ':'Không tính được do thiếu Ads',true]:[0,'= Lợi nhuận vận hành (sau Ads)',opProfit,netB,'',true])
  ];
- var plCss='<style>'+
-  /* ── lớp 1: primitive ── */
-  '.plw{--pl-navy:#1B1C4C;--pl-slate:#475569;--pl-line:#E4EAF2;--pl-line-2:#CBD5E1;'+
-   '--pl-surface:#FFFFFF;--pl-surface-2:#F4F7FB;--pl-surface-3:#E9EEF6;'+
-   '--pl-green:#0B6B40;--pl-red:#C0271D;'+
-   /* ── lớp 2: semantic ── */
-   '--pl-fg:var(--pl-navy);--pl-fg-muted:var(--pl-slate);--pl-border:var(--pl-line);'+
-   '--pl-pos:var(--pl-green);--pl-neg:var(--pl-red);'+
-   /* ── lớp 3: component · thang chữ modular 12/14/16/24 · nhịp giãn 8/12/16 ── */
-   '--pl-fs-1:12px;--pl-fs-2:14px;--pl-fs-3:16px;--pl-fs-4:24px;'+
-   '--pl-py:9px;--pl-px:16px;--pl-indent:22px;'+
-   'max-width:940px}'+
-  '.plw{overflow-x:auto;-webkit-overflow-scrolling:touch}'+
-  '.pl{width:100%;min-width:520px;border-collapse:collapse;font-variant-numeric:tabular-nums;color:var(--pl-fg)}'+
-  '.pl thead th{font-size:var(--pl-fs-1);font-weight:600;color:var(--pl-fg-muted);text-align:left;'+
-   'padding:0 var(--pl-px) 8px;border-bottom:1px solid var(--pl-border);white-space:nowrap}'+
-  '.pl thead th.n{text-align:right}'+
-  '.pl tbody th{text-align:left;font-weight:400}'+
-  '.pl tbody th,.pl tbody td{padding:var(--pl-py) var(--pl-px);border-bottom:1px solid var(--pl-border);vertical-align:top}'+
-  '.pl td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}'+
-  '.pl .pl-lb{display:block}'+
-  '.pl .pl-nt{display:block;margin-top:3px;font-size:var(--pl-fs-1);font-weight:400;'+
-   'color:var(--pl-fg-muted);line-height:1.45;font-style:normal;max-width:46ch}'+
-  /* dải tiêu đề khối */
-  '.pl tr.pl-band th{background:var(--pl-navy);color:#fff;font-size:var(--pl-fs-1);font-weight:700;'+
-   'letter-spacing:.4px;padding:10px var(--pl-px);border:0}'+
-  /* dòng gốc */
-  '.pl tr.pl-base th,.pl tr.pl-base td{font-size:var(--pl-fs-2);font-weight:600}'+
-  /* dòng khấu trừ — thụt lề bằng margin của span, tránh bẫy độ ưu tiên của padding viết tắt */
-  '.pl tr.pl-ded th .pl-lb{margin-left:var(--pl-indent);position:relative;color:var(--pl-fg-muted)}'+
-  '.pl tr.pl-ded th .pl-lb:before{content:"";position:absolute;left:-14px;top:.62em;'+
-   'width:8px;height:1px;background:var(--pl-line-2)}'+
-  '.pl tr.pl-ded th .pl-nt{margin-left:var(--pl-indent)}'+
-  '.pl tr.pl-ded th,.pl tr.pl-ded td{font-size:var(--pl-fs-1);font-weight:400;color:var(--pl-fg-muted)}'+
-  /* dòng thông tin (không trừ vào tổng) */
-  '.pl tr.pl-info th .pl-lb{margin-left:var(--pl-indent);font-style:italic;color:var(--pl-fg-muted)}'+
-  '.pl tr.pl-info th .pl-nt{margin-left:var(--pl-indent)}'+
-  '.pl tr.pl-info th,.pl tr.pl-info td{font-size:var(--pl-fs-1);font-weight:400;color:var(--pl-fg-muted);font-style:italic}'+
-  /* dòng kết quả */
-  '.pl tr.pl-res th,.pl tr.pl-res td{background:var(--pl-surface-2);border-top:1px solid var(--pl-line-2);'+
-   'font-weight:700;color:var(--pl-fg)}'+
-  '.pl tr.pl-res th{font-size:var(--pl-fs-2)}'+
-  '.pl tr.pl-res td{font-size:var(--pl-fs-3)}'+
-  /* dòng lợi nhuận cuối */
-  '.pl tr.pl-final th,.pl tr.pl-final td{background:var(--pl-surface-3);border-top:2px solid var(--pl-navy);'+
-   'border-bottom:0;padding-top:14px;padding-bottom:14px;font-weight:800;color:var(--pl-fg)}'+
-  '.pl tr.pl-final th{font-size:var(--pl-fs-3)}'+
-  '.pl tr.pl-final td.pl-v{font-size:var(--pl-fs-4);letter-spacing:-.5px;line-height:1.1}'+
-  '.pl tr.pl-final td.pl-p{font-size:var(--pl-fs-2)}'+
-  /* tô nghĩa */
-  '.pl tbody tr td.is-pos{color:var(--pl-pos)}.pl tbody tr td.is-neg{color:var(--pl-neg)}'+
-  /* tương tác: làm nổi dòng đang rà để dò ngang cho dễ */
-  '.pl tbody tr:not(.pl-band):hover th,.pl tbody tr:not(.pl-band):hover td{background:#EDF2F9}'+
-  '@media(prefers-reduced-motion:no-preference){.pl tbody tr th,.pl tbody tr td{transition:background .12s ease}}'+
-  '@media(max-width:560px){.plw{--pl-px:10px;--pl-indent:14px;--pl-fs-4:20px}}'+
-  '</style>';
- var pl=plCss+'<div class="plw"><table class="pl"><colgroup><col style="width:56%"><col style="width:24%"><col style="width:20%"></colgroup>'+
-  '<thead><tr><th scope="col">Chỉ tiêu</th><th scope="col" class="n">Giá trị (triệu đ)</th><th scope="col" class="n">% cơ sở khối</th></tr></thead>'+
-  '<tbody>'+rows.filter(Boolean).map(plRow).join('')+'</tbody></table></div>';
+ var pl='<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>Chỉ tiêu</th><th style="text-align:right">Giá trị</th><th style="text-align:right">% cơ sở</th><th>Ghi chú</th></tr></thead><tbody>'+rows.filter(Boolean).map(plRow).join('')+'</tbody></table></div>';
  var seB=(function(){
   var map={},keys=[];
   B.forEach(function(o){var k=_ops2Bk(o.d,g);if(!map[k]){map[k]={f0:0,f1:0,f2:0,net:0};keys.push(k);}

@@ -6,6 +6,12 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R59 — 28/07/2026
+
+- Hoàn nguyên bảng P&L về giao diện ban đầu theo yêu cầu: các thay đổi giao diện ở R56–R58 đã được gỡ bỏ.
+- Giữ lại đúng một điều chỉnh: dòng Lợi nhuận vận hành khi bị lỗ thì phần trăm cũng hiển thị màu đỏ như số tiền.
+- Các sửa lỗi về SỐ LIỆU ở R55 (đơn escrow âm bị loại nhầm, các dòng bắc cầu giữa hai khối) vẫn được giữ nguyên.
+
 ## R58 — 28/07/2026
 
 - Làm lại bảng P&L theo hệ thiết kế chuẩn: thang chữ rút từ 10 cỡ lẻ xuống còn 4 cỡ (12/14/16/24) nên các cấp bậc tách bạch rõ, không còn cảm giác chữ nào cũng gần giống nhau.

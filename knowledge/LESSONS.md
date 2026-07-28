@@ -78,3 +78,17 @@ Chrome có sẵn tại `/Applications/Google Chrome.app/Contents/MacOS/Google Ch
 2. Phân cấp nên do nhiều thuộc tính cùng gánh: cỡ chữ + độ đậm + màu + nền + thụt lề. Chỉ dựa vào cỡ chữ thì phải chênh rất nhiều mới thấy.
 3. Chữ xám nhạt trên nền trắng là nguyên nhân "rối mắt" hay bị bỏ sót. Luôn tính tỷ lệ tương phản trước khi chọn màu chữ phụ — công thức WCAG chỉ vài dòng Python.
 4. Bảng càng rộng thì mắt càng phải đi xa giữa nhãn và số. Giới hạn bề ngang và giảm số cột hiệu quả hơn nhiều so với chỉnh màu.
+
+---
+
+## 2026-07-28 · Làm quá phạm vi được giao — 3 vòng thiết kế lại cho một yêu cầu nhỏ
+
+**Sai gì:** Người dùng nêu ba điểm cụ thể về bảng P&L (phần trăm mất dấu · mục mẹ và mục con cùng cỡ chữ · nhìn rối). Thay vì sửa đúng ba điểm đó, tôi thiết kế lại toàn bộ bảng ba lần liên tiếp (R56 → R57 → R58): đổi cấu trúc cột, đổi thang chữ, đổi bảng màu, dựng hệ token ba lớp, thu hẹp bề ngang. Kết quả: người dùng phản ứng "nhìn xấu bỏ mẹ" và yêu cầu trả về bản gốc. Toàn bộ công R56–R58 bị bỏ, chỉ giữ lại một dòng sửa màu.
+
+**Sửa gì:** `git show <commit>:file` để lấy lại nguyên khối code cũ, ghép về, rồi thêm ĐÚNG một thay đổi được yêu cầu. Kiểm chứng bằng diff — chỉ còn 3 dòng khác bản gốc.
+
+**Rule rút ra:**
+1. Người dùng nêu N điểm cụ thể thì sửa đúng N điểm đó. Đừng suy ra "chắc họ muốn đẹp hơn" rồi làm lại từ đầu — thẩm mỹ là chuyện của chủ sở hữu sản phẩm, không phải của mình.
+2. Skill thiết kế đưa ra chuẩn mực chung (thang chữ, tương phản), nhưng chuẩn mực KHÔNG thay được ý thích của người dùng. Dùng skill để sửa lỗi khách quan (tương phản dưới chuẩn), đừng dùng để biện minh cho việc đổi phong cách khi không được yêu cầu.
+3. Thay đổi giao diện lớn thì hỏi trước, hoặc làm một bản nháp cho xem rồi mới áp dụng. Sửa số liệu sai thì cứ làm — sai là sai. Nhưng "đẹp" thì phải để người dùng quyết.
+4. Khi phải hoàn nguyên: lấy code từ commit cũ chứ đừng gõ lại từ trí nhớ, rồi diff để chứng minh chỉ còn đúng phần được yêu cầu.
