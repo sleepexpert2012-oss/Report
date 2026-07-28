@@ -61,3 +61,20 @@ Chrome có sẵn tại `/Applications/Google Chrome.app/Contents/MacOS/Google Ch
 1. Khi ghi đè một thuộc tính con (`padding-left`, `margin-top`, `border-color`), phải kiểm tra quy tắc gốc có dùng dạng viết tắt (`padding`, `margin`, `border`) với độ ưu tiên cao hơn không. Viết tắt luôn reset toàn bộ các thuộc tính con.
 2. Không bao giờ báo "đã sửa giao diện" nếu chỉ mới kiểm tra cú pháp. Cú pháp đúng không có nghĩa là CSS được áp dụng. Phải render thật rồi đo `getComputedStyle` và xem ảnh chụp.
 3. Cách dựng bàn thử: trích hàm render ra một file HTML độc lập, nạp dữ liệu thật từ file JSON, rồi cho Chrome headless đo và chụp. Nhanh hơn nhiều so với nhờ người dùng chụp màn hình rồi mô tả lại.
+4. **Bẫy này lặp lại lần hai** (28/07, khi làm lại bảng theo skill): `.pl tr.pl-final td{color:...}` (0,2,2) đè mất `.pl .is-neg{color:...}` (0,2,0) nên số lợi nhuận âm hiện màu navy thay vì đỏ. Quy tắc rút ra: khi một dòng có màu nền/màu chữ theo "loại dòng", thì lớp tô màu theo "ngữ nghĩa" (âm/dương) PHẢI có độ ưu tiên cao hơn — viết `.pl tbody tr td.is-neg` (0,2,3). Đo lại bằng `getComputedStyle` sau mỗi lần sửa, đừng tin mắt đọc code.
+
+---
+
+## 2026-07-28 · Quá nhiều cỡ chữ gần bằng nhau = không có phân cấp
+
+**Sai gì:** Khi làm bảng P&L tôi tự chọn cỡ chữ theo cảm tính: 11 · 11,5 · 12 · 12,5 · 13 · 13,5 · 14 · 15 · 15,5 · 19px — mười cỡ, nhiều cỡ chỉ cách nhau 0,5px. Mắt không phân biệt nổi 12 với 12,5 nên dù "có phân cấp" trên lý thuyết, nhìn vào vẫn thấy phẳng và rối. Người dùng phản hồi hai lần mới lộ ra.
+
+**Phát hiện nhờ:** skill `ui-ux-pro-max`, mục Typography: *"Use consistent modular scale — Type scale (12 14 16 18 24 32). Don't: Arbitrary sizes."* Và kiểm tra tương phản cho thấy 4/6 màu chữ dưới chuẩn WCAG AA (có màu chỉ 2,26:1).
+
+**Sửa gì:** rút về đúng 4 cỡ 12/14/16/24; để độ đậm (400/600/700/800) và màu gánh phần phân cấp còn lại; mọi màu chữ ≥ 4,5:1; gộp cột ghi chú xuống dòng 2 để bảng còn 3 cột và hẹp lại còn 940px.
+
+**Rule rút ra:**
+1. Đừng tự chọn cỡ chữ theo cảm tính. Dùng thang modular (12/14/16/18/24/32) và chỉ lấy 3-4 bậc cho một thành phần. Hai cỡ cách nhau dưới 2px thì mắt coi như bằng nhau — tốn cỡ mà không được gì.
+2. Phân cấp nên do nhiều thuộc tính cùng gánh: cỡ chữ + độ đậm + màu + nền + thụt lề. Chỉ dựa vào cỡ chữ thì phải chênh rất nhiều mới thấy.
+3. Chữ xám nhạt trên nền trắng là nguyên nhân "rối mắt" hay bị bỏ sót. Luôn tính tỷ lệ tương phản trước khi chọn màu chữ phụ — công thức WCAG chỉ vài dòng Python.
+4. Bảng càng rộng thì mắt càng phải đi xa giữa nhãn và số. Giới hạn bề ngang và giảm số cột hiệu quả hơn nhiều so với chỉnh màu.

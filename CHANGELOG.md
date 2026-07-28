@@ -6,6 +6,14 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R58 — 28/07/2026
+
+- Làm lại bảng P&L theo hệ thiết kế chuẩn: thang chữ rút từ 10 cỡ lẻ xuống còn 4 cỡ (12/14/16/24) nên các cấp bậc tách bạch rõ, không còn cảm giác chữ nào cũng gần giống nhau.
+- Sửa lỗi tương phản: bốn màu chữ trước đây quá nhạt so với chuẩn tiếp cận (có màu chỉ đạt 2,3:1 trên mức tối thiểu 4,5:1) khiến phải căng mắt đọc; toàn bộ màu chữ nay đều đạt chuẩn.
+- Gộp cột ghi chú xuống dòng thứ hai dưới tên chỉ tiêu, bảng còn 3 cột và thu hẹp từ toàn màn hình xuống 940px nên mắt đi quãng ngắn từ tên chỉ tiêu tới con số.
+- Chuyển sang hệ biến CSS ba lớp, đổi giao diện về sau chỉ cần sửa một chỗ.
+- Thêm làm nổi dòng khi rê chuột để dò ngang cho dễ; hỗ trợ màn hình hẹp.
+
 ## R57 — 28/07/2026
 
 - Sửa lỗi CSS khiến các dòng khấu trừ trong bảng P&L không thụt lề (quy tắc chung có độ ưu tiên cao hơn đã đè mất phần thụt lề), nên bảng vẫn nhìn phẳng dù đã phân cấp cỡ chữ.

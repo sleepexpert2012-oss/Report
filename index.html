@@ -5181,30 +5181,35 @@ function _ops2Finance(host,p,SF,DIM){
     'i' dòng thông tin (không trừ vào tổng) · 'r' dòng kết quả · 'R' kết quả cuối.
     Phần trăm LUÔN mang cùng dấu với số tiền; chỉ dòng kết quả mới tô màu xanh/đỏ,
     dòng trừ để xám cho đỡ rối. */
- /* Đơn vị "triệu đ" đặt ở tiêu đề cột, không lặp trên từng dòng; mọi số cố định
-    1 chữ số thập phân để các cột thẳng hàng, dễ quét mắt. */
+ /* ── Bảng P&L ──────────────────────────────────────────────────────────────
+    Token 3 lớp (primitive → semantic → component) theo skill design-system.
+    Thang chữ MODULAR 12/14/16/24 — trước đây dùng 10 cỡ lẻ (11 · 11,5 · 12 · 12,5
+    · 13 · 13,5 · 14 · 15 · 15,5 · 19) nên các cấp gần bằng nhau, mắt không phân
+    biệt được → cảm giác rối. Mọi màu chữ đạt tương phản WCAG AA ≥ 4.5:1.
+    Ghi chú chuyển xuống dòng 2 dưới nhãn để bảng còn 3 cột, mắt đi quãng ngắn. */
  var plM=function(v){return (Math.round(v/1e5)/10).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1});};
  var plP=function(v){return (Math.round(v*1000)/10).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';};
  function plRow(x){
-  if(x[0]==='h')return '<tr class="pl-band"><td colspan="4">'+x[1]+'</td></tr>';
+  if(x[0]==='h')return '<tr class="pl-band"><th colspan="3" scope="colgroup">'+x[1]+'</th></tr>';
   var kind=x[0],label=x[1],val=x[2],base=x[3],note=x[4]||'';
   var cls={b:'pl-base',d:'pl-ded',i:'pl-info',r:'pl-res',R:'pl-final'}[kind]||'pl-base';
   var money,pct;
   if(val==null){money='—';pct='—';}
   else{
-   var sg=(kind==='i'||val>=0)?'':'−';   /* dòng thông tin luôn nêu độ lớn, không mang dấu trừ */
+   var sg=(kind==='i'||val>=0)?'':'−';   /* dòng thông tin nêu độ lớn, không mang dấu trừ */
    money=sg+plM(Math.abs(val));
    pct=base?(sg+plP(Math.abs(val)/base)):'—';
   }
-  /* Chỉ tô màu khi thực sự cần: kết quả cuối luôn tô, kết quả trung gian chỉ tô khi ÂM.
-     Dòng trừ để xám — trừ là chuyện bình thường, tô đỏ hết thì rối mắt. */
+  /* Màu chỉ dùng khi mang nghĩa: kết quả cuối luôn tô, kết quả trung gian chỉ tô khi âm.
+     Dòng khấu trừ để trung tính — trừ là chuyện bình thường, tô đỏ hết thì nhiễu. */
   var tone='';
   if(val!=null){
-   if(kind==='R')tone=val<0?' pl-neg':' pl-pos';
-   else if(kind==='r'&&val<0)tone=' pl-neg';
+   if(kind==='R')tone=val<0?' is-neg':' is-pos';
+   else if(kind==='r'&&val<0)tone=' is-neg';
   }
-  return '<tr class="'+cls+'"><th scope="row">'+label+'</th><td class="pl-val'+tone+'">'+money+
-   '</td><td class="pl-pct'+tone+'">'+pct+'</td><td class="pl-note">'+note+'</td></tr>';
+  return '<tr class="'+cls+'"><th scope="row"><span class="pl-lb">'+label+'</span>'+
+   (note?'<span class="pl-nt">'+note+'</span>':'')+'</th>'+
+   '<td class="pl-v'+tone+'">'+money+'</td><td class="pl-p'+tone+'">'+pct+'</td></tr>';
  }
  var nCancelOrd=0;ords.forEach(function(x){if(x.cancel)nCancelOrd++;});
  var rows=[
@@ -5230,36 +5235,64 @@ function _ops2Finance(host,p,SF,DIM){
   ['R','Lợi nhuận vận hành (sau Ads)',opProfit,netB,opProfit==null?(gp==null?'Chưa tính được — thiếu dữ liệu đối soát, KHÔNG phải lỗ':'Chưa tính được — thiếu dữ liệu Ads'):'']
  ];
  var plCss='<style>'+
-  '.pl{width:100%;max-width:1120px;border-collapse:collapse;font-variant-numeric:tabular-nums}'+'.pl col.c1{width:36%}.pl col.c2{width:15%}.pl col.c3{width:13%}.pl col.c4{width:36%}'+
-  '.pl thead th{font-size:9.5px;text-transform:uppercase;letter-spacing:.7px;color:#94A3B8;font-weight:700;padding:0 12px 7px;border-bottom:1px solid #E8EDF4;text-align:left}'+
+  /* ── lớp 1: primitive ── */
+  '.plw{--pl-navy:#1B1C4C;--pl-slate:#475569;--pl-line:#E4EAF2;--pl-line-2:#CBD5E1;'+
+   '--pl-surface:#FFFFFF;--pl-surface-2:#F4F7FB;--pl-surface-3:#E9EEF6;'+
+   '--pl-green:#0B6B40;--pl-red:#C0271D;'+
+   /* ── lớp 2: semantic ── */
+   '--pl-fg:var(--pl-navy);--pl-fg-muted:var(--pl-slate);--pl-border:var(--pl-line);'+
+   '--pl-pos:var(--pl-green);--pl-neg:var(--pl-red);'+
+   /* ── lớp 3: component · thang chữ modular 12/14/16/24 · nhịp giãn 8/12/16 ── */
+   '--pl-fs-1:12px;--pl-fs-2:14px;--pl-fs-3:16px;--pl-fs-4:24px;'+
+   '--pl-py:9px;--pl-px:16px;--pl-indent:22px;'+
+   'max-width:940px}'+
+  '.plw{overflow-x:auto;-webkit-overflow-scrolling:touch}'+
+  '.pl{width:100%;min-width:520px;border-collapse:collapse;font-variant-numeric:tabular-nums;color:var(--pl-fg)}'+
+  '.pl thead th{font-size:var(--pl-fs-1);font-weight:600;color:var(--pl-fg-muted);text-align:left;'+
+   'padding:0 var(--pl-px) 8px;border-bottom:1px solid var(--pl-border);white-space:nowrap}'+
   '.pl thead th.n{text-align:right}'+
   '.pl tbody th{text-align:left;font-weight:400}'+
-  '.pl tbody th,.pl tbody td{padding:7px 14px;border-bottom:1px solid #F2F5F9;vertical-align:baseline}'+
-  '.pl .pl-val,.pl .pl-pct{text-align:right;white-space:nowrap}'+
-  '.pl tr.pl-band td{background:#1B1C4C;color:#fff;font-weight:700;font-size:10.5px;letter-spacing:.5px;padding:10px 12px;border:0}'+
-  '.pl-base th{font-size:13px;font-weight:700;color:#1B1C4C}'+
-  '.pl-base .pl-val{font-size:13.5px;font-weight:700;color:#1B1C4C}'+
-  '.pl-base .pl-pct{font-size:12px;color:#667085}'+
-  '.pl tbody tr.pl-ded th{font-size:12px;color:#667085;padding-left:40px;position:relative;font-weight:400}'+
-  '.pl tbody tr.pl-ded th:before{content:"";position:absolute;left:22px;top:13px;width:9px;height:1px;background:#C3CDDB}'+
-  '.pl-ded .pl-val{font-size:12.5px;color:#667085;font-weight:400}'+
-  '.pl-ded .pl-pct{font-size:11.5px;color:#A0AEC0}'+
-  '.pl tbody tr.pl-info th{font-size:11.5px;color:#8494A8;font-style:italic;padding-left:40px;font-weight:400}'+
-  '.pl-info .pl-val{font-size:12px;color:#8494A8;font-style:italic}'+
-  '.pl-info .pl-pct{font-size:11px;color:#A0AEC0;font-style:italic}'+
-  '.pl-res th,.pl-res td{border-top:1.5px solid #D9E1EC;background:#F7FAFD}'+
-  '.pl-res th{font-size:14px;font-weight:800;color:#1B1C4C}'+
-  '.pl-res .pl-val{font-size:15.5px;font-weight:800;color:#1B1C4C}'+
-  '.pl-res .pl-pct{font-size:12.5px;font-weight:700;color:#526177}'+
-  '.pl-final th,.pl-final td{border-top:2px solid #1B1C4C;border-bottom:0;background:#EEF1FA;padding-top:11px;padding-bottom:11px}'+
-  '.pl-final th{font-size:15px;font-weight:800;color:#1B1C4C}'+
-  '.pl-final .pl-val{font-size:19px;font-weight:800;color:#1B1C4C;letter-spacing:-.3px}'+
-  '.pl-final .pl-pct{font-size:13px;font-weight:800;color:#526177}'+
-  '.pl .pl-pos{color:#0E7C4A}.pl .pl-neg{color:#D92D20}'+
-  '.pl-note{font-size:11px;color:#94A3B8;line-height:1.5}'+
-  '@media(max-width:720px){.pl-note{display:none}}'+
+  '.pl tbody th,.pl tbody td{padding:var(--pl-py) var(--pl-px);border-bottom:1px solid var(--pl-border);vertical-align:top}'+
+  '.pl td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}'+
+  '.pl .pl-lb{display:block}'+
+  '.pl .pl-nt{display:block;margin-top:3px;font-size:var(--pl-fs-1);font-weight:400;'+
+   'color:var(--pl-fg-muted);line-height:1.45;font-style:normal;max-width:46ch}'+
+  /* dải tiêu đề khối */
+  '.pl tr.pl-band th{background:var(--pl-navy);color:#fff;font-size:var(--pl-fs-1);font-weight:700;'+
+   'letter-spacing:.4px;padding:10px var(--pl-px);border:0}'+
+  /* dòng gốc */
+  '.pl tr.pl-base th,.pl tr.pl-base td{font-size:var(--pl-fs-2);font-weight:600}'+
+  /* dòng khấu trừ — thụt lề bằng margin của span, tránh bẫy độ ưu tiên của padding viết tắt */
+  '.pl tr.pl-ded th .pl-lb{margin-left:var(--pl-indent);position:relative;color:var(--pl-fg-muted)}'+
+  '.pl tr.pl-ded th .pl-lb:before{content:"";position:absolute;left:-14px;top:.62em;'+
+   'width:8px;height:1px;background:var(--pl-line-2)}'+
+  '.pl tr.pl-ded th .pl-nt{margin-left:var(--pl-indent)}'+
+  '.pl tr.pl-ded th,.pl tr.pl-ded td{font-size:var(--pl-fs-1);font-weight:400;color:var(--pl-fg-muted)}'+
+  /* dòng thông tin (không trừ vào tổng) */
+  '.pl tr.pl-info th .pl-lb{margin-left:var(--pl-indent);font-style:italic;color:var(--pl-fg-muted)}'+
+  '.pl tr.pl-info th .pl-nt{margin-left:var(--pl-indent)}'+
+  '.pl tr.pl-info th,.pl tr.pl-info td{font-size:var(--pl-fs-1);font-weight:400;color:var(--pl-fg-muted);font-style:italic}'+
+  /* dòng kết quả */
+  '.pl tr.pl-res th,.pl tr.pl-res td{background:var(--pl-surface-2);border-top:1px solid var(--pl-line-2);'+
+   'font-weight:700;color:var(--pl-fg)}'+
+  '.pl tr.pl-res th{font-size:var(--pl-fs-2)}'+
+  '.pl tr.pl-res td{font-size:var(--pl-fs-3)}'+
+  /* dòng lợi nhuận cuối */
+  '.pl tr.pl-final th,.pl tr.pl-final td{background:var(--pl-surface-3);border-top:2px solid var(--pl-navy);'+
+   'border-bottom:0;padding-top:14px;padding-bottom:14px;font-weight:800;color:var(--pl-fg)}'+
+  '.pl tr.pl-final th{font-size:var(--pl-fs-3)}'+
+  '.pl tr.pl-final td.pl-v{font-size:var(--pl-fs-4);letter-spacing:-.5px;line-height:1.1}'+
+  '.pl tr.pl-final td.pl-p{font-size:var(--pl-fs-2)}'+
+  /* tô nghĩa */
+  '.pl tbody tr td.is-pos{color:var(--pl-pos)}.pl tbody tr td.is-neg{color:var(--pl-neg)}'+
+  /* tương tác: làm nổi dòng đang rà để dò ngang cho dễ */
+  '.pl tbody tr:not(.pl-band):hover th,.pl tbody tr:not(.pl-band):hover td{background:#EDF2F9}'+
+  '@media(prefers-reduced-motion:no-preference){.pl tbody tr th,.pl tbody tr td{transition:background .12s ease}}'+
+  '@media(max-width:560px){.plw{--pl-px:10px;--pl-indent:14px;--pl-fs-4:20px}}'+
   '</style>';
- var pl=plCss+'<div style="overflow-x:auto"><table class="pl"><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"></colgroup><thead><tr><th>Chỉ tiêu</th><th class="n">Giá trị (triệu đ)</th><th class="n">% cơ sở khối</th><th>Ghi chú</th></tr></thead><tbody>'+rows.filter(Boolean).map(plRow).join('')+'</tbody></table></div>';
+ var pl=plCss+'<div class="plw"><table class="pl"><colgroup><col style="width:56%"><col style="width:24%"><col style="width:20%"></colgroup>'+
+  '<thead><tr><th scope="col">Chỉ tiêu</th><th scope="col" class="n">Giá trị (triệu đ)</th><th scope="col" class="n">% cơ sở khối</th></tr></thead>'+
+  '<tbody>'+rows.filter(Boolean).map(plRow).join('')+'</tbody></table></div>';
  var seB=(function(){
   var map={},keys=[];
   B.forEach(function(o){var k=_ops2Bk(o.d,g);if(!map[k]){map[k]={f0:0,f1:0,f2:0,net:0};keys.push(k);}
