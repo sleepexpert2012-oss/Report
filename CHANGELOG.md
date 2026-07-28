@@ -6,6 +6,12 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R57 — 28/07/2026
+
+- Sửa lỗi CSS khiến các dòng khấu trừ trong bảng P&L không thụt lề (quy tắc chung có độ ưu tiên cao hơn đã đè mất phần thụt lề), nên bảng vẫn nhìn phẳng dù đã phân cấp cỡ chữ.
+- Giới hạn bề ngang bảng và đặt tỷ lệ cột cố định, tránh việc trên màn hình rộng mắt phải đi quãng dài từ tên chỉ tiêu sang con số.
+- Thêm gạch nối dẫn trước mỗi dòng khấu trừ để nhìn ra ngay đâu là mục con.
+
 ## R56 — 28/07/2026
 
 - Thiết kế lại bảng P&L cho dễ đọc: phần trăm nay mang cùng dấu với số tiền (trước đây lợi nhuận âm nhưng % vẫn dương).

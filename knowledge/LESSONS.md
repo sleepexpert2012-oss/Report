@@ -45,3 +45,19 @@ Mỗi entry: ngày · việc · sai gì · sửa gì · rule rút ra.
 1. Kiểm tra "đã có dữ liệu chưa" phải hỏi ô có TRỐNG không, tuyệt đối không dùng `> 0`. Số 0 và số âm đều là dữ liệu hợp lệ. Ép kiểu số làm mất thông tin này nên phải giữ cờ ngay lúc đọc.
 2. Khi bảng có hai khối mà tổng của chúng phải liên hệ với nhau, LUÔN có dòng bắc cầu hiển thị phần chênh. Nếu người đọc phải tự trừ hai số để phát hiện bất thường thì thiết kế bảng đã sai.
 3. Tiền âm là chuyện bình thường trong đối soát sàn (hoàn tiền, điều chỉnh, phạt). Đừng giả định dòng tiền một chiều.
+
+---
+
+## 2026-07-28 · CSS không ăn vì độ ưu tiên — và cách kiểm chứng giao diện thay vì đoán
+
+**Sai gì:** Đặt `.pl-ded th{padding-left:34px}` để thụt lề dòng khấu trừ, nhưng quy tắc chung `.pl tbody th{padding:7px 12px}` có độ ưu tiên CAO HƠN (0,1,2 so với 0,1,1) nên `padding` viết tắt đè mất `padding-left`. Kết quả: bảng vẫn phẳng, người dùng phản hồi "mục mẹ với mục con to bằng nhau" dù cỡ chữ đã phân cấp đúng. Tôi đã báo "đã sửa xong" mà chưa thực sự nhìn thấy trang render.
+
+**Sửa gì:** đổi sang `.pl tbody tr.pl-ded th` (0,2,3) để thắng quy tắc chung. Sau đó **kiểm chứng bằng Chrome headless** thay vì đoán:
+- `--dump-dom` cùng một đoạn script đọc `getComputedStyle` → in ra padding/cỡ chữ/màu THẬT của từng dòng.
+- `--screenshot` → tự mở ảnh bằng công cụ Read để nhìn tận mắt.
+Chrome có sẵn tại `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`.
+
+**Rule rút ra:**
+1. Khi ghi đè một thuộc tính con (`padding-left`, `margin-top`, `border-color`), phải kiểm tra quy tắc gốc có dùng dạng viết tắt (`padding`, `margin`, `border`) với độ ưu tiên cao hơn không. Viết tắt luôn reset toàn bộ các thuộc tính con.
+2. Không bao giờ báo "đã sửa giao diện" nếu chỉ mới kiểm tra cú pháp. Cú pháp đúng không có nghĩa là CSS được áp dụng. Phải render thật rồi đo `getComputedStyle` và xem ảnh chụp.
+3. Cách dựng bàn thử: trích hàm render ra một file HTML độc lập, nạp dữ liệu thật từ file JSON, rồi cho Chrome headless đo và chụp. Nhanh hơn nhiều so với nhờ người dùng chụp màn hình rồi mô tả lại.

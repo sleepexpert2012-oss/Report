@@ -5230,21 +5230,21 @@ function _ops2Finance(host,p,SF,DIM){
   ['R','Lợi nhuận vận hành (sau Ads)',opProfit,netB,opProfit==null?(gp==null?'Chưa tính được — thiếu dữ liệu đối soát, KHÔNG phải lỗ':'Chưa tính được — thiếu dữ liệu Ads'):'']
  ];
  var plCss='<style>'+
-  '.pl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}'+
+  '.pl{width:100%;max-width:1120px;border-collapse:collapse;font-variant-numeric:tabular-nums}'+'.pl col.c1{width:36%}.pl col.c2{width:15%}.pl col.c3{width:13%}.pl col.c4{width:36%}'+
   '.pl thead th{font-size:9.5px;text-transform:uppercase;letter-spacing:.7px;color:#94A3B8;font-weight:700;padding:0 12px 7px;border-bottom:1px solid #E8EDF4;text-align:left}'+
   '.pl thead th.n{text-align:right}'+
   '.pl tbody th{text-align:left;font-weight:400}'+
-  '.pl tbody th,.pl tbody td{padding:7px 12px;border-bottom:1px solid #F2F5F9;vertical-align:baseline}'+
+  '.pl tbody th,.pl tbody td{padding:7px 14px;border-bottom:1px solid #F2F5F9;vertical-align:baseline}'+
   '.pl .pl-val,.pl .pl-pct{text-align:right;white-space:nowrap}'+
   '.pl tr.pl-band td{background:#1B1C4C;color:#fff;font-weight:700;font-size:10.5px;letter-spacing:.5px;padding:10px 12px;border:0}'+
   '.pl-base th{font-size:13px;font-weight:700;color:#1B1C4C}'+
   '.pl-base .pl-val{font-size:13.5px;font-weight:700;color:#1B1C4C}'+
   '.pl-base .pl-pct{font-size:12px;color:#667085}'+
-  '.pl-ded th{font-size:12px;color:#667085;padding-left:34px;position:relative}'+
-  '.pl-ded th:before{content:"";position:absolute;left:18px;top:11px;width:8px;height:1px;background:#CBD5E1}'+
-  '.pl-ded .pl-val{font-size:12.5px;color:#667085}'+
+  '.pl tbody tr.pl-ded th{font-size:12px;color:#667085;padding-left:40px;position:relative;font-weight:400}'+
+  '.pl tbody tr.pl-ded th:before{content:"";position:absolute;left:22px;top:13px;width:9px;height:1px;background:#C3CDDB}'+
+  '.pl-ded .pl-val{font-size:12.5px;color:#667085;font-weight:400}'+
   '.pl-ded .pl-pct{font-size:11.5px;color:#A0AEC0}'+
-  '.pl-info th{font-size:11.5px;color:#8494A8;font-style:italic;padding-left:34px}'+
+  '.pl tbody tr.pl-info th{font-size:11.5px;color:#8494A8;font-style:italic;padding-left:40px;font-weight:400}'+
   '.pl-info .pl-val{font-size:12px;color:#8494A8;font-style:italic}'+
   '.pl-info .pl-pct{font-size:11px;color:#A0AEC0;font-style:italic}'+
   '.pl-res th,.pl-res td{border-top:1.5px solid #D9E1EC;background:#F7FAFD}'+
@@ -5256,10 +5256,10 @@ function _ops2Finance(host,p,SF,DIM){
   '.pl-final .pl-val{font-size:19px;font-weight:800;color:#1B1C4C;letter-spacing:-.3px}'+
   '.pl-final .pl-pct{font-size:13px;font-weight:800;color:#526177}'+
   '.pl .pl-pos{color:#0E7C4A}.pl .pl-neg{color:#D92D20}'+
-  '.pl-note{font-size:10.5px;color:#94A3B8;line-height:1.45;max-width:280px}'+
+  '.pl-note{font-size:11px;color:#94A3B8;line-height:1.5}'+
   '@media(max-width:720px){.pl-note{display:none}}'+
   '</style>';
- var pl=plCss+'<div style="overflow-x:auto"><table class="pl"><thead><tr><th>Chỉ tiêu</th><th class="n">Giá trị (triệu đ)</th><th class="n">% cơ sở khối</th><th>Ghi chú</th></tr></thead><tbody>'+rows.filter(Boolean).map(plRow).join('')+'</tbody></table></div>';
+ var pl=plCss+'<div style="overflow-x:auto"><table class="pl"><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"></colgroup><thead><tr><th>Chỉ tiêu</th><th class="n">Giá trị (triệu đ)</th><th class="n">% cơ sở khối</th><th>Ghi chú</th></tr></thead><tbody>'+rows.filter(Boolean).map(plRow).join('')+'</tbody></table></div>';
  var seB=(function(){
   var map={},keys=[];
   B.forEach(function(o){var k=_ops2Bk(o.d,g);if(!map[k]){map[k]={f0:0,f1:0,f2:0,net:0};keys.push(k);}
@@ -5276,7 +5276,7 @@ function _ops2Finance(host,p,SF,DIM){
    ['LN vận hành sau Ads',opProfit==null?'—':_opsMoney(opProfit),opProfit==null?(gp==null?'Chưa tính được — thiếu đối soát':'Thiếu dữ liệu Ads'):_opsPct(netB?opProfit/netB:0)+' DT đối soát']
   ])+
   (hasB?'':'<div class="ops-card" style="border-left:4px solid #D92D20"><h2 style="color:#D92D20">Kỳ này chưa có dữ liệu đối soát escrow</h2><div class="ops-sub" style="margin-bottom:0">Toàn bộ '+ords.length.toLocaleString('vi-VN')+' đơn trong kỳ chưa được đồng bộ phí sàn và tiền thực nhận từ Shopee Payment API, nên <b>không tính được lãi gộp và lợi nhuận vận hành</b> — phần dưới để trống chứ không phải bằng 0, và cũng KHÔNG có nghĩa là kỳ này lỗ. Doanh thu và tỷ lệ huỷ ở Khối A vẫn là số thật.<br>Cách xử lý: bấm <b>↻ Đồng bộ phân tích</b> ở góc trên; nếu vẫn trống thì Edge Function <code>ops-sync</code> chưa chạy tới các đơn này — xem checkpoint <code>order_enrichment/escrow_tracking</code>.</div></div>')+
-  _ops2Card('Bảng phân tích P&L — kỳ '+_ops2PLabel(SF),'Khối A: toàn bộ đơn · Khối B: đơn có đối soát phí/escrow (chủ yếu ~90 ngày gần nhất)',pl)+
+  _ops2Card('Bảng phân tích P&L — kỳ '+_ops2PLabel(SF),'Khối A: toàn bộ đơn trong kỳ · Khối B: đơn Shopee đã đối soát phí và tiền thực nhận · các dòng bắc cầu cho thấy chênh lệch giữa hai khối',pl)+
   '<div class="ops-grid">'+
   _ops2Card('Cơ cấu phí sàn theo thời gian','Cột chồng: 3 loại phí (triệu) · đường: % tổng phí / DT đối soát — '+_ops2GLabel(g),_ops2Canvas('opsFeeTrend'))+
   _ops2Miss([
