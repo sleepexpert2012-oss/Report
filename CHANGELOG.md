@@ -6,6 +6,19 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R52 — 28/07/2026
+
+- Nâng cấp toàn diện Vùng Vận hành Shopee: thêm màn "Doanh thu & đơn hàng Shopee" riêng (xu hướng GMV/huỷ/đơn, phễu mốc vận hành, top SKU gắn ngành/brand/class/ABC), kỳ chọn 30/60/90/180/toàn bộ, tự gộp ngày→tuần→tháng.
+- Màn Tài chính chuyển thành bảng phân tích P&L: GMV → huỷ → phí sàn → giảm trừ đối soát → tiền thực nhận → giá vốn → lãi gộp → Ads → lợi nhuận vận hành; tách khối đơn có đối soát escrow và ghi rõ độ phủ.
+- Màn Huỷ/trả: cơ cấu lý do huỷ theo đơn + GMV, top SKU huỷ gắn class/phân khúc/vòng đời/ABC, biểu đồ xu hướng tỷ lệ huỷ.
+- Màn Giao vận: thêm P50/P90 từng chặng, tỷ lệ huỷ theo đơn vị vận chuyển; ghi rõ thiếu dữ liệu ngày giao dự kiến nên chưa tính được % đúng cam kết.
+- Màn Khu vực: thêm phân tích phương thức thanh toán × tỷ lệ huỷ (nhãn COD); ghi rõ Shopee đang mask tỉnh/thành.
+- Tổng quan vận hành: thêm biểu đồ 90 ngày, top sản phẩm Ads theo chi phí và khối chất lượng dữ liệu.
+- Phân tích vấn đề: thêm nhóm cảnh báo chéo "Ads × tồn kho" (SP chạy Ads hết/sắp hết tồn khả dụng).
+- Màn Ads: thêm khối "Trực tiếp vs Tổng" cho chuyển đổi/SP bán/GMV; màn Từ khóa sửa bộ lọc vị trí chết thành lọc loại match và thêm cột hiệu quả sản phẩm gắn từ khóa.
+- Livestream & Video: sửa lỗi tra sai entity nên bảng video hiển thị đủ số liệu từng video; thay biểu đồ thô bằng Chart.js chuẩn; Affiliate thêm % đóng góp doanh thu 30 ngày.
+- Mọi chỉ số thiếu dữ liệu nguồn (trợ giá, voucher, ngày giao dự kiến, quận/huyện...) hiển thị "thiếu dữ liệu" thay vì số ước lượng.
+
 ## R51 — 26/07/2026
 
 - Thêm kho dữ liệu API thô và checkpoint theo app/module/endpoint/scope để đồng bộ tăng dần, retry độc lập và không làm hỏng cả lượt chạy.

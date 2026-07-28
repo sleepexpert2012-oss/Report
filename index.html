@@ -454,7 +454,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <li><a data-page="ind" data-pg="__other"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>Ngành khác</a></li>
     <li class="ghead">Vận hành Shopee</li>
     <li><a data-page="shopops"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="18" height="7" rx="1"/></svg></span>Tổng quan vận hành</a></li>
-    <li><a data-page="overview"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V8m6 11V4m6 15v-7m4 7H2"/></svg></span>Doanh thu &amp; đơn hàng</a></li>
+    <li><a data-page="shoporders"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V8m6 11V4m6 15v-7m4 7H2"/></svg></span>Doanh thu &amp; đơn hàng</a></li>
     <li><a data-page="shopfinance"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18m-5 5h2"/></svg></span>Tài chính &amp; phí Shopee</a></li>
     <li><a data-page="shopreturns"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 7H3v-4M3 7a9 9 0 101.7-2.9"/></svg></span>Huỷ, trả &amp; hoàn tiền</a></li>
     <li><a data-page="shoplogistics"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z"/><circle cx="7" cy="19" r="1.5"/><circle cx="18" cy="19" r="1.5"/></svg></span>Hiệu suất giao vận</a></li>
@@ -891,6 +891,9 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
         <span class="granx noprint" id="granMetric"><button data-g="d" onclick="_adSetGranX('Metric','d')">Ngày</button><button data-g="w" onclick="_adSetGranX('Metric','w')">Tuần</button><button class="on" data-g="m" onclick="_adSetGranX('Metric','m')">Tháng</button></span></div>
       <div class="adMetricTools noprint"><div class="adMetricPreset"><button onclick="_adMetricPreset('eff')">Hiệu quả</button><button onclick="_adMetricPreset('traffic')">Traffic</button><button onclick="_adMetricPreset('conv')">Chuyển đổi</button><button onclick="_adMetricPreset('cost')">Chi phí</button></div><div id="adsMetricBox"></div></div>
       <div class="ch"><canvas id="adsMetricC"></canvas></div></div>
+    <div class="card w2"><h2>Trực tiếp vs Tổng — chuyển đổi &amp; GMV Ads</h2><div class="sub">Trực tiếp = trên đúng SP quảng cáo · Tổng gồm cả SP khác khách mua sau khi click · theo kỳ chọn</div>
+      <div class="ch" style="height:280px"><canvas id="adsDirectC"></canvas></div>
+      <div id="adsDirectT" style="margin-top:10px"></div></div>
     <div class="card w2"><h2>Định vị sản phẩm — ROAS × Chi phí (cỡ bong bóng = GMV)</h2><div class="sub">Trên–phải: nhân ngân sách · Dưới–phải: cắt · Trên–trái: mở rộng · màu = mức ROAS</div><div class="ch"><canvas id="adsBubble"></canvas></div></div>
     <div class="card w2"><h2>Phân bổ ngân sách vs Đóng góp GMV ads (theo ngành)</h2><div class="ch"><canvas id="adsAlloc"></canvas></div></div>
     <div class="card w2"><h2>Heatmap ROAS · Ngành × Tháng (theo kỳ chọn)</h2><div class="twrap" style="overflow-x:auto"><div id="adsHeat"></div></div></div>
@@ -1013,6 +1016,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
   </section>
 
 <section class="page" id="pg-shopops"><div id="shopopsHost"></div></section>
+<section class="page" id="pg-shoporders"><div id="shopordersHost"></div></section>
 <section class="page" id="pg-shopfinance"><div id="shopfinanceHost"></div></section>
 <section class="page" id="pg-shopreturns"><div id="shopreturnsHost"></div></section>
 <section class="page" id="pg-shoplogistics"><div id="shoplogisticsHost"></div></section>
@@ -4871,6 +4875,641 @@ function _opsVideo(rows){
   '<div class="ops-grid">'+trendHtml+listHtml+'</div>'+
   (!live.length?'<div class="ops-card"><div class="ops-empty"><b>Livestream chưa có dữ liệu phiên</b>Livestream Management yêu cầu session_id và token Live cần được uỷ quyền lại. Video đã được đồng bộ đầy đủ riêng ở phía trên.</div></div>':'');
 }
+/* ===================================================================================
+   VẬN HÀNH SHOPEE v2 — đào sâu dữ liệu sales_fact/sku/dim_class/tonkho đọc thẳng qua
+   Supabase REST (chỉ đọc, không đụng Edge Function). Nguyên tắc: không bịa số —
+   chỉ số thiếu dữ liệu ghi rõ "thiếu dữ liệu" thay vì ước lượng.
+   =================================================================================== */
+var _OPS2_SF=null,_OPS2_SF_P=null,_OPS2_DIM=null,_OPS2_DIM_P=null,OPSCH={};
+/* màu CỐ ĐỊNH cho từng chỉ số trên mọi màn vận hành */
+var OPSC={gmv:'#363E99',net:'#1D9E75',cancel:'#E24B4A',orders:'#5761AC',fee0:'#1B1C4C',fee1:'#EF9F27',fee2:'#8C93C9',esc:'#0E7C4A',ads:'#B4823B',p90:'#8C93C9'};
+if(!S.opsDays)S.opsDays=90;
+function _ops2Pad(n){return (n<10?'0':'')+n;}
+function _ops2N(v){if(typeof v==='number')return isFinite(v)?v:0;var s=String(v==null?'':v).trim().replace(/\s/g,'');if(!s)return 0;s=(s.indexOf(',')>=0&&s.indexOf('.')<0)?s.replace(',','.'):s.replace(/,/g,'');var n=Number(s.replace(/[^\d.-]/g,''));return isFinite(n)?n:0;}
+function _ops2D(v){var s=String(v==null?'':v).trim();var m=s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);if(m)return m[1]+'-'+_ops2Pad(+m[2])+'-'+_ops2Pad(+m[3]);return '';}
+function _ops2Ms(v){var s=String(v==null?'':v).trim();if(!s)return 0;var d=new Date(s.replace(' ','T')+(/[zZ]|[+-]\d\d:?\d\d$/.test(s)?'':'+07:00'));return isFinite(d.getTime())?d.getTime():0;}
+function _ops2Get(table,select){
+ function page(off,out){return fetch(SUPA_URL+'/rest/v1/'+table+'?select='+encodeURIComponent(select)+'&order=_id.asc&limit=1000&offset='+off,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}})
+  .then(function(r){if(!r.ok)throw new Error(table+' HTTP '+r.status);return r.json();})
+  .then(function(d){out=out.concat(d||[]);return (d&&d.length===1000)?page(off+1000,out):out;});}
+ return page(0,[]);
+}
+function _ops2Sf(){
+ if(_OPS2_SF)return Promise.resolve(_OPS2_SF);
+ if(_OPS2_SF_P)return _OPS2_SF_P;
+ _OPS2_SF_P=_ops2Get('sales_fact','ma_don_hang,ngay_dat_hang,trang_thai_don_hang,ly_do_huy,don_vi_van_chuyen,ngay_xuat_hang,thoi_gian_hoan_thanh_don_hang,sku_phan_loai_hang,ten_san_pham,so_luong,so_luong_san_pham_duoc_hoan_tra,tong_gia_ban_san_pham,phi_co_dinh,phi_dich_vu,phi_thanh_toan,tien_ky_quy,tong_so_tien_nguoi_mua_thanh_toan,phuong_thuc_thanh_toan')
+ .then(function(rows){
+  _OPS2_SF=rows.map(function(x){
+   var st=String(x.trang_thai_don_hang||'');
+   return {sn:String(x.ma_don_hang||''),d:_ops2D(x.ngay_dat_hang),ms:_ops2Ms(x.ngay_dat_hang),
+    cancel:/cancel|hủy|huỷ/i.test(st),reason:String(x.ly_do_huy||'').trim(),
+    carrier:String(x.don_vi_van_chuyen||'').trim(),shipMs:_ops2Ms(x.ngay_xuat_hang),doneMs:_ops2Ms(x.thoi_gian_hoan_thanh_don_hang),
+    sku:String(x.sku_phan_loai_hang||'').trim(),name:String(x.ten_san_pham||'').trim(),
+    qty:_ops2N(x.so_luong),ret:_ops2N(x.so_luong_san_pham_duoc_hoan_tra),gmv:_ops2N(x.tong_gia_ban_san_pham),
+    f0:_ops2N(x.phi_co_dinh),f1:_ops2N(x.phi_dich_vu),f2:_ops2N(x.phi_thanh_toan),esc:_ops2N(x.tien_ky_quy),
+    paid:_ops2N(x.tong_so_tien_nguoi_mua_thanh_toan),pay:String(x.phuong_thuc_thanh_toan||'').trim()};
+  }).filter(function(r){return r.d;});
+  return _OPS2_SF;
+ }).catch(function(e){_OPS2_SF_P=null;throw e;});
+ return _OPS2_SF_P;
+}
+function _ops2Dim(){
+ if(_OPS2_DIM)return Promise.resolve(_OPS2_DIM);
+ if(_OPS2_DIM_P)return _OPS2_DIM_P;
+ _OPS2_DIM_P=Promise.all([
+  _ops2Get('sku','sku,nganh_hang,brand,subcategory_name,abc_class,gia_von_vat,unit_cost_vnd,id_ma_san_pham_shopee'),
+  _ops2Get('dim_class','subcategory_name_khoa,phan_khuc_gia,nhan_vong_doi,vai_tro_sp,mua_vu'),
+  _ops2Get('tonkho','sku_khoa,ten_san_pham,ton_hien_tai,ton_kha_dung')
+ ]).then(function(A){
+  var bySku={},shop2={},cls={},ton={};
+  A[0].forEach(function(x){var k=String(x.sku||'').trim();if(!k)return;
+   var cost=_ops2N(x.gia_von_vat)||_ops2N(x.unit_cost_vnd);
+   bySku[k]={nganh:String(x.nganh_hang||''),brand:String(x.brand||''),cls:String(x.subcategory_name||''),abc:String(x.abc_class||''),cost:cost,shop:String(x.id_ma_san_pham_shopee||'').trim()};
+   if(bySku[k].shop){(shop2[bySku[k].shop]=shop2[bySku[k].shop]||[]).push(k);}});
+  A[1].forEach(function(x){var k=String(x.subcategory_name_khoa||'').trim();if(k)cls[k]={seg:String(x.phan_khuc_gia||''),life:String(x.nhan_vong_doi||''),role:String(x.vai_tro_sp||''),season:String(x.mua_vu||'')};});
+  A[2].forEach(function(x){var k=String(x.sku_khoa||'').trim();if(!k)return;var t=ton[k]=ton[k]||{ton:0,kd:0};t.ton+=_ops2N(x.ton_hien_tai);t.kd+=_ops2N(x.ton_kha_dung);});
+  _OPS2_DIM={sku:bySku,shop2:shop2,cls:cls,ton:ton};
+  return _OPS2_DIM;
+ }).catch(function(e){_OPS2_DIM_P=null;throw e;});
+ return _OPS2_DIM_P;
+}
+/* ---- kỳ chọn & gộp ngày → tuần → tháng (chuẩn dự án: kỳ dài tự gộp) ---- */
+function _ops2MaxD(SF){var mx='';SF.forEach(function(r){if(r.d>mx)mx=r.d;});return mx;}
+function _ops2Win(SF,days){
+ if(!days||days>=9999)return SF.slice();
+ var mx=_ops2MaxD(SF);if(!mx)return SF.slice();
+ var dt=new Date(+mx.slice(0,4),+mx.slice(5,7)-1,+mx.slice(8,10));dt.setDate(dt.getDate()-(days-1));
+ var cut=dt.getFullYear()+'-'+_ops2Pad(dt.getMonth()+1)+'-'+_ops2Pad(dt.getDate());
+ return SF.filter(function(r){return r.d>=cut;});
+}
+function _ops2Span(win){if(!win.length)return 0;var mn='9999-99-99',mx='';win.forEach(function(r){if(r.d<mn)mn=r.d;if(r.d>mx)mx=r.d;});
+ var a=new Date(+mn.slice(0,4),+mn.slice(5,7)-1,+mn.slice(8,10)),b=new Date(+mx.slice(0,4),+mx.slice(5,7)-1,+mx.slice(8,10));
+ return Math.round((b-a)/86400000)+1;}
+function _ops2G(nDays){return nDays<=31?'d':nDays<=124?'w':'m';}
+function _ops2GLabel(g){return g==='d'?'theo ngày':g==='w'?'theo tuần':'theo tháng';}
+function _ops2Bk(d,g){
+ if(g==='m')return d.slice(0,7);
+ if(g==='d')return d;
+ var dt=new Date(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8,10));var dow=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-dow);
+ return dt.getFullYear()+'-'+_ops2Pad(dt.getMonth()+1)+'-'+_ops2Pad(dt.getDate());
+}
+function _ops2Lab(k,g){return g==='m'?k.slice(5,7)+'/'+k.slice(2,4):k.slice(8,10)+'/'+k.slice(5,7);}
+function _ops2Series(rows,g,init,acc){
+ var map={},keys=[];
+ rows.forEach(function(r){var k=_ops2Bk(r.d,g);if(!map[k]){map[k]=init();keys.push(k);}acc(map[k],r);});
+ keys.sort();return {keys:keys,map:map};
+}
+function _ops2P(arr,q){if(!arr.length)return 0;var a=arr.slice().sort(function(x,y){return x-y;});var i=(a.length-1)*q,lo=Math.floor(i),hi=Math.ceil(i);return lo===hi?a[lo]:a[lo]+(a[hi]-a[lo])*(i-lo);}
+function _ops2H(h){return h>=48?((h/24).toLocaleString('vi-VN',{maximumFractionDigits:1})+' ngày'):((+h||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+' giờ');}
+function _ops2Tr(v){return Math.round((v||0)/1e4)/100;} /* VND -> triệu, 2 số lẻ */
+/* ---- gom dòng -> đơn (phí/escrow chỉ tính 1 lần / đơn, như ops-responder) ---- */
+function _ops2Ords(rows){
+ var m={},list=[];
+ rows.forEach(function(r){var o=m[r.sn];
+  if(!o){o=m[r.sn]={sn:r.sn,d:r.d,ms:r.ms,cancel:false,gmv:0,qty:0,f0:r.f0,f1:r.f1,f2:r.f2,esc:r.esc,paid:r.paid,pay:r.pay,carrier:r.carrier,shipMs:r.shipMs,doneMs:r.doneMs};list.push(o);}
+  o.cancel=o.cancel||r.cancel;o.gmv+=r.gmv;if(!r.cancel)o.qty+=r.qty;
+  if(!o.carrier&&r.carrier)o.carrier=r.carrier;
+  if(!o.shipMs&&r.shipMs)o.shipMs=r.shipMs;
+  if(!o.doneMs&&r.doneMs)o.doneMs=r.doneMs;
+  if(!o.pay&&r.pay)o.pay=r.pay;
+ });
+ return list;
+}
+/* ---- khối UI dùng chung ---- */
+function _ops2Card(title,sub,inner){return '<div class="ops-card"><h2>'+title+'</h2><div class="ops-sub">'+sub+'</div>'+inner+'</div>';}
+function _ops2Canvas(id,h){return '<div style="height:'+(h||260)+'px;position:relative;margin-top:10px"><canvas id="'+id+'"></canvas></div>';}
+function _ops2Chart(id,cfg){var el=document.getElementById(id);if(!el)return;if(OPSCH[id]){try{OPSCH[id].destroy();}catch(e){}delete OPSCH[id];}OPSCH[id]=new Chart(el,cfg);}
+function _ops2Opts(yTitle,y1Title){
+ var o={maintainAspectRatio:false,animation:{duration:240},interaction:{mode:'index',intersect:false},
+  plugins:{legend:{position:'top',align:'start',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:12,color:'#334155',font:{size:11,weight:'600'}}}},
+  scales:{x:{ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:12,font:{size:10}},grid:{display:false}},
+   y:{beginAtZero:true,title:{display:false,text:yTitle||'triệu'},ticks:{font:{size:10}}}}};
+ if(y1Title)o.scales.y1={position:'right',beginAtZero:true,title:{display:false,text:y1Title},grid:{drawOnChartArea:false},ticks:{font:{size:10}}};
+ return o;
+}
+function _ops2Line(label,data,color,extra){var d={type:'line',label:label,data:data,borderColor:color,backgroundColor:color,tension:.25,pointRadius:2,borderWidth:2};if(extra)Object.keys(extra).forEach(function(k){d[k]=extra[k];});return d;}
+function _ops2DaysSel(list){list=list||[30,60,90];
+ return '<div class="ops-filter" style="margin:14px 0 10px">'+list.map(function(d){return '<button data-od="'+d+'" class="'+(S.opsDays===d?'on':'')+'">'+(d>=9999?'Toàn bộ':d+' ngày')+'</button>';}).join('')+'</div>';}
+function _ops2BindDays(host){host.querySelectorAll('[data-od]').forEach(function(b){b.onclick=function(){S.opsDays=+b.dataset.od;renderShopeePage();};});}
+function _ops2Miss(items){
+ return '<div class="ops-card"><h2>Dữ liệu API còn thiếu cho màn này</h2><div class="ops-sub">Không hiển thị số ước lượng — các phân tích dưới đây sẽ tự xuất hiện khi connector bổ sung trường</div><table class="ops-table"><tbody>'+items.map(function(x){return '<tr><td style="width:40%"><b>'+x[0]+'</b></td><td>'+x[1]+'</td></tr>';}).join('')+'</tbody></table></div>';
+}
+/* ================= MÀN: DOANH THU & ĐƠN HÀNG SHOPEE ================= */
+function _ops2Orders(host,p,SF,DIM){
+ var win=_ops2Win(SF,S.opsDays),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
+ var gross=0,cancel=0,units=0;
+ win.forEach(function(r){gross+=r.gmv;if(r.cancel)cancel+=r.gmv;else units+=r.qty;});
+ var net=gross-cancel,oc=0;ords.forEach(function(o){if(o.cancel)oc++;});
+ var okN=ords.length-oc;
+ var se=_ops2Series(win,g,function(){return {g:0,c:0,o:{},n:0,oc:{}};},function(a,r){a.g+=r.gmv;if(r.cancel){a.c+=r.gmv;a.oc[r.sn]=1;}a.o[r.sn]=1;});
+ var labs=se.keys.map(function(k){return _ops2Lab(k,g);});
+ var okO=ords.filter(function(o){return !o.cancel;});
+ var nShip=okO.filter(function(o){return o.shipMs>0;}).length,nDone=okO.filter(function(o){return o.doneMs>0;}).length;
+ var fun='<table class="ops-table"><thead><tr><th>Mốc</th><th>Đơn</th><th>% đơn không huỷ</th></tr></thead><tbody>'+
+  [['Đã đặt (không huỷ)',okN,1],['Có mốc xuất hàng',nShip,okN?nShip/okN:0],['Có mốc hoàn thành',nDone,okN?nDone/okN:0]]
+  .map(function(x){return '<tr><td><b>'+x[0]+'</b></td><td class="ops-num">'+x[1].toLocaleString('vi-VN')+'</td><td class="ops-num">'+_opsPct(x[2])+'<div class="ops-bar"><i style="width:'+(x[2]*100).toFixed(1)+'%"></i></div></td></tr>';}).join('')+
+  '</tbody></table><div class="ops-sub" style="margin-top:8px">Shopee chỉ trả 2 trạng thái "Hoàn thành / Đã hủy"; mốc xuất hàng &amp; hoàn thành chỉ có ở đơn đồng bộ từ Order API (~90 ngày gần nhất) — đơn cũ import không có mốc.</div>';
+ var bySku={};
+ win.forEach(function(r){if(!r.sku)return;var x=bySku[r.sku]=bySku[r.sku]||{sku:r.sku,name:r.name,g:0,c:0,q:0};x.g+=r.gmv;if(r.cancel)x.c+=r.gmv;else x.q+=r.qty;if(!x.name&&r.name)x.name=r.name;});
+ var top=Object.keys(bySku).map(function(k){return bySku[k];}).sort(function(a,b){return (b.g-b.c)-(a.g-a.c);}).slice(0,15);
+ var topT='<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>#</th><th>SKU</th><th>Ngành / Brand / Class</th><th>ABC</th><th>SL</th><th>DT sau huỷ</th><th>% DT</th><th>Tỷ lệ huỷ</th></tr></thead><tbody>'+top.map(function(x,i){
+  var mst=DIM.sku[x.sku]||{},nv=x.g-x.c,cr=x.g?x.c/x.g:0;
+  return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.sku)+'</b><div class="ops-sub">'+_opsEsc((x.name||'').slice(0,46))+'</div></td><td>'+_opsEsc([mst.nganh,mst.brand,mst.cls].filter(Boolean).join(' · ')||'Chưa khai báo')+'</td><td>'+_opsEsc(mst.abc||'—')+'</td><td class="ops-num">'+x.q.toLocaleString('vi-VN')+'</td><td class="ops-num">'+_opsMoney(nv)+'</td><td class="ops-num">'+_opsPct(net?nv/net:0)+'</td><td class="ops-num"'+(cr>=0.3?' style="color:#D92D20;font-weight:700"':'')+'>'+_opsPct(cr)+'</td></tr>';
+ }).join('')+'</tbody></table></div>';
+ host.innerHTML=_opsHead('Doanh thu & đơn hàng Shopee','GMV, đơn, huỷ và SKU dẫn dắt theo kỳ chọn — tính trực tiếp từ Data Sale (sales_fact).')+
+  _ops2DaysSel([30,60,90,180,9999])+
+  _opsMiniKpis([
+   ['GMV đặt hàng',_opsMoney(gross),ords.length.toLocaleString('vi-VN')+' đơn trong kỳ'],
+   ['DT sau huỷ',_opsMoney(net),_opsPct(gross?net/gross:0)+' GMV đặt'],
+   ['Đơn huỷ',oc.toLocaleString('vi-VN'),_opsPct(ords.length?oc/ords.length:0)+' số đơn'],
+   ['AOV (đơn không huỷ)',_opsMoney(okN?net/okN:0),okN.toLocaleString('vi-VN')+' đơn'],
+   ['SP đã bán',units.toLocaleString('vi-VN'),'không tính đơn huỷ']
+  ])+
+  '<div class="ops-grid">'+
+  _ops2Card('Xu hướng doanh thu','GMV đặt hàng · DT sau huỷ · GMV huỷ — '+_ops2GLabel(g),_ops2Canvas('opsOrdRev'))+
+  _ops2Card('Đơn hàng & tỷ lệ huỷ','Cột: số đơn · đường: % GMV huỷ — '+_ops2GLabel(g),_ops2Canvas('opsOrdCnt'))+
+  '</div><div class="ops-grid">'+
+  _ops2Card('Phễu mốc vận hành','Độ phủ mốc trên đơn không huỷ trong kỳ',fun)+
+  _ops2Card('Top 15 SKU theo DT sau huỷ','Gắn ngành / brand / class &amp; ABC từ danh mục SKU',topT)+
+  '</div>';
+ _ops2Chart('opsOrdRev',{type:'line',data:{labels:labs,datasets:[
+  _ops2Line('GMV đặt hàng',se.keys.map(function(k){return _ops2Tr(se.map[k].g);}),OPSC.gmv),
+  _ops2Line('DT sau huỷ',se.keys.map(function(k){return _ops2Tr(se.map[k].g-se.map[k].c);}),OPSC.net),
+  _ops2Line('GMV huỷ',se.keys.map(function(k){return _ops2Tr(se.map[k].c);}),OPSC.cancel)
+ ]},options:_ops2Opts('triệu')});
+ _ops2Chart('opsOrdCnt',{type:'bar',data:{labels:labs,datasets:[
+  {type:'bar',label:'Số đơn',data:se.keys.map(function(k){return Object.keys(se.map[k].o).length;}),backgroundColor:OPSC.orders,yAxisID:'y'},
+  _ops2Line('% GMV huỷ',se.keys.map(function(k){var v=se.map[k];return v.g?Math.round(v.c/v.g*1000)/10:0;}),OPSC.cancel,{yAxisID:'y1'})
+ ]},options:_ops2Opts('đơn','%')});
+}
+/* ================= MÀN: HUỶ, TRẢ & HOÀN TIỀN ================= */
+function _ops2Returns(host,p,SF,DIM){
+ var win=_ops2Win(SF,S.opsDays),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
+ var gross=0,cancel=0,ret=0;
+ win.forEach(function(r){gross+=r.gmv;if(r.cancel)cancel+=r.gmv;ret+=r.ret;});
+ var oc=0;ords.forEach(function(o){if(o.cancel)oc++;});
+ var ordReason={},withReasonG=0;
+ win.forEach(function(r){if(!r.cancel)return;var cur=ordReason[r.sn]=ordReason[r.sn]||{g:0,reason:''};cur.g+=r.gmv;if(!cur.reason&&r.reason)cur.reason=r.reason;});
+ var reasons={},noReason=0,noReasonG=0;
+ Object.keys(ordReason).forEach(function(sn){var v=ordReason[sn];
+  if(!v.reason){noReason++;noReasonG+=v.g;return;}
+  var key=v.reason.toLowerCase();var x=reasons[key]=reasons[key]||{label:v.reason,n:0,g:0};x.n++;x.g+=v.g;withReasonG+=v.g;});
+ var rl=Object.keys(reasons).map(function(k){return reasons[k];}).sort(function(a,b){return b.g-a.g;});
+ var reasonT;
+ if(!oc)reasonT='<div class="ops-empty"><b>Không có đơn huỷ trong kỳ chọn</b></div>';
+ else reasonT='<table class="ops-table"><thead><tr><th>Lý do huỷ</th><th>Đơn</th><th>GMV huỷ</th><th>% GMV huỷ kỳ</th></tr></thead><tbody>'+
+  rl.map(function(x){return '<tr><td><b>'+_opsEsc(x.label)+'</b></td><td class="ops-num">'+x.n+'</td><td class="ops-num">'+_opsMoney(x.g)+'</td><td class="ops-num">'+_opsPct(cancel?x.g/cancel:0)+'<div class="ops-bar"><i style="width:'+(cancel?(x.g/cancel*100).toFixed(1):0)+'%"></i></div></td></tr>';}).join('')+
+  (noReason?'<tr><td style="color:#8494A8">Không có lý do (đơn ngoài cửa sổ Order API ~90 ngày)</td><td class="ops-num">'+noReason+'</td><td class="ops-num">'+_opsMoney(noReasonG)+'</td><td class="ops-num">'+_opsPct(cancel?noReasonG/cancel:0)+'</td></tr>':'')+
+  '</tbody></table>';
+ var bySku={};
+ win.forEach(function(r){if(!r.sku)return;var x=bySku[r.sku]=bySku[r.sku]||{sku:r.sku,name:r.name,g:0,c:0,cq:0,reasons:{}};
+  x.g+=r.gmv;if(!x.name&&r.name)x.name=r.name;
+  if(r.cancel){x.c+=r.gmv;x.cq+=r.qty;if(r.reason)x.reasons[r.reason]=(x.reasons[r.reason]||0)+1;}});
+ var topC=Object.keys(bySku).map(function(k){return bySku[k];}).filter(function(x){return x.c>0;}).sort(function(a,b){return b.c-a.c;}).slice(0,15);
+ var skuT=topC.length?'<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>#</th><th>SKU</th><th>Class · phân khúc · vòng đời</th><th>ABC</th><th>GMV huỷ</th><th>SL huỷ</th><th>Tỷ lệ huỷ SKU</th><th>Lý do gặp nhiều nhất</th></tr></thead><tbody>'+topC.map(function(x,i){
+   var mst=DIM.sku[x.sku]||{},cd=DIM.cls[mst.cls]||{};
+   var rk=Object.keys(x.reasons).sort(function(a,b){return x.reasons[b]-x.reasons[a];})[0]||'Chưa có lý do từ API';
+   var cr=x.g?x.c/x.g:0;
+   return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.sku)+'</b><div class="ops-sub">'+_opsEsc((x.name||'').slice(0,42))+'</div></td><td>'+_opsEsc([mst.cls||'Chưa khai báo',cd.seg,cd.life].filter(Boolean).join(' · '))+'</td><td>'+_opsEsc(mst.abc||'—')+'</td><td class="ops-num">'+_opsMoney(x.c)+'</td><td class="ops-num">'+x.cq.toLocaleString('vi-VN')+'</td><td class="ops-num"'+(cr>=0.3?' style="color:#D92D20;font-weight:700"':'')+'>'+_opsPct(cr)+'</td><td>'+_opsEsc(rk)+'</td></tr>';
+  }).join('')+'</tbody></table></div>':'<div class="ops-empty"><b>Không có SKU bị huỷ trong kỳ</b></div>';
+ var se=_ops2Series(win,g,function(){return {g:0,c:0};},function(a,r){a.g+=r.gmv;if(r.cancel)a.c+=r.gmv;});
+ var labs=se.keys.map(function(k){return _ops2Lab(k,g);});
+ host.innerHTML=_opsHead('Huỷ, trả hàng & hoàn tiền','Thất thoát GMV theo lý do, SKU và thời gian — tính trực tiếp từ Data Sale.')+
+  _ops2DaysSel([30,60,90,180,9999])+
+  _opsMiniKpis([
+   ['GMV huỷ',_opsMoney(cancel),_opsPct(gross?cancel/gross:0)+' GMV đặt trong kỳ'],
+   ['Đơn huỷ',oc.toLocaleString('vi-VN'),'trong '+ords.length.toLocaleString('vi-VN')+' đơn'],
+   ['GMV huỷ có lý do',_opsPct(cancel?withReasonG/cancel:0),'lý do chỉ có từ Order API'],
+   ['SP hoàn trả',ret.toLocaleString('vi-VN'),ret?'từ cột hoàn trả Data Sale':'Chưa phát sinh trong dữ liệu']
+  ])+
+  '<div class="ops-grid">'+
+  _ops2Card('Xu hướng huỷ đơn','Cột: GMV huỷ (triệu) · đường: % GMV huỷ — '+_ops2GLabel(g),_ops2Canvas('opsRetTrend'))+
+  _ops2Card('Cơ cấu lý do huỷ','Gom theo đơn huỷ · nguồn cancel_reason Order API',reasonT)+
+  '</div>'+
+  _ops2Card('Top SKU bị huỷ','Gắn class, phân khúc giá, vòng đời và ABC để định vị nhóm rủi ro',skuT)+
+  _ops2Miss([
+   ['Trả hàng / hoàn tiền','Trạng thái trả hàng &amp; số lượng hoàn hiện bằng 0 toàn bộ — Returns API đã kết nối nhưng chưa có yêu cầu hoàn. Khi phát sinh, KPI và bảng tự có số.'],
+   ['Ngày huỷ thành công','Cột ngay_huy_thanh_cong trống — xu hướng huỷ đang tính theo ngày đặt hàng.']
+  ]);
+ _ops2Chart('opsRetTrend',{type:'bar',data:{labels:labs,datasets:[
+  {type:'bar',label:'GMV huỷ',data:se.keys.map(function(k){return _ops2Tr(se.map[k].c);}),backgroundColor:OPSC.cancel,yAxisID:'y'},
+  _ops2Line('% GMV huỷ',se.keys.map(function(k){var v=se.map[k];return v.g?Math.round(v.c/v.g*1000)/10:0;}),OPSC.gmv,{yAxisID:'y1'})
+ ]},options:_ops2Opts('triệu','%')});
+}
+/* ================= MÀN: TÀI CHÍNH & PHÍ — BẢNG P&L ================= */
+function _ops2Finance(host,p,SF,DIM){
+ var win=_ops2Win(SF,S.opsDays),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
+ var gross=0,cancel=0;win.forEach(function(r){gross+=r.gmv;if(r.cancel)cancel+=r.gmv;});
+ var net=gross-cancel;
+ var B=ords.filter(function(o){return (o.f0+o.f1+o.f2)>0||o.esc>0;});
+ var gB=0,netB=0,f0=0,f1=0,f2=0,esc=0;
+ B.forEach(function(o){gB+=o.gmv;if(!o.cancel)netB+=o.gmv;f0+=o.f0;f1+=o.f1;f2+=o.f2;esc+=o.esc;});
+ var fee=f0+f1+f2,other=netB-fee-esc;
+ var snB={};B.forEach(function(o){if(!o.cancel)snB[o.sn]=1;});
+ var cogs=0,qMatch=0,qTot=0;
+ win.forEach(function(r){if(r.cancel||!snB[r.sn])return;qTot+=r.qty;var m=DIM.sku[r.sku];if(m&&m.cost>0){cogs+=m.cost*r.qty;qMatch+=r.qty;}});
+ var gp=esc-cogs;
+ var adsSp=null;
+ try{
+  if(RAW.ads&&RAW.ads.shopD){
+   var mn='9999-99-99',mx='';win.forEach(function(r){if(r.d<mn)mn=r.d;if(r.d>mx)mx=r.d;});
+   adsSp=0;var shopD=RAW.ads.shopD;
+   Object.keys(shopD).forEach(function(k){var dk=k.replace(/\./g,'-');if(dk>=mn&&dk<=mx)adsSp+=(shopD[k][8]||0)*1e6;});
+  }
+ }catch(e){adsSp=null;}
+ var opProfit=(adsSp==null)?null:gp-adsSp;
+ function plRow(x){
+  if(x[0]==='h')return '<tr><td colspan="4" style="background:#F2F5FA;font-weight:800;color:#1B1C4C;font-size:11px;letter-spacing:.4px">'+x[1]+'</td></tr>';
+  var ind=x[0],label=x[1],val=x[2],base=x[3],note=x[4]||'';
+  var isSum=label.indexOf('=')===0;
+  var vTxt=val==null?'—':_opsMoney(Math.abs(val))+(val<0?'':'');
+  var sign=val==null?'':(val<0?'−':'');
+  var pct=(val==null||!base)?'—':_opsPct(Math.abs(val)/base);
+  return '<tr'+(isSum?' style="background:#FAFBFE"':'')+'><td style="padding-left:'+(10+ind*18)+'px;'+(isSum?'font-weight:800':'')+'">'+label+'</td><td class="ops-num" style="'+(isSum?'font-weight:800;':'')+(val!=null&&val<0?'color:#D92D20':'')+'">'+sign+vTxt+'</td><td class="ops-num">'+pct+'</td><td style="color:#8494A8;font-size:11px">'+note+'</td></tr>';
+ }
+ var rows=[
+  ['h','KHỐI A — TOÀN BỘ ĐƠN TRONG KỲ ('+ords.length.toLocaleString('vi-VN')+' đơn)'],
+  [0,'Doanh thu đặt hàng (GMV gộp)',gross,gross,''],
+  [1,'(−) GMV đơn huỷ',-cancel,gross,_opsPct(gross?cancel/gross:0)+' GMV'],
+  [0,'= Doanh thu sau huỷ',net,gross,''],
+  [1,'(−) Hoàn trả sau bán',0,gross,'Chưa phát sinh trong dữ liệu Returns'],
+  ['h','KHỐI B — ĐƠN CÓ ĐỐI SOÁT PHÍ / ESCROW ('+B.length.toLocaleString('vi-VN')+' đơn · phủ '+_opsPct(gross?gB/gross:0)+' GMV kỳ)'],
+  [0,'Doanh thu nhóm đối soát (sau huỷ)',netB,netB,'Cơ sở tính % của khối B'],
+  [1,'(−) Phí cố định',-f0,netB,''],
+  [1,'(−) Phí dịch vụ',-f1,netB,''],
+  [1,'(−) Phí thanh toán',-f2,netB,''],
+  [0,'= Tổng phí sàn Shopee',-fee,netB,_opsPct(netB?fee/netB:0)+' doanh thu đối soát'],
+  [1,'(−) Giảm trừ đối soát khác',-other,netB,'Voucher shop / trợ giá / điều chỉnh — Shopee chưa trả cột chi tiết'],
+  [0,'= Tiền thực nhận (escrow)',esc,netB,''],
+  [1,'(−) Giá vốn hàng bán',-cogs,netB,'Khớp giá vốn '+_opsPct(qTot?qMatch/qTot:0)+' SL nhóm B'],
+  [0,'= Lãi gộp sau phí &amp; giá vốn',gp,netB,''],
+  (adsSp==null?[1,'(−) Chi phí Ads trong kỳ',null,netB,'Thiếu dữ liệu Ads trong kỳ chọn']:[1,'(−) Chi phí Ads toàn shop trong kỳ',-adsSp,netB,'Ads phủ toàn shop, không riêng nhóm đối soát']),
+  (opProfit==null?[0,'= Lợi nhuận vận hành (sau Ads)',null,netB,'Không tính được do thiếu Ads']:[0,'= Lợi nhuận vận hành (sau Ads)',opProfit,netB,''])
+ ];
+ var pl='<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>Chỉ tiêu</th><th style="text-align:right">Giá trị</th><th style="text-align:right">% cơ sở</th><th>Ghi chú</th></tr></thead><tbody>'+rows.map(plRow).join('')+'</tbody></table></div>';
+ var seB=(function(){
+  var map={},keys=[];
+  B.forEach(function(o){var k=_ops2Bk(o.d,g);if(!map[k]){map[k]={f0:0,f1:0,f2:0,net:0};keys.push(k);}
+   map[k].f0+=o.f0;map[k].f1+=o.f1;map[k].f2+=o.f2;if(!o.cancel)map[k].net+=o.gmv;});
+  keys.sort();return {keys:keys,map:map};
+ })();
+ var labsB=seB.keys.map(function(k){return _ops2Lab(k,g);});
+ host.innerHTML=_opsHead('Tài chính & phí Shopee — P&L','Chuỗi khấu trừ từ GMV đến lợi nhuận vận hành; mỗi đơn chỉ tính một lần; số liệu từ Data Sale + đối soát escrow.')+
+  _ops2DaysSel([30,60,90])+
+  _opsMiniKpis([
+   ['Tiền thực nhận',_opsMoney(esc),B.length.toLocaleString('vi-VN')+' đơn có đối soát'],
+   ['Tổng phí sàn',_opsMoney(fee),_opsPct(netB?fee/netB:0)+' DT đối soát'],
+   ['Lãi gộp sau phí & giá vốn',_opsMoney(gp),_opsPct(netB?gp/netB:0)+' DT đối soát'],
+   [opProfit==null?'LN sau Ads':'LN vận hành sau Ads',opProfit==null?'—':_opsMoney(opProfit),opProfit==null?'Thiếu dữ liệu Ads':_opsPct(netB?opProfit/netB:0)+' DT đối soát']
+  ])+
+  _ops2Card('Bảng phân tích P&L — kỳ '+(S.opsDays>=9999?'toàn bộ':S.opsDays+' ngày'),'Khối A: toàn bộ đơn · Khối B: đơn có đối soát phí/escrow (chủ yếu ~90 ngày gần nhất)',pl)+
+  '<div class="ops-grid">'+
+  _ops2Card('Cơ cấu phí sàn theo thời gian','Cột chồng: 3 loại phí (triệu) · đường: % tổng phí / DT đối soát — '+_ops2GLabel(g),_ops2Canvas('opsFeeTrend'))+
+  _ops2Miss([
+   ['Trợ giá seller vs Shopee','Cột trợ giá trong Data Sale trống toàn bộ — phần này đang nằm gộp trong "Giảm trừ đối soát khác".'],
+   ['Voucher / xu / combo','Các cột mã giảm giá shop, mã Shopee, hoàn xu, combo đều trống — chưa tách riêng được.'],
+   ['Phí vận chuyển','Phí VC dự kiến / người mua trả / phí trả hàng đều trống — chưa phân tích được trợ giá ship.'],
+   ['Giá gốc vs giá ưu đãi','Hai cột giá đều trống — chưa đo được mức giảm giá trung bình.']
+  ])+
+  '</div>';
+ _ops2Chart('opsFeeTrend',{type:'bar',data:{labels:labsB,datasets:[
+  {type:'bar',label:'Phí cố định',data:seB.keys.map(function(k){return _ops2Tr(seB.map[k].f0);}),backgroundColor:OPSC.fee0,stack:'fee',yAxisID:'y'},
+  {type:'bar',label:'Phí dịch vụ',data:seB.keys.map(function(k){return _ops2Tr(seB.map[k].f1);}),backgroundColor:OPSC.fee1,stack:'fee',yAxisID:'y'},
+  {type:'bar',label:'Phí thanh toán',data:seB.keys.map(function(k){return _ops2Tr(seB.map[k].f2);}),backgroundColor:OPSC.fee2,stack:'fee',yAxisID:'y'},
+  _ops2Line('% phí / DT đối soát',seB.keys.map(function(k){var v=seB.map[k];var f=v.f0+v.f1+v.f2;return v.net?Math.round(f/v.net*1000)/10:0;}),OPSC.cancel,{yAxisID:'y1'})
+ ]},options:(function(){var o=_ops2Opts('triệu','%');o.scales.y.stacked=true;o.scales.x.stacked=true;return o;})()});
+}
+/* ================= MÀN: HIỆU SUẤT GIAO VẬN ================= */
+function _ops2Logistics(host,p,SF,DIM){
+ var win=_ops2Win(SF,S.opsDays),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
+ var prep=[],full=[];
+ var carriers={};
+ ords.forEach(function(o){
+  var cName=o.carrier||'Chưa xác định';
+  var c=carriers[cName]=carriers[cName]||{carrier:cName,n:0,cancel:0,prep:[],full:[],withMs:0};
+  c.n++;if(o.cancel)c.cancel++;
+  var pr=(o.ms&&o.shipMs&&o.shipMs>=o.ms)?(o.shipMs-o.ms)/3600000:0;
+  var fu=(o.ms&&o.doneMs&&o.doneMs>=o.ms)?(o.doneMs-o.ms)/3600000:0;
+  if(pr){prep.push(pr);c.prep.push(pr);c.withMs++;}
+  if(fu){full.push(fu);c.full.push(fu);}
+ });
+ var withTrack=ords.filter(function(o){return o.shipMs>0||o.doneMs>0;}).length;
+ var avg=function(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:0;};
+ var cl=Object.keys(carriers).map(function(k){return carriers[k];}).filter(function(c){return c.carrier!=='Chưa xác định'||c.withMs>0;}).sort(function(a,b){return b.n-a.n;});
+ var carT=cl.length?'<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>Đơn vị vận chuyển</th><th>Đơn</th><th>% đơn kỳ</th><th>% huỷ</th><th>Chuẩn bị TB</th><th>Chuẩn bị P90</th><th>Đặt→hoàn thành TB</th><th>P90</th><th>Đơn có mốc</th></tr></thead><tbody>'+cl.map(function(c){
+   return '<tr><td><b>'+_opsEsc(c.carrier)+'</b></td><td class="ops-num">'+c.n+'</td><td class="ops-num">'+_opsPct(ords.length?c.n/ords.length:0)+'</td><td class="ops-num"'+(c.n&&c.cancel/c.n>=0.3?' style="color:#D92D20"':'')+'>'+_opsPct(c.n?c.cancel/c.n:0)+'</td><td class="ops-num">'+(c.prep.length?_ops2H(avg(c.prep)):'—')+'</td><td class="ops-num">'+(c.prep.length?_ops2H(_ops2P(c.prep,0.9)):'—')+'</td><td class="ops-num">'+(c.full.length?_ops2H(avg(c.full)):'—')+'</td><td class="ops-num">'+(c.full.length?_ops2H(_ops2P(c.full,0.9)):'—')+'</td><td class="ops-num">'+c.withMs+'</td></tr>';
+  }).join('')+'</tbody></table></div>':'<div class="ops-empty"><b>Chưa có đơn gắn đơn vị vận chuyển trong kỳ</b></div>';
+ var seRows=win.filter(function(r){return r.shipMs&&r.ms&&r.shipMs>=r.ms;});
+ var seen={};seRows=seRows.filter(function(r){if(seen[r.sn])return false;seen[r.sn]=1;return true;});
+ var se=(function(){
+  var map={},keys=[];
+  seRows.forEach(function(r){var k=_ops2Bk(r.d,g);if(!map[k]){map[k]=[];keys.push(k);}map[k].push((r.shipMs-r.ms)/3600000);});
+  keys.sort();return {keys:keys,map:map};
+ })();
+ var labs=se.keys.map(function(k){return _ops2Lab(k,g);});
+ host.innerHTML=_opsHead('Hiệu suất giao vận','Thời gian xử lý từng chặng theo đơn vị vận chuyển — chỉ dùng đơn có mốc thời gian thật từ Order API.')+
+  _ops2DaysSel([30,60,90,180,9999])+
+  _opsMiniKpis([
+   ['Đơn có mốc vận hành',withTrack.toLocaleString('vi-VN'),_opsPct(ords.length?withTrack/ords.length:0)+' đơn trong kỳ'],
+   ['Chuẩn bị hàng TB',prep.length?_ops2H(avg(prep)):'—','đặt → xuất hàng · '+prep.length+' đơn'],
+   ['Chuẩn bị P90',prep.length?_ops2H(_ops2P(prep,0.9)):'—','90% đơn xuất trong thời gian này'],
+   ['Đặt → hoàn thành TB',full.length?_ops2H(avg(full)):'—',full.length+' đơn có mốc hoàn thành'],
+   ['Giao đúng cam kết','—','Thiếu dữ liệu ngày giao dự kiến']
+  ])+
+  '<div class="ops-grid">'+
+  _ops2Card('Thời gian chuẩn bị hàng theo thời gian','Đường đậm: trung bình · đường nhạt: P90 (giờ) — '+_ops2GLabel(g),_ops2Canvas('opsLogTrend'))+
+  _ops2Card('Hiệu suất theo đơn vị vận chuyển','Gồm cả tỷ lệ huỷ theo carrier để soi rủi ro giao chậm → huỷ',carT)+
+  '</div>'+
+  _ops2Miss([
+   ['Ngày giao dự kiến','Cột ngay_giao_hang_du_kien trống 100% — không tính được % giao đúng cam kết. Cần bổ sung từ Order API (đã ghi ở Đề xuất mở rộng dữ liệu).'],
+   ['Thời gian giao thực tế','Cột thoi_gian_giao_hang trống — chặng "xuất → giao tận tay" chưa đo được; hiện dùng mốc hoàn thành đơn thay thế.']
+  ]);
+ _ops2Chart('opsLogTrend',{type:'line',data:{labels:labs,datasets:[
+  _ops2Line('Chuẩn bị TB (giờ)',se.keys.map(function(k){return Math.round(avg(se.map[k])*10)/10;}),OPSC.gmv),
+  _ops2Line('Chuẩn bị P90 (giờ)',se.keys.map(function(k){return Math.round(_ops2P(se.map[k],0.9)*10)/10;}),OPSC.p90,{borderDash:[5,4]})
+ ]},options:_ops2Opts('giờ')});
+}
+/* ================= MÀN: KHÁCH HÀNG KHU VỰC ================= */
+function _ops2Regions(host,p,SF,DIM){
+ var win=_ops2Win(SF,S.opsDays),ords=_ops2Ords(win);
+ var rr=p.regions||[];
+ var regHtml;
+ if(rr.length){
+  var mx=Math.max.apply(null,rr.map(function(x){return x.gmv;}));
+  regHtml='<div class="ops-card"><h2>Xếp hạng tỉnh/thành</h2><div class="ops-sub">Nguồn: recipient_address từ Shopee Order API</div><div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>#</th><th>Tỉnh / thành</th><th>Doanh thu</th><th>Tỷ trọng</th><th>Đơn</th><th>AOV</th><th>Tỷ lệ huỷ</th><th>Top sản phẩm</th></tr></thead><tbody>'+rr.map(function(x,i){
+   return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.province)+'</b><div class="ops-bar"><i style="width:'+((x.gmv/mx)*100).toFixed(1)+'%"></i></div></td><td class="ops-num">'+_opsMoney(x.gmv)+'</td><td class="ops-num">'+_opsPct(x.gmv/(rr.reduce(function(a,b){return a+b.gmv;},0)||1))+'</td><td class="ops-num">'+x.orders+'</td><td class="ops-num">'+_opsMoney(x.aov)+'</td><td class="ops-num">'+_opsPct(x.cancel_rate)+'</td><td>'+(x.top_products||[]).map(function(tp){return _opsEsc(tp.name);}).join(', ')+'</td></tr>';
+  }).join('')+'</tbody></table></div></div>';
+ }else{
+  regHtml='<div class="ops-card"><h2>Xếp hạng tỉnh/thành</h2><div class="ops-empty"><b>Shopee đang ẩn (mask) tỉnh/thành người mua</b>Toàn bộ cột địa chỉ từ Order API hiện trả về "****" — không thể phân tích khu vực mà không ước đoán. Khi Shopee mở lại trường này cho app, bảng sẽ tự hiển thị.</div></div>';
+ }
+ var payOrds=ords.filter(function(o){return o.pay;});
+ var pays={};var pg=0;
+ payOrds.forEach(function(o){var x=pays[o.pay]=pays[o.pay]||{pay:o.pay,n:0,g:0,cn:0,cg:0};x.n++;x.g+=o.gmv;pg+=o.gmv;if(o.cancel){x.cn++;x.cg+=o.gmv;}});
+ var pl=Object.keys(pays).map(function(k){return pays[k];}).sort(function(a,b){return b.g-a.g;});
+ var payHtml=pl.length?'<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>Phương thức thanh toán</th><th>Đơn</th><th>GMV</th><th>% GMV nhóm</th><th>% đơn huỷ</th></tr></thead><tbody>'+pl.map(function(x){
+   var cod=/cash on delivery|cod/i.test(x.pay);
+   return '<tr><td><b>'+_opsEsc(x.pay)+'</b>'+(cod?' <span style="font-size:10px;color:#B54708;background:#FEF0C7;border-radius:8px;padding:1px 7px">COD</span>':'')+'</td><td class="ops-num">'+x.n+'</td><td class="ops-num">'+_opsMoney(x.g)+'</td><td class="ops-num">'+_opsPct(pg?x.g/pg:0)+'<div class="ops-bar"><i style="width:'+(pg?(x.g/pg*100).toFixed(1):0)+'%"></i></div></td><td class="ops-num"'+(x.n&&x.cn/x.n>=0.2?' style="color:#D92D20;font-weight:700"':'')+'>'+_opsPct(x.n?x.cn/x.n:0)+'</td></tr>';
+  }).join('')+'</tbody></table></div><div class="ops-sub" style="margin-top:8px">Phương thức thanh toán chỉ có ở '+payOrds.length+' đơn đồng bộ từ Order API (~90 ngày gần nhất); đơn cũ import không có trường này.</div>':'<div class="ops-empty"><b>Chưa có đơn nào kèm phương thức thanh toán trong kỳ chọn</b></div>';
+ host.innerHTML=_opsHead('Khách hàng theo khu vực','Khu vực, phương thức thanh toán và rủi ro huỷ; không lưu thông tin nhận diện khách hàng.')+
+  _ops2DaysSel([30,60,90])+
+  _opsMiniKpis([
+   ['Đơn trong kỳ',ords.length.toLocaleString('vi-VN'),(S.opsDays>=9999?'toàn bộ dữ liệu':S.opsDays+' ngày gần nhất')],
+   ['DT sau huỷ',_opsMoney(ords.reduce(function(a,o){return a+(o.cancel?0:o.gmv);},0)),'Từ Data Sale'],
+   ['Đơn có PTTT',payOrds.length.toLocaleString('vi-VN'),_opsPct(ords.length?payOrds.length/ords.length:0)+' đơn kỳ']
+  ])+
+  regHtml+
+  _ops2Card('Phương thức thanh toán × rủi ro huỷ','COD thường có tỷ lệ huỷ/bom hàng cao hơn trả trước — soi để quyết định chính sách COD',payHtml)+
+  _ops2Miss([
+   ['Quận / huyện','Cột tp_quan_huyen và quan trống toàn bộ — chưa drill được dưới cấp tỉnh.'],
+   ['Tỉnh / thành','Đang bị Shopee mask "****" — đã ghi ở Đề xuất mở rộng dữ liệu.']
+  ]);
+}
+/* ================= MÀN: TỔNG QUAN VẬN HÀNH (nâng cấp) ================= */
+function _ops2Ops(host,p){
+ var top=(p.issues||[]).slice(0,6);
+ var dq=p.data_quality||{};
+ var ap=(p.ads_products||[]).slice(0,8);
+ var apT=ap.length?'<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>#</th><th>Sản phẩm (ID Shopee)</th><th>Chi phí</th><th>GMV ads</th><th>ROAS</th></tr></thead><tbody>'+ap.map(function(x,i){
+   var r=x.roas||0;
+   return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.name||x.id)+'</b></td><td class="ops-num">'+_opsMoney(x.spend)+'</td><td class="ops-num">'+_opsMoney(x.gmv)+'</td><td class="ops-num" style="color:'+(r>=6?'#079455':r>=3?'#B54708':'#D92D20')+';font-weight:700">'+r.toLocaleString('vi-VN',{maximumFractionDigits:2})+'</td></tr>';
+  }).join('')+'</tbody></table></div>':'<div class="ops-empty"><b>Chưa có dữ liệu Ads</b></div>';
+ var dqT='<table class="ops-table"><tbody>'+[
+  ['Dòng Data Sale',(dq.sales_rows||0).toLocaleString('vi-VN')+' dòng'],
+  ['Dòng Data Ads',(dq.ads_rows||0).toLocaleString('vi-VN')+' dòng'],
+  ['Dòng tồn kho',(dq.inventory_rows||0).toLocaleString('vi-VN')+' dòng'],
+  ['Độ phủ đối soát phí (90 ngày)',_opsPct(dq.finance_coverage||0)],
+  ['Độ phủ mốc vận chuyển (90 ngày)',_opsPct(dq.logistics_coverage||0)]
+ ].map(function(x){return '<tr><td><b>'+x[0]+'</b></td><td class="ops-num">'+x[1]+'</td></tr>';}).join('')+'</tbody></table>';
+ host.innerHTML=_opsHead('Tổng quan vận hành Shopee','Bức tranh 90 ngày: kết quả, rủi ro và tình trạng kết nối nguồn dữ liệu.')+_opsKpis(p)+
+  _ops2Card('Xu hướng 90 ngày','GMV đặt hàng · DT sau huỷ · GMV huỷ — gộp theo tuần · đường mảnh: số đơn (trục phải)',_ops2Canvas('opsDailyC',280))+
+  '<div class="ops-grid"><div class="ops-card"><h2>Ưu tiên cần xử lý</h2><div class="ops-sub">Xếp theo mức độ nghiêm trọng và giá trị ảnh hưởng</div>'+_opsIssueRows(top)+'</div><div class="ops-card"><h2>Sức khoẻ nguồn dữ liệu</h2><div class="ops-sub">Không sử dụng số liệu ước đoán cho API chưa kết nối</div>'+_opsSources(p)+'</div></div>'+
+  '<div class="ops-grid">'+
+  _ops2Card('Top sản phẩm Ads theo chi phí','Từ Data Ads 90 ngày · ROAS xanh ≥ 6, cam ≥ 3, đỏ &lt; 3',apT)+
+  _ops2Card('Chất lượng dữ liệu','Độ phủ các trường quan trọng — % thấp nghĩa là phân tích tương ứng chỉ phủ một phần',dqT)+
+  '</div>'+
+  _opsCoverage(p);
+ var daily=p.daily||[];
+ if(daily.length){
+  var map={},keys=[];
+  daily.forEach(function(x){var k=_ops2Bk(x.date,daily.length>35?'w':'d');if(!map[k]){map[k]={g:0,n:0,c:0,o:0};keys.push(k);}
+   map[k].g+=x.gross||0;map[k].n+=x.net||0;map[k].c+=x.cancel||0;map[k].o+=x.orders||0;});
+  keys.sort();
+  var labs=keys.map(function(k){return _ops2Lab(k,daily.length>35?'w':'d');});
+  _ops2Chart('opsDailyC',{type:'line',data:{labels:labs,datasets:[
+   _ops2Line('GMV đặt hàng',keys.map(function(k){return _ops2Tr(map[k].g);}),OPSC.gmv,{yAxisID:'y'}),
+   _ops2Line('DT sau huỷ',keys.map(function(k){return _ops2Tr(map[k].n);}),OPSC.net,{yAxisID:'y'}),
+   _ops2Line('GMV huỷ',keys.map(function(k){return _ops2Tr(map[k].c);}),OPSC.cancel,{yAxisID:'y'}),
+   _ops2Line('Số đơn',keys.map(function(k){return map[k].o;}),OPSC.orders,{yAxisID:'y1',borderWidth:1.5,borderDash:[4,3]})
+  ]},options:_ops2Opts('triệu','đơn')});
+ }
+}
+/* ================= MÀN: PHÂN TÍCH VẤN ĐỀ (thêm cảnh báo chéo Ads × tồn) ================= */
+function _ops2IssueExtra(p,SF,DIM){
+ var out=[];
+ try{
+  if(!RAW.ads||!RAW.ads.prod||!RAW.ads.days||!RAW.ads.days.length||!SF||!DIM)return out;
+  var days=RAW.ads.days.slice().sort();
+  var last=days[days.length-1];
+  var dt=new Date(+last.slice(0,4),+last.slice(5,7)-1,+last.slice(8,10));dt.setDate(dt.getDate()-29);
+  var cut=dt.getFullYear()+'.'+_ops2Pad(dt.getMonth()+1)+'.'+_ops2Pad(dt.getDate());
+  var win30=_ops2Win(SF,30);
+  var sold={};win30.forEach(function(r){if(!r.cancel&&r.sku)sold[r.sku]=(sold[r.sku]||0)+r.qty;});
+  RAW.ads.prod.forEach(function(pr){
+   var sp=0,bd=pr.byD||{};
+   Object.keys(bd).forEach(function(dk){if(dk>=cut)sp+=(bd[dk][8]||0);});
+   if(sp<=0.05)return;
+   var skus=DIM.shop2[pr.shop]||[];if(!skus.length)return;
+   var kd=0,so=0;
+   skus.forEach(function(s){var t=DIM.ton[s];if(t)kd+=t.kd;so+=sold[s]||0;});
+   var name=pr.cls||('SP '+pr.shop);
+   if(kd<=0&&so>0){out.push({type:'adsstock',severity:'critical',title:'Ads đang chạy nhưng HẾT tồn khả dụng · '+name,detail:'Chi Ads 30 ngày '+_opsMoney(sp*1e6)+' · bán '+so+'u/30 ngày · tồn khả dụng 0',impact:sp*1e6,metric:'Chi phí Ads 30 ngày',entity:pr.shop,action:'Tạm dừng / giảm bid campaign hoặc bổ sung tồn Shopee ngay'});}
+   else if(so>0){
+    var wk=kd/(so/4.29);
+    if(wk<4)out.push({type:'adsstock',severity:wk<2?'critical':'warning',title:'SP chạy Ads sắp hết tồn · '+name,detail:'Tồn khả dụng '+kd+'u ≈ '+wk.toFixed(1)+' tuần bán · chi Ads 30 ngày '+_opsMoney(sp*1e6),impact:sp*1e6,metric:'Chi phí Ads 30 ngày',entity:pr.shop,action:'Lên kế hoạch nhập bổ sung trước khi hết tồn; cân nhắc hạ ngân sách tạm thời'});
+   }
+  });
+ }catch(e){}
+ return out;
+}
+function _ops2Issues(host,p,SF,DIM){
+ var types=[['all','Tất cả'],['cancel','Huỷ đơn'],['ads','Ads lãng phí'],['adsstock','Ads × tồn kho'],['stock','Tồn chậm'],['stockout','Hết hàng']];
+ var all=(p.issues||[]).concat(_ops2IssueExtra(p,SF,DIM));
+ all.sort(function(a,b){return ((b.severity==='critical'?1:0)-(a.severity==='critical'?1:0))||((+b.impact||0)-(+a.impact||0));});
+ var arr=all.filter(function(x){return _OPS_FILTER==='all'||x.type===_OPS_FILTER;});
+ host.innerHTML=_opsHead('Phân tích vấn đề','Nhìn từ ảnh hưởng đến nguyên nhân và hành động cần quyết định.')+
+  '<div class="ops-filter">'+types.map(function(x){return '<button data-of="'+x[0]+'" class="'+(_OPS_FILTER===x[0]?'on':'')+'">'+x[1]+'</button>';}).join('')+'</div>'+
+  '<div class="ops-card">'+_opsIssueRows(arr)+'</div>'+
+  '<div class="ops-sub" style="margin-top:10px">Nhóm "Ads × tồn kho" được đối chiếu chéo tại trình duyệt: chi phí Ads 30 ngày (Data Ads) × tồn khả dụng Shopee (tonkho) × tốc độ bán 30 ngày (Data Sale).</div>';
+ host.querySelectorAll('[data-of]').forEach(function(b){b.onclick=function(){_OPS_FILTER=b.dataset.of;renderShopeePage();};});
+}
+/* ================= AFFILIATE — thêm % đóng góp doanh thu ================= */
+var _opsAffiliateV1=_opsAffiliate;
+_opsAffiliate=function(rows){
+ var h=_opsAffiliateV1(rows);
+ try{
+  var shop=((_opsFind(rows||[],'get_shop_performance')||{}).metrics)||{};
+  var sales=Number(shop.sales||0);
+  if(sales>0&&_OPS&&_OPS.daily&&_OPS.daily.length){
+   var last30=_OPS.daily.slice(-30);
+   var net30=last30.reduce(function(a,x){return a+(x.net||0);},0);
+   if(net30>0){
+    h+='<div class="ops-card"><h2>Đóng góp Affiliate vào doanh thu</h2><div class="ops-sub">So sánh cùng cửa sổ 30 ngày: DT Affiliate (AMS) với DT sau huỷ toàn shop (Data Sale)</div>'+
+     _opsMiniKpis([
+      ['Tỷ trọng Affiliate',_opsPct(sales/net30),'DT Affiliate / DT sau huỷ 30 ngày'],
+      ['DT Affiliate',_opsMoney(sales),String(shop.fetched_date_range||'30 ngày gần nhất')],
+      ['DT sau huỷ toàn shop',_opsMoney(net30),'30 ngày gần nhất từ Data Sale']
+     ])+'</div>';
+   }
+  }
+ }catch(e){}
+ return h;
+};
+/* ================= LIVESTREAM & VIDEO — bảng chi tiết từng video + chart chuẩn ================= */
+_opsVideo=function(rows){
+ if(!rows||!rows.length)return _opsPending('Livestream & Shopee Video','Lượt xem, tương tác, ATC, đơn hàng và GMV.','Shopee Video API');
+ var overview=((_opsFind(rows,'get_overview_performance')||{}).metrics)||{},key=overview.key_metric||{},eng=overview.engagement||{},conv=overview.conversion||{};
+ var videos=_opsLists(((_opsFind(rows,'get_video_list:2')||_opsFind(rows,'get_video_list')||{}).metrics)||{}).filter(function(x){return x.post_id||x.video_upload_id;});
+ var det={};
+ (rows||[]).filter(function(r){return String(r.entity_id||'').indexOf('get_video_detail:')===0;}).forEach(function(r){
+  var m=r.metrics||{},vi=m.video_info||{},vp=m.video_performance||{};
+  var pid=String(vi.post_id||String(r.entity_id).split(':').slice(1).join(':'));
+  det[pid]={caption:vi.caption||'',time:vi.post_time||0,views:+vp.views||0,likes:+vp.likes||0,comments:+vp.comments||0,shares:+vp.shares||0,clicks:+vp.product_clicks||0,sold:+vp.sold_items||0,orders:+vp.placed_orders||0,sales:+vp.placed_sales||0};
+ });
+ var nDet=Object.keys(det).length;
+ var list=videos.map(function(x){
+  var pid=String(x.post_id||x.video_upload_id||'');
+  var d=det[pid]||null;
+  return {pid:pid,caption:String(x.caption||x.title||(d&&d.caption)||pid),status:String(x.status||x.video_status||'—'),
+   time:+(x.create_time||x.post_time||(d&&d.time)||0),d:d};
+ });
+ list.sort(function(a,b){return ((b.d&&b.d.views)||0)-((a.d&&a.d.views)||0);});
+ var listHtml='<div class="ops-card"><h2>Hiệu quả từng video</h2><div class="ops-sub">'+videos.length+' video · '+nDet+' video có báo cáo chi tiết từ Video API</div>'+
+  (list.length?'<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>#</th><th>Video</th><th>Trạng thái</th><th>Views</th><th>Like</th><th>Click SP</th><th>SP bán</th><th>Đơn đặt</th><th>GMV đặt</th></tr></thead><tbody>'+list.slice(0,25).map(function(x,i){
+   var d=x.d;var t=x.time?new Date(x.time>2e12?x.time:x.time*1000).toLocaleDateString('vi-VN'):'—';
+   var cell=function(v){return '<td class="ops-num">'+(d?(+v||0).toLocaleString('vi-VN'):'—')+'</td>';};
+   return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.caption.slice(0,44))+'</b><div class="ops-sub">Đăng '+t+'</div></td><td>'+_opsEsc(x.status)+'</td>'+cell(d&&d.views)+cell(d&&d.likes)+cell(d&&d.clicks)+cell(d&&d.sold)+cell(d&&d.orders)+'<td class="ops-num">'+(d?(d.sales>=100000?_opsMoney(d.sales):(+d.sales||0).toLocaleString('vi-VN')):'—')+'</td></tr>';
+  }).join('')+'</tbody></table></div>':'<div class="ops-empty"><b>Chưa có video</b></div>')+'</div>';
+ var trendHtml='<div class="ops-card"><h2>Xu hướng lượt xem & thêm vào giỏ</h2><div class="ops-sub">30 ngày gần nhất từ Video API — đường chuẩn Chart.js, không dùng số ước tính</div>'+_ops2Canvas('opsVideoTrend',230)+'</div>';
+ var live=(rows||[]).filter(function(r){return r.source==='live';});
+ return _opsHead('Livestream & Shopee Video','Hiệu quả nội dung từ API chính thức; không dùng dữ liệu ước tính.')+
+  _opsMiniKpis([
+   ['Tổng lượt xem',Number(eng.total_views||0).toLocaleString('vi-VN'),Number(key.total_viewers||0)+' người xem'],
+   ['Lượt xem hiệu quả',Number(key.effective_views||0).toLocaleString('vi-VN'),'Theo định nghĩa Shopee'],
+   ['Thêm vào giỏ',Number(key.atc||conv.total_atc||0).toLocaleString('vi-VN'),'Dữ liệu ATC thật từ Video API'],
+   ['CTR sản phẩm',_opsPct(conv.ctr||0),Number(conv.video_with_products||0)+' video gắn SP'],
+   ['Đơn xác nhận',Number(key.confirmed_orders||key.placed_orders||0).toLocaleString('vi-VN'),'GMV đặt '+_opsMoney(key.placed_sales||0)]
+  ])+
+  '<div class="ops-grid">'+trendHtml+listHtml+'</div>'+
+  (!live.length?'<div class="ops-card"><div class="ops-empty"><b>Livestream chưa có dữ liệu phiên</b>Livestream Management yêu cầu session_id và token Live cần được uỷ quyền lại. Video đã được đồng bộ đầy đủ riêng ở phía trên.</div></div>':'');
+};
+function _ops2VideoChart(rows){
+ var tr=_opsLists(((_opsFind(rows||[],'get_metric_trend')||{}).metrics)||{}).filter(function(x){return x.data_period;});
+ if(!tr.length)return;
+ tr.sort(function(a,b){return String(a.data_period).localeCompare(String(b.data_period));});
+ var labs=tr.map(function(x){var d=String(x.data_period);return d.slice(8,10)+'/'+d.slice(5,7);});
+ _ops2Chart('opsVideoTrend',{type:'line',data:{labels:labs,datasets:[
+  _ops2Line('Lượt xem',tr.map(function(x){return +x.total_views||0;}),OPSC.gmv,{yAxisID:'y'}),
+  _ops2Line('Thêm vào giỏ',tr.map(function(x){return +x.total_atc||0;}),OPSC.net,{yAxisID:'y1'})
+ ]},options:_ops2Opts('lượt','ATC')});
+}
+/* ================= ADS: TRỰC TIẾP vs TỔNG (khối mới trong màn Phân tích Ads) ================= */
+function _adRenderDirect(){
+ var el=document.getElementById('adsDirectC');
+ if(!el||typeof RAW==='undefined'||!RAW.ads)return;
+ var mk=_adWinKeys(),sc=_adScope('m');
+ var tot=_adF9();mk.forEach(function(k){_adAdd(tot,sc[k]||_adF9());});
+ var labs=mk.map(function(k){return k.slice(5)+'/'+k.slice(2,4);});
+ _adDes('adsDirectC');
+ ADCH.adsDirectC=new Chart(el,{type:'bar',data:{labels:labs,datasets:[
+  {type:'bar',label:'GMV ads (tổng)',data:mk.map(function(k){return Math.round(((sc[k]||_adF9())[6])*10)/10;}),backgroundColor:NAVY,yAxisID:'y'},
+  {type:'bar',label:'GMV trực tiếp',data:mk.map(function(k){return Math.round(((sc[k]||_adF9())[7])*10)/10;}),backgroundColor:GOLD,yAxisID:'y'},
+  {type:'line',label:'% trực tiếp',data:mk.map(function(k){var v=sc[k]||_adF9();return v[6]>0?Math.round(v[7]/v[6]*1000)/10:0;}),borderColor:'#1D9E75',backgroundColor:'#1D9E75',yAxisID:'y1',tension:.25,pointRadius:2,borderWidth:2}
+ ]},options:(function(){
+  var o={maintainAspectRatio:false,animation:{duration:240},interaction:{mode:'index',intersect:false},
+   plugins:{legend:{position:'top',align:'start',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:12,color:'#334155',font:{size:11,weight:'600'}}}},
+   scales:{x:{ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:12,font:{size:10}},grid:{display:false}},
+    y:{beginAtZero:true,title:{display:false,text:'triệu'},ticks:{font:{size:10}}},
+    y1:{position:'right',beginAtZero:true,title:{display:false,text:'%'},grid:{drawOnChartArea:false},ticks:{font:{size:10}}}}};
+  return o;})()});
+ var t=document.getElementById('adsDirectT');
+ if(t){
+  var pctS=function(a,b){return b>0?_adPct(a/b):'—';};
+  var rows=[
+   ['Lượt chuyển đổi',_adN(tot[2]),_adN(tot[3]),pctS(tot[3],tot[2])],
+   ['Sản phẩm đã bán',_adN(tot[4]),_adN(tot[5]),pctS(tot[5],tot[4])],
+   ['GMV ads (triệu)',_adTr1(tot[6]),_adTr1(tot[7]),pctS(tot[7],tot[6])]
+  ];
+  t.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr style="background:#1B1C4C;color:#fff"><th style="padding:6px 8px;text-align:left">Chỉ số (kỳ chọn)</th><th style="padding:6px 8px;text-align:right">Tổng</th><th style="padding:6px 8px;text-align:right">Trực tiếp</th><th style="padding:6px 8px;text-align:right">% trực tiếp</th></tr></thead><tbody>'+
+   rows.map(function(r){return '<tr><td style="padding:5px 8px;border-bottom:0.5px solid #EEF"><b>'+r[0]+'</b></td><td style="padding:5px 8px;text-align:right;border-bottom:0.5px solid #EEF">'+r[1]+'</td><td style="padding:5px 8px;text-align:right;border-bottom:0.5px solid #EEF">'+r[2]+'</td><td style="padding:5px 8px;text-align:right;border-bottom:0.5px solid #EEF;font-weight:700">'+r[3]+'</td></tr>';}).join('')+
+   '</tbody></table><div style="font-size:11px;color:#8494A8;margin-top:6px">Trực tiếp = chuyển đổi trên đúng SP được quảng cáo; phần chênh là SP khác trong shop sau khi khách click. Cột "vị trí hiển thị / từ khóa" trong Data Ads hiện trống nên chưa phân tích được CTR theo vị trí (đã ghi ở Đề xuất mở rộng dữ liệu).</div>';
+ }
+}
+var _renderAdsV1=renderAds;
+renderAds=function(){_renderAdsV1();try{_adRenderDirect();}catch(e){}};
+/* ================= ADS THEO TỪ KHÓA — sửa bộ lọc + gắn hiệu quả sản phẩm ================= */
+_adKwRender=function(data){
+ var st=S.adsKwStatus||'active',mt=S.adsKwMatch||'all';
+ var wrap=document.getElementById('adskwPlaceWrap');
+ if(wrap){
+  var mts={};(data||[]).forEach(function(r){if(r.match_type)mts[r.match_type]=1;});
+  wrap.innerHTML='<button class="'+(mt==='all'?'on':'')+'" data-mt="all">Tất cả loại match</button>'+Object.keys(mts).sort().map(function(m){return '<button class="'+(mt===m?'on':'')+'" data-mt="'+_opsEsc(m)+'">'+_opsEsc(m)+'</button>';}).join('');
+  wrap.querySelectorAll('[data-mt]').forEach(function(b){b.onclick=function(){S.adsKwMatch=b.dataset.mt;_adKwRender(window._adKwData||[]);};});
+ }
+ var rows=(data||[]).filter(function(r){return (st==='all'||(r.status||'')===st)&&(mt==='all'||(r.match_type||'')===mt);});
+ rows.sort(function(a,b){return (+b.search_volume||0)-(+a.search_volume||0);});
+ var top=rows.filter(function(r){return +r.search_volume>0;}).slice(0,25);
+ var cvs=document.getElementById('adskwBar');
+ if(cvs){try{ADCH.adskwBar&&ADCH.adskwBar.destroy&&ADCH.adskwBar.destroy();}catch(e){}
+  ADCH.adskwBar=new Chart(cvs,{type:'bar',data:{labels:top.map(function(r){return String(r.keyword).slice(0,24);}),datasets:[{label:'Lượt tìm/tháng',data:top.map(function(r){return +r.search_volume||0;}),backgroundColor:NAVY}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});}
+ var prodBy={};
+ try{(RAW.ads&&RAW.ads.prod||[]).forEach(function(pp){prodBy[String(pp.shop)]=pp;});}catch(e){}
+ var nAct=(data||[]).filter(function(r){return r.status==='active';}).length;
+ var camps={};(data||[]).forEach(function(r){camps[r.campaign_id]=1;});
+ var th='<div style="font-size:12px;color:#5A6B80;margin-bottom:6px">Từ khóa đang chạy: <b>'+nAct+'</b> · Chiến dịch: <b>'+Object.keys(camps).length+'</b> · <span style="color:#8494A8">Data Ads hiện KHÔNG có dòng hiệu suất theo từ khóa — cột "Hiệu quả SP gắn kw" bên phải là hiệu suất của SẢN PHẨM (toàn kỳ Data Ads), không phải của riêng từ khóa</span>'
+  +' &nbsp; <button onclick="_adKwStatus(\'active\')" style="font-size:11px;padding:2px 8px;border-radius:10px;border:0.5px solid #D9DCEC;background:'+(st==='active'?'#363E99':'#EEF0FA')+';color:'+(st==='active'?'#fff':'#363E99')+';cursor:pointer">Đang chạy</button>'
+  +' <button onclick="_adKwStatus(\'all\')" style="font-size:11px;padding:2px 8px;border-radius:10px;border:0.5px solid #D9DCEC;background:'+(st==='all'?'#363E99':'#EEF0FA')+';color:'+(st==='all'?'#fff':'#363E99')+';cursor:pointer">Tất cả</button></div>';
+ th+='<table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr style="background:#1B1C4C;color:#fff">'
+  +['Từ khóa','Sản phẩm / Chiến dịch','Match','Trạng thái','Bid (đ)','Lượt tìm/th','Điểm CL','Hiệu quả SP gắn kw (chi · GMV · ROAS)'].map(function(h){return '<th style="padding:6px 7px;text-align:'+(['Bid (đ)','Lượt tìm/th','Điểm CL','Hiệu quả SP gắn kw (chi · GMV · ROAS)'].indexOf(h)>=0?'right':'left')+'">'+h+'</th>';}).join('')+'</tr></thead><tbody>';
+ rows.slice(0,300).forEach(function(r){
+  var pp=prodBy[String(r.item_id||'')];
+  var perf='—';
+  if(pp&&pp.tot){var sp=pp.tot[8]||0,gm=pp.tot[6]||0,ro=sp>0?gm/sp:0;
+   perf=_adTr1(sp)+' · '+_adTr1(gm)+' · <b style="color:'+_adRoasC(ro)+'">'+_adR1(ro)+'</b>';}
+  th+='<tr><td style="padding:4px 7px;border-bottom:0.5px solid #EEF">'+String(r.keyword||'')+'</td>'
+   +'<td style="padding:4px 7px;border-bottom:0.5px solid #EEF;color:#5A6B80">'+(pp&&pp.cls?'<b style="color:#1B1C4C">'+_opsEsc(pp.cls)+'</b><br>':'')+String(r.campaign_name||'').slice(0,42)+'</td>'
+   +'<td style="padding:4px 7px;border-bottom:0.5px solid #EEF">'+String(r.match_type||'')+'</td>'
+   +'<td style="padding:4px 7px;border-bottom:0.5px solid #EEF;color:'+(r.status==='active'?'#1D9E75':'#8494A8')+'">'+String(r.status||'')+'</td>'
+   +'<td style="padding:4px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+_adN(r.bid_price)+'</td>'
+   +'<td style="padding:4px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+(r.search_volume?_adN(r.search_volume):'—')+'</td>'
+   +'<td style="padding:4px 7px;text-align:right;border-bottom:0.5px solid #EEF">'+(r.quality_score||'—')+'</td>'
+   +'<td style="padding:4px 7px;text-align:right;border-bottom:0.5px solid #EEF;white-space:nowrap">'+perf+'</td></tr>';});
+ th+='</tbody></table>';
+ var tbl=document.getElementById('adskwTbl');if(tbl)tbl.innerHTML=th;
+};
+/* ================= ROUTER v2 — thay renderShopeePage v1 ================= */
+renderShopeePage=function(){
+ var hosts={shopops:'shopopsHost',shoporders:'shopordersHost',shopfinance:'shopfinanceHost',shopreturns:'shopreturnsHost',shoplogistics:'shoplogisticsHost',shopaffiliate:'shopaffiliateHost',shopcontent:'shopcontentHost',shopissues:'shopissuesHost',shopregions:'shopregionsHost'};
+ var host=document.getElementById(hosts[S.page]);if(!host)return;
+ host.innerHTML=_opsHead('Đang tải dữ liệu vận hành','Đang tổng hợp Data Sale, Data Ads và tồn kho Shopee.')+'<div class="ops-empty">Đang đọc và đối chiếu dữ liệu API...</div>';
+ var needSf=['shoporders','shopreturns','shopfinance','shoplogistics','shopregions','shopissues'].indexOf(S.page)>=0;
+ Promise.all([_opsLoad(false),needSf?_ops2Sf():Promise.resolve(null),needSf?_ops2Dim():Promise.resolve(null)]).then(function(A){
+  var p=A[0],SF=A[1],DIM=A[2];
+  if(S.page==='shopops')_ops2Ops(host,p);
+  else if(S.page==='shoporders')_ops2Orders(host,p,SF,DIM);
+  else if(S.page==='shopreturns')_ops2Returns(host,p,SF,DIM);
+  else if(S.page==='shopfinance')_ops2Finance(host,p,SF,DIM);
+  else if(S.page==='shoplogistics')_ops2Logistics(host,p,SF,DIM);
+  else if(S.page==='shopregions')_ops2Regions(host,p,SF,DIM);
+  else if(S.page==='shopissues')_ops2Issues(host,p,SF,DIM);
+  else if(S.page==='shopaffiliate')host.innerHTML=_opsAffiliate(p.channels&&p.channels.affiliate);
+  else if(S.page==='shopcontent'){var vr=(p.channels&&p.channels.video||[]).concat(p.channels&&p.channels.live||[]);host.innerHTML=_opsVideo(vr);_ops2VideoChart(vr);}
+  var u=host.querySelector('#opsUpdated');if(u)u.textContent='Dữ liệu đến '+p.period.to+' · tổng hợp lúc '+new Date(p.generated_at).toLocaleString('vi-VN');
+  var b=host.querySelector('#opsRefresh');if(b)b.onclick=function(){b.disabled=true;b.textContent='Đang đồng bộ...';_OPS2_SF=null;_OPS2_SF_P=null;_OPS2_DIM=null;_OPS2_DIM_P=null;_opsLoad(true).then(renderShopeePage).catch(function(e){alert(e.message);}).finally(function(){b.disabled=false;});};
+  _ops2BindDays(host);
+ }).catch(function(e){host.innerHTML=_opsHead('Không tải được dữ liệu vận hành','Kiểm tra Edge Function và quyền truy cập dữ liệu.')+'<div class="ops-empty"><b>Lỗi kết nối</b>'+_opsEsc(e.message)+'</div>';});
+};
+/* ===== HẾT KHỐI VẬN HÀNH SHOPEE v2 ===== */
+
 function renderShopeePage(){
  var hosts={shopops:'shopopsHost',shopfinance:'shopfinanceHost',shopreturns:'shopreturnsHost',shoplogistics:'shoplogisticsHost',shopaffiliate:'shopaffiliateHost',shopcontent:'shopcontentHost',shopissues:'shopissuesHost',shopregions:'shopregionsHost'};
  var host=document.getElementById(hosts[S.page]);if(!host)return;
@@ -4927,7 +5566,7 @@ function render(){try{var _aif=document.getElementById("aiFabWrap");if(_aif)_aif
  const sv=S.lcSet;S.lcSet=new Set([0,1,2,3]);
  drawSpark(sum());S.lcSet=sv;
  document.querySelectorAll('.page').forEach(pp=>pp.classList.remove('on'));
- const map={intro:'pg-intro',overview:'pg-overview',brand:'pg-brand',ind:'pg-ind',new:'pg-new',classes:'pg-classes',range:'pg-range',matrix:'pg-matrix',chan:'pg-chan',rank:'pg-rank',stock:'pg-stock',forecast:'pg-forecast',suppliers:'pg-suppliers',ads:'pg-ads',adskw:'pg-adskw',adsplan:'pg-adsplan',import:'pg-import',log:'pg-log',warn:'pg-warn',shopops:'pg-shopops',shopfinance:'pg-shopfinance',shopreturns:'pg-shopreturns',shoplogistics:'pg-shoplogistics',shopaffiliate:'pg-shopaffiliate',shopcontent:'pg-shopcontent',shopissues:'pg-shopissues',shopregions:'pg-shopregions'};
+ const map={intro:'pg-intro',overview:'pg-overview',brand:'pg-brand',ind:'pg-ind',new:'pg-new',classes:'pg-classes',range:'pg-range',matrix:'pg-matrix',chan:'pg-chan',rank:'pg-rank',stock:'pg-stock',forecast:'pg-forecast',suppliers:'pg-suppliers',ads:'pg-ads',adskw:'pg-adskw',adsplan:'pg-adsplan',import:'pg-import',log:'pg-log',warn:'pg-warn',shopops:'pg-shopops',shoporders:'pg-shoporders',shopfinance:'pg-shopfinance',shopreturns:'pg-shopreturns',shoplogistics:'pg-shoplogistics',shopaffiliate:'pg-shopaffiliate',shopcontent:'pg-shopcontent',shopissues:'pg-shopissues',shopregions:'pg-shopregions'};
  document.getElementById(map[S.page]).classList.add('on');
  {const GB=new Set(['overview','brand','ind','new','classes','rank','chan']);const gb=document.querySelector('.gbar');if(gb)gb.style.display=GB.has(S.page)?'':'none';}
  if(S.page==='overview')renderOverview();
