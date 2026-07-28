@@ -247,6 +247,15 @@ Deno.serve(async (req) => {
           if (carrier) upd.don_vi_van_chuyen = String(carrier);
           if (tracking) upd.ma_van_don = String(tracking);
           if (province) upd.tinh_thanh_pho = String(province);
+          // Shopee có trạng thái TO_RETURN riêng cho đơn khách trả hàng. Trước đây mọi trạng
+          // thái khác CANCELLED đều bị gộp thành "Hoàn thành" nên thông tin này mất sạch.
+          if (order.order_status === "TO_RETURN") {
+            upd.trang_thai_tra_hang_hoan_tien = "Đã Chấp Thuận Yêu Cầu";
+          }
+          const district = order.recipient_address?.district;
+          if (district) upd.tp_quan_huyen = String(district);
+          const town = order.recipient_address?.town;
+          if (town) upd.quan = String(town);
           if (Object.keys(upd).length) await sb.from("sales_fact").update(upd).eq("ma_don_hang", order.order_sn);
         }
       }
@@ -260,12 +269,24 @@ Deno.serve(async (req) => {
         const update: Record<string, string> = {};
         if (!pay.error && pay.response?.order_income) {
           const x = pay.response.order_income;
+          const bp = pay.response.buyer_payment_info || {};
           update.phi_co_dinh = String(x.commission_fee || 0);
           update.phi_dich_vu = String((x.service_fee || 0) + (x.campaign_fee || 0));
-          update.phi_thanh_toan = String((x.seller_transaction_fee || 0) + (x.credit_card_transaction_fee || 0));
+          // Shopee trả CÙNG một khoản phí giao dịch ở hai tên gọi (đơn thẻ có cả hai).
+          // Cộng cả hai là tính đôi — chỉ lấy một lần.
+          update.phi_thanh_toan = String(x.seller_transaction_fee || x.credit_card_transaction_fee || 0);
           update.tien_ky_quy = String(x.escrow_amount_after_adjustment ?? x.escrow_amount ?? 0);
-          update.tong_so_tien_nguoi_mua_thanh_toan = String(x.buyer_total_amount || 0);
-          update.phuong_thuc_thanh_toan = String(x.buyer_payment_method || "");
+          update.tong_so_tien_nguoi_mua_thanh_toan = String(x.buyer_total_amount ?? bp.buyer_total_amount ?? 0);
+          update.phuong_thuc_thanh_toan = String(x.buyer_payment_method || bp.buyer_payment_method || "");
+          // Các trường dưới đây API VẪN LUÔN trả về trong chính lời gọi này, trước đây bị bỏ đi
+          // khiến 8 cột trong sales_fact trống rỗng và bảng P&L phải suy đoán.
+          update.gia_goc = String(x.order_original_price ?? x.original_price ?? 0);
+          update.gia_uu_dai = String(x.order_selling_price ?? x.order_discounted_price ?? 0);
+          update.tong_so_tien_duoc_nguoi_ban_tro_gia = String(x.voucher_from_seller || 0);
+          update.duoc_shopee_tro_gia = String(x.voucher_from_shopee || 0);
+          update.phi_van_chuyen_ma_nguoi_mua_tra = String(x.buyer_paid_shipping_fee ?? bp.shipping_fee ?? 0);
+          update.phi_van_chuyen_du_kien = String(x.estimated_shipping_fee || 0);
+          update.hoan_xu = String(x.coins || 0);
           paymentOk++;
         } else paymentErrors++;
         if (!logi.error && logi.response) {

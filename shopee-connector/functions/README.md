@@ -13,6 +13,30 @@
 | `bright-responder` | Đồng bộ **hiệu suất Ads** (campaign daily) | `ads_fact`, `shopee_ads_state` | `SHOPEE_ADS_PARTNER_ID/KEY`, `SHOPEE_START_DATE` |
 | `smart-endpoint` | Đồng bộ **từ khóa Ads** (recommended keywords) | `ads_keyword` | `SHOPEE_ADS_PARTNER_ID/KEY` |
 
+## ⚠ ĐANG CHỜ DEPLOY — 4 sửa đổi đã sẵn sàng trong repo
+
+Chưa deploy được vì tài khoản Supabase CLI hiện tại không có quyền trên project live (403).
+Deploy một lần cả hai function:
+
+```bash
+supabase login
+supabase functions deploy ops-sync
+supabase functions deploy smooth-responder
+# sau đó chạy lại để ghi đè dữ liệu cũ:
+curl -X POST https://jkrczsrhonmqxwzzdgen.supabase.co/functions/v1/ops-sync \
+  -H 'Content-Type: application/json' -d '{"mode":"sync","days":600,"force":true}'
+```
+
+| # | Sửa gì | Vì sao |
+|---|---|---|
+| 1 | `ops-sync`: xử lý đơn mới nhất trước + chặn thời gian + checkpoint | Đơn mới không bao giờ tới lượt, hàm chết lặng (đã deploy 28/07) |
+| 2 | `ops-sync`: phí thanh toán chỉ lấy MỘT lần | Shopee trả cùng khoản ở `seller_transaction_fee` và `credit_card_transaction_fee`; cộng cả hai là tính đôi (~18tr toàn kỳ) |
+| 3 | `ops-sync`: ghi thêm 8 cột escrow đang bỏ phí | `gia_goc`, `gia_uu_dai`, voucher seller/Shopee, phí vận chuyển, hoàn xu — API VẪN trả về trong chính lời gọi hiện tại nhưng hàm vứt đi |
+| 4 | `ops-sync` + `smooth-responder`: giữ trạng thái `TO_RETURN` | Mọi trạng thái ≠ `CANCELLED` bị gộp thành "Hoàn thành" nên đơn khách trả hàng đọc thành bán thành công; cột `trang_thai_tra_hang_hoan_tien` trống 0/2690 |
+
+Sau khi deploy và chạy lại, bảng P&L sẽ có số hoàn trả THẬT thay cho ước tính, tách được
+voucher shop / trợ giá Shopee thay vì gộp một cục, và phí thanh toán hết bị thổi lên.
+
 ## `ops-sync` — làm giàu đơn (phí sàn, escrow, tracking)
 
 Cập nhật 28/07/2026 sau khi phát hiện dữ liệu phí/tiền thực nhận trống toàn bộ từ 01/07/2026.

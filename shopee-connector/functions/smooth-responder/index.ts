@@ -119,13 +119,18 @@ Deno.serve(async ()=>{
           });
           const j = await (await fetch(u)).json();
           for (const o of j?.response?.order_list || []){
+            // Shopee có nhiều trạng thái (UNPAID / SHIPPED / COMPLETED / IN_CANCEL /
+            // CANCELLED / TO_RETURN...). Gộp tất cả ≠ CANCELLED thành "Hoàn thành" làm mất
+            // hẳn TO_RETURN — đơn khách trả hàng bị đọc nhầm thành bán thành công.
             const status = o.order_status === "CANCELLED" ? "Đã hủy" : "Hoàn thành";
+            const retStatus = o.order_status === "TO_RETURN" ? "Đã Chấp Thuận Yêu Cầu" : "";
             const ngay = isoVN(o.create_time);
             for (const it of o.item_list || []){
               const qty = it.model_quantity_purchased || 0;
               const price = it.model_discounted_price ?? it.model_original_price ?? 0;
               rows.push({
                 ma_don_hang: o.order_sn,
+                trang_thai_tra_hang_hoan_tien: retStatus,
                 ngay_dat_hang: ngay,
                 trang_thai_don_hang: status,
                 ly_do_huy: o.cancel_reason || o.buyer_cancel_reason || "",
