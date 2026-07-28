@@ -5248,10 +5248,12 @@ function _ops2FinPivot(SF,DIM,months){
   [0,'= LỢI NHUẬN VẬN HÀNH',function(C){return C.opProfit;},fmM],
   [1,'Biên lợi nhuận / doanh thu thuần',function(C){return (C.opProfit==null||!C.netRev)?null:C.opProfit/C.netRev;},fmP]
  ];
+ /* Chỉ ghi thêm năm vào nhãn cột khi kỳ bắc qua nhiều năm, để đỡ rối */
+ var oneYear=months.every(function(m){return m.slice(0,4)===months[0].slice(0,4);});
  var stick='position:sticky;left:0;z-index:2;';
  var h='<div style="overflow-x:auto"><table class="ops-table" style="min-width:'+(260+months.length*92+104)+'px">'+
   '<thead><tr><th style="'+stick+'background:#1B1C4C">Chỉ tiêu (triệu đ)</th>'+
-  months.map(function(m){return '<th style="text-align:right;white-space:nowrap">'+m.slice(5)+'/'+m.slice(2,4)+'</th>';}).join('')+
+  months.map(function(m){return '<th style="text-align:right;white-space:nowrap">T'+(+m.slice(5))+(oneYear?'':'/'+m.slice(2,4))+'</th>';}).join('')+
   '<th style="text-align:right;background:#363E99;white-space:nowrap">TỔNG</th></tr></thead><tbody>';
  L.forEach(function(x){
   if(x[0]==='h'){
@@ -5335,7 +5337,12 @@ function _ops2Finance(host,p,SF,DIM){
   (function(){
    var ms=_ops2MonthsIn(SF);
    var canPivot=ms.length>1;
-   var view=(S.plView==='month'&&canPivot)?'month':'sum';
+   /* Chọn theo THÁNG mà kỳ có từ 2 tháng trở lên thì mặc định mở dạng bảng theo tháng
+      (bấm "Năm 2026" là ra ngay T1…T7). Kỳ theo NGÀY vẫn mặc định xem tổng cả kỳ.
+      Người dùng bấm nút chuyển thì lựa chọn đó thắng. */
+   var auto=(S.opsMode==='month'&&ms.length>1)?'month':'sum';
+   var view=(S.plView==='sum'||S.plView==='month')?S.plView:auto;
+   if(!canPivot)view='sum';
    var tabs=canPivot?('<div class="ops-filter" style="margin:0 0 10px"><button data-plv="sum" class="'+(view==='sum'?'on':'')+'">Tổng cả kỳ</button><button data-plv="month" class="'+(view==='month'?'on':'')+'">Từng tháng một cột</button></div>'):'';
    return view==='month'
     ? _ops2Card('Bảng phân tích P&L theo tháng — '+_ops2PLabel(SF),'Mỗi tháng một cột · cột TỔNG là toàn kỳ · đơn vị triệu đồng',tabs+_ops2FinPivot(SF,DIM,ms))

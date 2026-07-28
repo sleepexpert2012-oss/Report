@@ -6,6 +6,11 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R65 — 28/07/2026
+
+- Chọn một năm hoặc một khoảng nhiều tháng thì bảng P&L tự mở sẵn dạng theo tháng, không phải bấm chuyển nữa; chọn kỳ theo ngày vẫn xem tổng cả kỳ như cũ.
+- Nhãn cột đổi thành T1, T2, T3… cho gọn; chỉ kèm năm khi kỳ bắc qua nhiều năm.
+
 ## R64 — 28/07/2026
 
 - Sắp xếp lại bảng P&L theo đúng chuỗi kế toán: GMV tổng → trừ huỷ → trừ hoàn trả → trừ giảm giá và voucher → Doanh thu thuần, rồi mới tới khối phí sàn, giá vốn, quảng cáo và lợi nhuận.
