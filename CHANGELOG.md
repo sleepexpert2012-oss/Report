@@ -6,6 +6,12 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R62 — 28/07/2026
+
+- Đối chiếu chi phí Ads 2026 với báo cáo Seller Centre và ghi dòng điều chỉnh cho 4 tháng lệch: 02, 04, 05 và 06/2026. Tổng chi phí Ads 2026 tăng từ 58,7 lên 70,5 triệu.
+- Phát hiện nguyên nhân lệch: bước đối soát tổng shop trong hàm đồng bộ Ads chưa từng chạy thành công (không có dòng "CPC khác" nào trong dữ liệu), nên bảng chỉ có chi phí cấp chiến dịch — vừa thiếu ngày vừa không khớp tổng thật.
+- Dữ liệu gốc từ API được giữ nguyên; phần chênh ghi thành dòng riêng có nhãn rõ ràng để đối chiếu lại được.
+
 ## R61 — 28/07/2026
 
 - Bổ sung chi phí Ads nhập tay cho 13 tháng Shopee API không còn lưu (01/2025–12/2025 và 03/2026), tổng 217,5 triệu. Nay cả 19 tháng đều có chi phí Ads nên bảng P&L tính được lợi nhuận cho toàn kỳ.

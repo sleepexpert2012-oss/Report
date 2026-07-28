@@ -92,3 +92,19 @@ Chrome có sẵn tại `/Applications/Google Chrome.app/Contents/MacOS/Google Ch
 2. Skill thiết kế đưa ra chuẩn mực chung (thang chữ, tương phản), nhưng chuẩn mực KHÔNG thay được ý thích của người dùng. Dùng skill để sửa lỗi khách quan (tương phản dưới chuẩn), đừng dùng để biện minh cho việc đổi phong cách khi không được yêu cầu.
 3. Thay đổi giao diện lớn thì hỏi trước, hoặc làm một bản nháp cho xem rồi mới áp dụng. Sửa số liệu sai thì cứ làm — sai là sai. Nhưng "đẹp" thì phải để người dùng quyết.
 4. Khi phải hoàn nguyên: lấy code từ commit cũ chứ đừng gõ lại từ trí nhớ, rồi diff để chứng minh chỉ còn đúng phần được yêu cầu.
+
+---
+
+## 2026-07-28 · Số API khớp "có vẻ hợp lý" nhưng lệch báo cáo gốc
+
+**Sai gì:** Tôi báo tổng chi phí Ads 2026 là 58,7 triệu dựa trên `ads_fact`, kèm cảnh báo thiếu ngày. Người dùng mở Seller Centre đối chiếu thì thấy sai — thực tế 70,5 triệu. Lệch 11,8 triệu (20%).
+
+**Nguyên nhân:** hàm đồng bộ Ads có hai phần — lấy chi phí theo từng chiến dịch, và một bước "đối soát" gọi API tổng shop rồi ghi phần chênh. Bước đối soát **chưa từng chạy thành công**: trong toàn bộ dữ liệu không có một dòng "CPC khác (chưa phân bổ SP)" nào. Nên bảng chỉ có chi phí cấp chiến dịch, thiếu phần CPC cấp shop và các chiến dịch đã xoá.
+
+Đáng chú ý: tháng 5 dữ liệu API lại **CAO HƠN** báo cáo gốc dù thiếu 2 ngày — nghĩa là lệch cả hai chiều, không thể sửa bằng cách "cộng thêm phần thiếu ngày".
+
+**Rule rút ra:**
+1. Đếm độ phủ (bao nhiêu ngày có dữ liệu) chỉ phát hiện được thiếu, KHÔNG phát hiện được sai. Một tháng đủ 30/30 ngày vẫn có thể lệch tổng.
+2. Khi hệ thống có sẵn một bước đối soát với nguồn tổng, phải kiểm tra bước đó có thật sự chạy không — đếm số bản ghi nó tạo ra. Code có logic đúng không đảm bảo logic đó được thực thi.
+3. Với số liệu tài chính, luôn đối chiếu ít nhất một kỳ với báo cáo gốc của nhà cung cấp trước khi công bố. Tôi đã bỏ qua bước này và đưa ra con số sai.
+4. Khi sửa lệch: giữ nguyên dữ liệu gốc, ghi phần chênh thành bản ghi riêng có nhãn. Đừng sửa đè lên số gốc — mất khả năng truy vết.
