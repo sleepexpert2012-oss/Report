@@ -5226,52 +5226,59 @@ function _ops2FinPivot(SF,DIM,months){
  var fmM=function(v){return v==null?'—':(v<0?'−':'')+(Math.round(Math.abs(v)/1e5)/10).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1});};
  var fmI=function(v){return v==null?'—':Math.round(v).toLocaleString('vi-VN');};
  var fmP=function(v){return v==null?'—':(v<0?'−':'')+(Math.round(Math.abs(v)*1000)/10).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';};
+ /* Mẫu số tính %: khối A theo GMV tổng, khối B theo doanh thu thuần */
+ var gA=function(C){return C.gross;},gB=function(C){return C.netRev;};
  var L=[
   ['h','KHỐI A — DOANH THU'],
-  [0,'Số đơn',function(C){return C.ords.length;},fmI],
-  [0,'GMV tổng (gồm cả đơn huỷ)',function(C){return C.gross;},fmM],
-  [1,'(−) GMV đơn huỷ',function(C){return -C.cancel;},fmM],
-  [1,'Tỷ lệ huỷ theo GMV',function(C){return C.gross?C.cancel/C.gross:null;},fmP],
-  [1,'(−) Hoàn trả sau bán',function(C){return 0;},fmM],
-  [1,'(−) Đơn chưa được đối soát',function(C){return -C.noRecGmv;},fmM],
-  [1,'(−) Giảm giá, voucher của shop',function(C){return C.hasB?-C.other:null;},fmM],
-  [0,'= DOANH THU THUẦN',function(C){return C.netRev;},fmM],
+  [0,'Số đơn',function(C){return C.ords.length;},fmI,null],
+  [0,'GMV tổng (gồm cả đơn huỷ)',function(C){return C.gross;},fmM,null],
+  [1,'(−) GMV đơn huỷ',function(C){return -C.cancel;},fmM,gA],
+  [1,'(−) Hoàn trả sau bán',function(C){return 0;},fmM,gA],
+  [1,'(−) Đơn chưa được đối soát',function(C){return -C.noRecGmv;},fmM,gA],
+  [1,'(−) Giảm giá, voucher của shop',function(C){return C.hasB?-C.other:null;},fmM,gA],
+  [0,'= DOANH THU THUẦN',function(C){return C.netRev;},fmM,gA],
   ['h','KHỐI B — TỪ DOANH THU THUẦN ĐẾN LỢI NHUẬN'],
-  [1,'(−) Phí cố định',function(C){return C.hasB?-C.f0:null;},fmM],
-  [1,'(−) Phí dịch vụ',function(C){return C.hasB?-C.f1:null;},fmM],
-  [1,'(−) Phí thanh toán',function(C){return C.hasB?-C.f2:null;},fmM],
-  [0,'= Tổng phí sàn Shopee',function(C){return C.hasB?-C.fee:null;},fmM],
-  [0,'= Tiền thực nhận (escrow)',function(C){return C.hasB?C.esc:null;},fmM],
-  [1,'(−) Giá vốn hàng bán',function(C){return C.hasB?-C.cogs:null;},fmM],
-  [0,'= Lãi gộp',function(C){return C.gp;},fmM],
-  [1,'(−) Chi phí Ads',function(C){return C.adsSp==null?null:-C.adsSp;},fmM],
-  [0,'= LỢI NHUẬN VẬN HÀNH',function(C){return C.opProfit;},fmM],
-  [1,'Biên lợi nhuận / doanh thu thuần',function(C){return (C.opProfit==null||!C.netRev)?null:C.opProfit/C.netRev;},fmP]
+  [1,'(−) Phí cố định',function(C){return C.hasB?-C.f0:null;},fmM,gB],
+  [1,'(−) Phí dịch vụ',function(C){return C.hasB?-C.f1:null;},fmM,gB],
+  [1,'(−) Phí thanh toán',function(C){return C.hasB?-C.f2:null;},fmM,gB],
+  [0,'= Tổng phí sàn Shopee',function(C){return C.hasB?-C.fee:null;},fmM,gB],
+  [0,'= Tiền thực nhận (escrow)',function(C){return C.hasB?C.esc:null;},fmM,gB],
+  [1,'(−) Giá vốn hàng bán',function(C){return C.hasB?-C.cogs:null;},fmM,gB],
+  [0,'= Lãi gộp',function(C){return C.gp;},fmM,gB],
+  [1,'(−) Chi phí Ads',function(C){return C.adsSp==null?null:-C.adsSp;},fmM,gB],
+  [0,'= LỢI NHUẬN VẬN HÀNH',function(C){return C.opProfit;},fmM,gB]
  ];
  /* Chỉ ghi thêm năm vào nhãn cột khi kỳ bắc qua nhiều năm, để đỡ rối */
  var oneYear=months.every(function(m){return m.slice(0,4)===months[0].slice(0,4);});
+ var showTot=months.length>1;
  var stick='position:sticky;left:0;z-index:2;';
  var h='<div style="overflow-x:auto"><table class="ops-table" style="min-width:'+(260+months.length*92+104)+'px">'+
   '<thead><tr><th style="'+stick+'background:#1B1C4C">Chỉ tiêu (triệu đ)</th>'+
   months.map(function(m){return '<th style="text-align:right;white-space:nowrap">T'+(+m.slice(5))+(oneYear?'':'/'+m.slice(2,4))+'</th>';}).join('')+
-  '<th style="text-align:right;background:#363E99;white-space:nowrap">TỔNG</th></tr></thead><tbody>';
+  (showTot?'<th style="text-align:right;background:#363E99;white-space:nowrap">TỔNG</th>':'')+'</tr></thead><tbody>';
  L.forEach(function(x){
   if(x[0]==='h'){
-   h+='<tr><td colspan="'+(months.length+2)+'" style="background:#F2F5FA;font-weight:800;color:#1B1C4C;font-size:11px;letter-spacing:.4px">'+x[1]+'</td></tr>';
+   h+='<tr><td colspan="'+(months.length+(showTot?2:1))+'" style="background:#F2F5FA;font-weight:800;color:#1B1C4C;font-size:11px;letter-spacing:.4px">'+x[1]+'</td></tr>';
    return;
   }
-  var ind=x[0],label=x[1],fn=x[2],fmt=x[3];
+  var ind=x[0],label=x[1],fn=x[2],fmt=x[3],baseFn=x[4];
   var isSum=label.indexOf('=')===0;
   var big=label.indexOf('LỢI NHUẬN')>=0;
   var rowBg=big?'#EEF1FA':(isSum?'#FAFBFE':'#fff');
+  /* Số để chữ thường cho đỡ rối; phân cấp bằng nền dòng. Kèm % nhỏ in nghiêng bên cạnh. */
+  var cell=function(C,isTot){
+   var v=fn(C),txt=fmt(v),pc='';
+   if(baseFn){
+    var bs=baseFn(C);
+    if(typeof v==='number'&&bs)pc='<i style="font-style:italic;font-size:9.5px;color:#64748B;font-weight:400;margin-left:5px">'+(Math.round(Math.abs(v)/bs*1000)/10).toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1})+'%</i>';
+   }
+   return '<td class="ops-num" style="white-space:nowrap;'+(isTot?'background:'+(big?'#DDE3F5':'#F1F3FB')+';':'')+(big?'font-size:13px;':'')+(typeof v==='number'&&v<0?'color:#D92D20':'')+'">'+txt+pc+'</td>';
+  };
   h+='<tr'+(rowBg!=='#fff'?' style="background:'+rowBg+'"':'')+'>'+
-   '<td style="'+stick+'background:'+rowBg+';padding-left:'+(10+ind*18)+'px;'+(isSum?'font-weight:800':'')+'">'+label+'</td>';
-  M.forEach(function(c){
-   var v=fn(c.C);
-   h+='<td class="ops-num" style="'+(isSum?'font-weight:800;':'')+(big?'font-size:13px;':'')+(typeof v==='number'&&v<0?'color:#D92D20':'')+'">'+fmt(v)+'</td>';
-  });
-  var tv=fn(T);
-  h+='<td class="ops-num" style="background:'+(big?'#DDE3F5':'#F1F3FB')+';font-weight:800;'+(big?'font-size:13px;':'')+(typeof tv==='number'&&tv<0?'color:#D92D20':'')+'">'+fmt(tv)+'</td></tr>';
+   '<td style="'+stick+'background:'+rowBg+';padding-left:'+(10+ind*18)+'px;'+(isSum?'font-weight:700':'')+'">'+label+'</td>';
+  M.forEach(function(c){h+=cell(c.C,false);});
+  if(showTot)h+=cell(T,true);
+  h+='</tr>';
  });
  h+='</tbody></table></div>';
  var warn=M.filter(function(c){return c.C.adsSp==null||c.C.adsPartial;}).map(function(c){return c.m.slice(5)+'/'+c.m.slice(0,4);});
@@ -5286,38 +5293,6 @@ function _ops2Finance(host,p,SF,DIM){
  var noRec=C.noRec,noRecGmv=C.noRecGmv,refund=C.refund,refundGmv=C.refundGmv;
  var cogs=C.cogs,qMatch=C.qMatch,qTot=C.qTot,hasB=C.hasB,gp=C.gp,netRev=C.netRev;
  var adsSp=C.adsSp,adsNote=C.adsNote,adsPartial=C.adsPartial,opProfit=C.opProfit;
- function plRow(x){
-  if(x[0]==='h')return '<tr><td colspan="4" style="background:#F2F5FA;font-weight:800;color:#1B1C4C;font-size:11px;letter-spacing:.4px">'+x[1]+'</td></tr>';
-  var ind=x[0],label=x[1],val=x[2],base=x[3],note=x[4]||'';
-  var isSum=label.indexOf('=')===0;
-  var vTxt=val==null?'—':_opsMoney(Math.abs(val))+(val<0?'':'');
-  var sign=val==null?'':(val<0?'−':'');
-  var pct=(val==null||!base)?'—':_opsPct(Math.abs(val)/base);
-  var pctRed=(x[5]===true&&val!=null&&val<0);   /* dòng lợi nhuận cuối bị lỗ: % mang dấu âm và tô đỏ */
-  if(pctRed)pct='−'+pct;
-  return '<tr'+(isSum?' style="background:#FAFBFE"':'')+'><td style="padding-left:'+(10+ind*18)+'px;'+(isSum?'font-weight:800':'')+'">'+label+'</td><td class="ops-num" style="'+(isSum?'font-weight:800;':'')+(val!=null&&val<0?'color:#D92D20':'')+'">'+sign+vTxt+'</td><td class="ops-num"'+(pctRed?' style="color:#D92D20;font-weight:800"':'')+'>'+pct+'</td><td style="color:#8494A8;font-size:11px">'+note+'</td></tr>';
- }
- var rows=[
-  ['h','KHỐI A — DOANH THU ('+ords.length.toLocaleString('vi-VN')+' đơn trong kỳ)'],
-  [0,'GMV tổng (gồm cả đơn huỷ)',gross,gross,''],
-  [1,'(−) GMV đơn huỷ',-cancel,gross,(ords.filter(function(o){return o.cancel;}).length)+' đơn huỷ'],
-  [1,'(−) Hoàn trả sau bán',0,gross,refund.length?'Returns API trả 0 bản ghi · '+refund.length+' đơn có dấu hiệu đã hoàn tiền ('+_opsMoney(refundGmv)+') nhưng Shopee không ghi nhận':'Chưa phát sinh'],
-  (noRecGmv?[1,'(−) Đơn chưa được Shopee đối soát',-noRecGmv,gross,noRec.length+' đơn chưa có dữ liệu phí/escrow']:null),
-  [1,'(−) Giảm giá, voucher của shop',hasB?-other:null,gross,'Shopee không tách cột riêng — suy ra từ chênh lệch đối soát'],
-  [0,'= DOANH THU THUẦN',hasB?netRev:null,gross,hasB?'Cơ sở tính toàn bộ khối B':'Chưa có đơn nào được đối soát'],
-  ['h','KHỐI B — TỪ DOANH THU THUẦN ĐẾN LỢI NHUẬN'],
-  [0,'Doanh thu thuần',hasB?netRev:null,netRev,''],
-  [1,'(−) Phí cố định',hasB?-f0:null,netRev,''],
-  [1,'(−) Phí dịch vụ',hasB?-f1:null,netRev,''],
-  [1,'(−) Phí thanh toán',hasB?-f2:null,netRev,''],
-  [0,'= Tổng phí sàn Shopee',hasB?-fee:null,netRev,hasB?_opsPct(netRev?fee/netRev:0)+' doanh thu thuần':''],
-  [0,'= Tiền thực nhận (escrow)',hasB?esc:null,netRev,'Tiền Shopee trả về ví shop'],
-  [1,'(−) Giá vốn hàng bán',hasB?-cogs:null,netRev,hasB?'Khớp giá vốn '+_opsPct(qTot?qMatch/qTot:0)+' sản lượng':''],
-  [0,'= Lãi gộp',gp,netRev,gp==null?'Không tính được khi chưa có đối soát':''],
-  (adsSp==null?[1,'(−) Chi phí Ads',null,netRev,adsNote]:[1,'(−) Chi phí Ads'+(adsPartial?' ⚠':''),-adsSp,netRev,adsNote]),
-  (opProfit==null?[0,'= LỢI NHUẬN VẬN HÀNH',null,netRev,gp==null?'Thiếu dữ liệu đối soát':'Thiếu chi phí Ads — đừng lấy lãi gộp thay lợi nhuận',true]:[0,'= LỢI NHUẬN VẬN HÀNH',opProfit,netRev,'',true])
- ];
- var pl='<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>Chỉ tiêu</th><th style="text-align:right">Giá trị</th><th style="text-align:right">% cơ sở</th><th>Ghi chú</th></tr></thead><tbody>'+rows.filter(Boolean).map(plRow).join('')+'</tbody></table></div>';
  var seB=(function(){
   var map={},keys=[];
   B.forEach(function(o){var k=_ops2Bk(o.d,g);if(!map[k]){map[k]={f0:0,f1:0,f2:0,net:0};keys.push(k);}
@@ -5336,17 +5311,9 @@ function _ops2Finance(host,p,SF,DIM){
   (hasB?'':'<div class="ops-card" style="border-left:4px solid #D92D20"><h2 style="color:#D92D20">Kỳ này chưa có dữ liệu đối soát escrow</h2><div class="ops-sub" style="margin-bottom:0">Toàn bộ '+ords.length.toLocaleString('vi-VN')+' đơn trong kỳ chưa được đồng bộ phí sàn và tiền thực nhận từ Shopee Payment API, nên <b>không tính được lãi gộp và lợi nhuận vận hành</b> — phần dưới để trống chứ không phải bằng 0, và cũng KHÔNG có nghĩa là kỳ này lỗ. Doanh thu và tỷ lệ huỷ ở Khối A vẫn là số thật.<br>Cách xử lý: bấm <b>↻ Đồng bộ phân tích</b> ở góc trên; nếu vẫn trống thì Edge Function <code>ops-sync</code> chưa chạy tới các đơn này — xem checkpoint <code>order_enrichment/escrow_tracking</code>.</div></div>')+
   (function(){
    var ms=_ops2MonthsIn(SF);
-   var canPivot=ms.length>1;
-   /* Chọn theo THÁNG mà kỳ có từ 2 tháng trở lên thì mặc định mở dạng bảng theo tháng
-      (bấm "Năm 2026" là ra ngay T1…T7). Kỳ theo NGÀY vẫn mặc định xem tổng cả kỳ.
-      Người dùng bấm nút chuyển thì lựa chọn đó thắng. */
-   var auto=(S.opsMode==='month'&&ms.length>1)?'month':'sum';
-   var view=(S.plView==='sum'||S.plView==='month')?S.plView:auto;
-   if(!canPivot)view='sum';
-   var tabs=canPivot?('<div class="ops-filter" style="margin:0 0 10px"><button data-plv="sum" class="'+(view==='sum'?'on':'')+'">Tổng cả kỳ</button><button data-plv="month" class="'+(view==='month'?'on':'')+'">Từng tháng một cột</button></div>'):'';
-   return view==='month'
-    ? _ops2Card('Bảng phân tích P&L theo tháng — '+_ops2PLabel(SF),'Mỗi tháng một cột · cột TỔNG là toàn kỳ · đơn vị triệu đồng',tabs+_ops2FinPivot(SF,DIM,ms))
-    : _ops2Card('Bảng phân tích P&L — kỳ '+_ops2PLabel(SF),'Khối A: toàn bộ đơn trong kỳ · Khối B: đơn Shopee đã đối soát phí và tiền thực nhận · các dòng bắc cầu cho thấy chênh lệch giữa hai khối',tabs+pl);
+   return _ops2Card('Bảng phân tích P&L theo tháng — '+_ops2PLabel(SF),
+    'Mỗi tháng một cột · đơn vị triệu đồng · số nhỏ in nghiêng là % (khối A tính trên GMV tổng, khối B tính trên doanh thu thuần)',
+    _ops2FinPivot(SF,DIM,ms));
   })()+
   '<div class="ops-grid">'+
   _ops2Card('Cơ cấu phí sàn theo thời gian','Cột chồng: 3 loại phí (triệu) · đường: % tổng phí / DT đối soát — '+_ops2GLabel(g),_ops2Canvas('opsFeeTrend'))+

@@ -6,6 +6,12 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R66 — 28/07/2026
+
+- Bảng P&L nay chỉ còn một dạng duy nhất: mỗi tháng một cột. Bỏ hẳn bảng tổng cả kỳ và nút chuyển qua lại.
+- Bỏ in đậm các con số cho đỡ rối; phân cấp giữ bằng nền dòng và tên chỉ tiêu.
+- Mỗi con số kèm thêm phần trăm bằng nhãn nhỏ in nghiêng bên cạnh: khối A tính trên GMV tổng, khối B tính trên doanh thu thuần.
+
 ## R65 — 28/07/2026
 
 - Chọn một năm hoặc một khoảng nhiều tháng thì bảng P&L tự mở sẵn dạng theo tháng, không phải bấm chuyển nữa; chọn kỳ theo ngày vẫn xem tổng cả kỳ như cũ.
