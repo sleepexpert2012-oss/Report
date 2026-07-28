@@ -5183,7 +5183,8 @@ function _ops2Finance(host,p,SF,DIM){
   var vTxt=val==null?'—':_opsMoney(Math.abs(val))+(val<0?'':'');
   var sign=val==null?'':(val<0?'−':'');
   var pct=(val==null||!base)?'—':_opsPct(Math.abs(val)/base);
-  var pctRed=(x[5]===true&&val!=null&&val<0);   /* dòng lợi nhuận cuối bị lỗ: % cũng đỏ */
+  var pctRed=(x[5]===true&&val!=null&&val<0);   /* dòng lợi nhuận cuối bị lỗ: % mang dấu âm và tô đỏ */
+  if(pctRed)pct='−'+pct;
   return '<tr'+(isSum?' style="background:#FAFBFE"':'')+'><td style="padding-left:'+(10+ind*18)+'px;'+(isSum?'font-weight:800':'')+'">'+label+'</td><td class="ops-num" style="'+(isSum?'font-weight:800;':'')+(val!=null&&val<0?'color:#D92D20':'')+'">'+sign+vTxt+'</td><td class="ops-num"'+(pctRed?' style="color:#D92D20;font-weight:800"':'')+'>'+pct+'</td><td style="color:#8494A8;font-size:11px">'+note+'</td></tr>';
  }
  var rows=[

@@ -9,7 +9,7 @@ Quy ước từ ngày 26/07/2026:
 ## R59 — 28/07/2026
 
 - Hoàn nguyên bảng P&L về giao diện ban đầu theo yêu cầu: các thay đổi giao diện ở R56–R58 đã được gỡ bỏ.
-- Giữ lại đúng một điều chỉnh: dòng Lợi nhuận vận hành khi bị lỗ thì phần trăm cũng hiển thị màu đỏ như số tiền.
+- Giữ lại đúng một điều chỉnh: dòng Lợi nhuận vận hành khi bị lỗ thì phần trăm mang dấu âm và hiển thị màu đỏ như số tiền.
 - Các sửa lỗi về SỐ LIỆU ở R55 (đơn escrow âm bị loại nhầm, các dòng bắc cầu giữa hai khối) vẫn được giữ nguyên.
 
 ## R58 — 28/07/2026
