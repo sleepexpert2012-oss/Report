@@ -5190,6 +5190,13 @@ function _ops2FinCalc(win,DIM){
  var ords=_ops2Ords(win);
  var gross=0,cancel=0;win.forEach(function(r){gross+=r.gmv;if(r.cancel)cancel+=r.gmv;});
  var net=gross-cancel;
+ /* HOÀN TRẢ: Returns API của Shopee trả 0 bản ghi, nhưng đơn "Đã huỷ" mà ĐÃ CÓ ngày xuất
+    hàng thì hàng đã rời kho rồi mới quay về — đó chính là hàng bị trả. Tách khỏi phần huỷ
+    trước khi giao. Đây là mức TỐI THIỂU: đơn huỷ không lấy được mốc xuất hàng vẫn có thể
+    là hàng trả, nên con số thật có thể cao hơn. */
+ var retGmv=0,retN=0;
+ ords.forEach(function(o){if(o.cancel&&o.shipMs){retGmv+=o.gmv;retN++;}});
+ var cancelPre=cancel-retGmv;
  /* Khối B = đơn ĐÃ được Shopee đối soát. Lọc theo "đã có dữ liệu" chứ không theo dấu của
     số tiền, vì đơn đã hoàn tiền có escrow ÂM và từng bị loại oan. */
  var B=ords.filter(function(o){return o.hasRec;});
@@ -5212,7 +5219,7 @@ function _ops2FinCalc(win,DIM){
  var opProfit=(ads.sp==null||gp==null)?null:gp-ads.sp;
  return {ords:ords,gross:gross,cancel:cancel,net:net,B:B,gB:gB,netB:netB,f0:f0,f1:f1,f2:f2,
   fee:fee,other:other,esc:esc,noRec:noRec,noRecGmv:noRecGmv,refund:refund,refundGmv:refundGmv,
-  cogs:cogs,qMatch:qMatch,qTot:qTot,hasB:hasB,gp:gp,netRev:netRev,
+  cogs:cogs,qMatch:qMatch,qTot:qTot,hasB:hasB,gp:gp,netRev:netRev,retGmv:retGmv,retN:retN,cancelPre:cancelPre,
   adsSp:ads.sp,adsNote:ads.note,adsPartial:ads.partial,opProfit:opProfit};
 }
 /* Bảng P&L xoay ngang: mỗi tháng một cột. Dùng CHUNG _ops2FinCalc với bảng tổng kỳ nên
@@ -5232,8 +5239,8 @@ function _ops2FinPivot(SF,DIM,months){
   ['h','KHỐI A — DOANH THU'],
   [0,'Số đơn',function(C){return C.ords.length;},fmI,null],
   [0,'GMV tổng (gồm cả đơn huỷ)',function(C){return C.gross;},fmM,null],
-  [1,'(−) GMV đơn huỷ',function(C){return -C.cancel;},fmM,gA],
-  [1,'(−) Hoàn trả sau bán',function(C){return 0;},fmM,gA],
+  [1,'(−) Huỷ trước khi giao',function(C){return -C.cancelPre;},fmM,gA],
+  [1,'(−) Hoàn trả sau bán (đã xuất hàng rồi bị trả)',function(C){return -C.retGmv;},fmM,gA],
   [1,'(−) Đơn chưa được đối soát',function(C){return -C.noRecGmv;},fmM,gA],
   [1,'(−) Giảm giá, voucher của shop',function(C){return C.hasB?-C.other:null;},fmM,gA],
   [0,'= DOANH THU THUẦN',function(C){return C.netRev;},fmM,gA],
