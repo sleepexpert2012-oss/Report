@@ -30,3 +30,18 @@ Mỗi entry: ngày · việc · sai gì · sửa gì · rule rút ra.
 2. Luôn xử lý bản ghi MỚI NHẤT trước. Dữ liệu gần đây là thứ cần cho quyết định; nếu phải bỏ dở thì bỏ phần cũ.
 3. Khi một chỉ số trống bất thường, đừng đoán — đếm độ phủ theo thời gian để tìm mốc gãy. Mốc gãy nằm ở đâu sẽ chỉ thẳng ra nguyên nhân.
 4. Job nền quan trọng phải có cron riêng, không phụ thuộc thao tác tay của người dùng.
+
+---
+
+## 2026-07-28 · Dùng `> 0` để kiểm tra "đã có dữ liệu" — sai ở ca số âm
+
+**Sai gì:** Bảng P&L xác định khối đối soát bằng `(phí>0 || escrow>0)`. Ý định là "đơn nào đã được Shopee đối soát", nhưng phép so sánh này ngầm giả định tiền luôn dương. Thực tế đơn đã hoàn tiền có escrow ÂM (−1.620đ hoặc −2.700đ) → bị loại khỏi khối đối soát dù dữ liệu ĐÃ CÓ. Hậu quả: doanh thu sau huỷ và doanh thu nhóm đối soát lệch nhau mà không dòng nào giải thích. 16 đơn / 15,2 triệu bị loại oan trong 4 tháng.
+
+**Người dùng phát hiện trước:** anh Louis thấy hai con số không khớp và đoán nguyên nhân là thiếu dữ liệu hoàn trả. Đoán sai nguyên nhân nhưng chỉ đúng chỗ hỏng — bài học là khi người dùng nói "hai số này không khớp" thì phải đi kiểm chứng bằng số chứ đừng vội xác nhận hay bác bỏ giả thuyết của họ.
+
+**Sửa gì:** phân biệt ô TRỐNG (chưa đối soát) với giá trị 0/âm (đã đối soát) bằng cờ `hasRec` đọc từ chuỗi gốc trước khi ép kiểu số. Thêm các dòng bắc cầu giữa hai khối để mọi chênh lệch tự hiện ra trên bảng.
+
+**Rule rút ra:**
+1. Kiểm tra "đã có dữ liệu chưa" phải hỏi ô có TRỐNG không, tuyệt đối không dùng `> 0`. Số 0 và số âm đều là dữ liệu hợp lệ. Ép kiểu số làm mất thông tin này nên phải giữ cờ ngay lúc đọc.
+2. Khi bảng có hai khối mà tổng của chúng phải liên hệ với nhau, LUÔN có dòng bắc cầu hiển thị phần chênh. Nếu người đọc phải tự trừ hai số để phát hiện bất thường thì thiết kế bảng đã sai.
+3. Tiền âm là chuyện bình thường trong đối soát sàn (hoàn tiền, điều chỉnh, phạt). Đừng giả định dòng tiền một chiều.

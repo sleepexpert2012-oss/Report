@@ -6,6 +6,13 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R55 — 28/07/2026
+
+- Sửa lỗi bảng P&L: đơn có tiền thực nhận âm (đơn đã hoàn tiền, Shopee trả về escrow âm vài nghìn đồng) bị loại nhầm khỏi khối đối soát, làm doanh thu sau huỷ và doanh thu nhóm đối soát lệch nhau không giải thích được. Tổng cộng 16 đơn / 15,2 triệu bị loại oan trong 4 tháng.
+- Khối đối soát nay xác định theo "Shopee đã trả dữ liệu hay chưa" thay vì theo dấu của số tiền, nên hai khối luôn khớp và độ phủ đạt 100%.
+- Thêm các dòng bắc cầu giữa hai khối: đơn chưa được đối soát, và đơn nghi đã hoàn tiền — mọi chênh lệch nay đều hiện rõ trên bảng thay vì để người đọc tự đoán.
+- Phát hiện kèm theo: nhiều đơn đã giao xong nhưng tiền thực nhận ≤ 0 (tháng 6: 9 đơn/10,2tr; tháng 7: 3 đơn/2,6tr) — dấu hiệu hoàn tiền mà Returns API không ghi nhận.
+
 ## R54 — 28/07/2026
 
 - Sửa lỗi khiến toàn bộ đơn từ 01/07/2026 không có phí sàn và tiền thực nhận: hàm đồng bộ `ops-sync` duyệt đơn cũ trước, hết giờ chạy thì dừng lặng nên đơn mới không bao giờ tới lượt.

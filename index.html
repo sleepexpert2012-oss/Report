@@ -4908,6 +4908,9 @@ function _ops2Sf(){
     sku:String(x.sku_phan_loai_hang||'').trim(),name:String(x.ten_san_pham||'').trim(),
     qty:_ops2N(x.so_luong),ret:_ops2N(x.so_luong_san_pham_duoc_hoan_tra),gmv:_ops2N(x.tong_gia_ban_san_pham),
     f0:_ops2N(x.phi_co_dinh),f1:_ops2N(x.phi_dich_vu),f2:_ops2N(x.phi_thanh_toan),esc:_ops2N(x.tien_ky_quy),
+    /* Ô TRỐNG = Shopee chưa đối soát. Giá trị 0 hoặc ÂM = đã đối soát (đơn hoàn tiền có
+       escrow âm vài nghìn đồng). Phải phân biệt hai ca này, không dùng phép so sánh >0. */
+    hasRec:!!(String(x.tien_ky_quy==null?'':x.tien_ky_quy).trim()||String(x.phi_co_dinh==null?'':x.phi_co_dinh).trim()),
     paid:_ops2N(x.tong_so_tien_nguoi_mua_thanh_toan),pay:String(x.phuong_thuc_thanh_toan||'').trim()};
   }).filter(function(r){return r.d;});
   return _OPS2_SF;
@@ -4990,8 +4993,9 @@ function _ops2Tr(v){return Math.round((v||0)/1e4)/100;} /* VND -> triệu, 2 s�
 function _ops2Ords(rows){
  var m={},list=[];
  rows.forEach(function(r){var o=m[r.sn];
-  if(!o){o=m[r.sn]={sn:r.sn,d:r.d,ms:r.ms,cancel:false,gmv:0,qty:0,f0:r.f0,f1:r.f1,f2:r.f2,esc:r.esc,paid:r.paid,pay:r.pay,carrier:r.carrier,shipMs:r.shipMs,doneMs:r.doneMs};list.push(o);}
+  if(!o){o=m[r.sn]={sn:r.sn,d:r.d,ms:r.ms,cancel:false,gmv:0,qty:0,f0:r.f0,f1:r.f1,f2:r.f2,esc:r.esc,paid:r.paid,pay:r.pay,carrier:r.carrier,shipMs:r.shipMs,doneMs:r.doneMs,hasRec:!!r.hasRec};list.push(o);}
   o.cancel=o.cancel||r.cancel;o.gmv+=r.gmv;if(!r.cancel)o.qty+=r.qty;
+  o.hasRec=o.hasRec||!!r.hasRec;
   if(!o.carrier&&r.carrier)o.carrier=r.carrier;
   if(!o.shipMs&&r.shipMs)o.shipMs=r.shipMs;
   if(!o.doneMs&&r.doneMs)o.doneMs=r.doneMs;
@@ -5145,10 +5149,17 @@ function _ops2Finance(host,p,SF,DIM){
  var win=_ops2Wsel(SF),g=_ops2G(_ops2Span(win)),ords=_ops2Ords(win);
  var gross=0,cancel=0;win.forEach(function(r){gross+=r.gmv;if(r.cancel)cancel+=r.gmv;});
  var net=gross-cancel;
- var B=ords.filter(function(o){return (o.f0+o.f1+o.f2)>0||o.esc>0;});
+ /* Khối B = đơn ĐÃ được Shopee đối soát. Trước đây lọc bằng (phí>0 || escrow>0) nên
+    đơn escrow ÂM — thực chất là đơn đã hoàn tiền — bị loại oan, tạo chênh lệch khó hiểu
+    giữa doanh thu sau huỷ và doanh thu nhóm đối soát. */
+ var B=ords.filter(function(o){return o.hasRec;});
  var gB=0,netB=0,f0=0,f1=0,f2=0,esc=0;
  B.forEach(function(o){gB+=o.gmv;if(!o.cancel)netB+=o.gmv;f0+=o.f0;f1+=o.f1;f2+=o.f2;esc+=o.esc;});
  var fee=f0+f1+f2,other=netB-fee-esc;
+ var noRec=ords.filter(function(o){return !o.hasRec&&!o.cancel;});
+ var noRecGmv=noRec.reduce(function(a,x){return a+x.gmv;},0);
+ var refund=ords.filter(function(o){return o.hasRec&&!o.cancel&&o.esc<=0;});
+ var refundGmv=refund.reduce(function(a,x){return a+x.gmv;},0);
  var snB={};B.forEach(function(o){if(!o.cancel)snB[o.sn]=1;});
  var cogs=0,qMatch=0,qTot=0;
  win.forEach(function(r){if(r.cancel||!snB[r.sn])return;qTot+=r.qty;var m=DIM.sku[r.sku];if(m&&m.cost>0){cogs+=m.cost*r.qty;qMatch+=r.qty;}});
@@ -5179,7 +5190,10 @@ function _ops2Finance(host,p,SF,DIM){
   [0,'Doanh thu đặt hàng (GMV gộp)',gross,gross,''],
   [1,'(−) GMV đơn huỷ',-cancel,gross,_opsPct(gross?cancel/gross:0)+' GMV'],
   [0,'= Doanh thu sau huỷ',net,gross,''],
-  [1,'(−) Hoàn trả sau bán',0,gross,'Chưa phát sinh trong dữ liệu Returns'],
+  [1,'(−) Hoàn trả sau bán ghi nhận qua Returns API',0,gross,refund.length?'Returns API trả 0 bản ghi — nhưng '+refund.length+' đơn dưới đây có dấu hiệu đã hoàn tiền':'Chưa phát sinh trong dữ liệu Returns'],
+  (refund.length?[1,'trong đó: đơn escrow ≤ 0 (nghi đã hoàn tiền)',-refundGmv,gross,refund.length+' đơn đã giao xong nhưng Shopee trả về tiền thực nhận ≤ 0']:null),
+  [1,'(−) Đơn chưa được Shopee đối soát',-noRecGmv,gross,noRec.length?noRec.length+' đơn chưa có dữ liệu phí/escrow — chạy Đồng bộ phân tích để lấy':'Không có — mọi đơn không huỷ đều đã đối soát'],
+  [0,'= Doanh thu đã đối soát (bắc cầu sang khối B)',net-noRecGmv,gross,''],
   ['h','KHỐI B — ĐƠN CÓ ĐỐI SOÁT PHÍ / ESCROW ('+B.length.toLocaleString('vi-VN')+' đơn · phủ '+_opsPct(gross?gB/gross:0)+' GMV kỳ)'+(hasB?'':' — CHƯA CÓ DỮ LIỆU, CÁC DÒNG DƯỚI ĐỂ TRỐNG')],
   [0,'Doanh thu nhóm đối soát (sau huỷ)',hasB?netB:null,netB,hasB?'Cơ sở tính % của khối B':'Chưa có đơn nào được đối soát trong kỳ'],
   [1,'(−) Phí cố định',hasB?-f0:null,netB,''],
@@ -5193,7 +5207,7 @@ function _ops2Finance(host,p,SF,DIM){
   (adsSp==null?[1,'(−) Chi phí Ads trong kỳ',null,netB,'Thiếu dữ liệu Ads trong kỳ chọn']:[1,'(−) Chi phí Ads toàn shop trong kỳ',-adsSp,netB,'Ads phủ toàn shop, không riêng nhóm đối soát']),
   (opProfit==null?[0,'= Lợi nhuận vận hành (sau Ads)',null,netB,gp==null?'Không tính được — thiếu dữ liệu đối soát escrow, KHÔNG phải lỗ':'Không tính được do thiếu Ads']:[0,'= Lợi nhuận vận hành (sau Ads)',opProfit,netB,''])
  ];
- var pl='<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>Chỉ tiêu</th><th style="text-align:right">Giá trị</th><th style="text-align:right">% cơ sở</th><th>Ghi chú</th></tr></thead><tbody>'+rows.map(plRow).join('')+'</tbody></table></div>';
+ var pl='<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>Chỉ tiêu</th><th style="text-align:right">Giá trị</th><th style="text-align:right">% cơ sở</th><th>Ghi chú</th></tr></thead><tbody>'+rows.filter(Boolean).map(plRow).join('')+'</tbody></table></div>';
  var seB=(function(){
   var map={},keys=[];
   B.forEach(function(o){var k=_ops2Bk(o.d,g);if(!map[k]){map[k]={f0:0,f1:0,f2:0,net:0};keys.push(k);}
