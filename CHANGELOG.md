@@ -6,6 +6,12 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R67 — 28/07/2026
+
+- Phân loại đơn theo DÒNG TIỀN thay vì theo trạng thái đơn, sau khi đối chiếu với các mã đơn thật do chủ shop cung cấp. Shopee vẫn để trạng thái "Hoàn thành" cho đơn khách đã trả hàng, và để "Đã huỷ" cho đơn thất lạc mà Shopee đã đền bù — trạng thái đơn không phản ánh đúng thực tế.
+- Đơn nhận được tiền tính là bán thành công (kể cả đơn Shopee đền bù hàng thất lạc); đơn đã rời kho mà không nhận được tiền tính là hoàn trả.
+- Nhờ vậy hoàn trả năm 2025 từ 0 lên 171,5 triệu (81 đơn) và 2026 lên 69,8 triệu (54 đơn) — trước đây dòng này luôn bằng 0 vì Returns API không trả bản ghi nào.
+
 ## R66 — 28/07/2026
 
 - Bảng P&L nay chỉ còn một dạng duy nhất: mỗi tháng một cột. Bỏ hẳn bảng tổng cả kỳ và nút chuyển qua lại.

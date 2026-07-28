@@ -4991,6 +4991,9 @@ function _ops2H(h){return h>=48?((h/24).toLocaleString('vi-VN',{maximumFractionD
 function _ops2Tr(v){return Math.round((v||0)/1e4)/100;} /* VND -> triệu, 2 số lẻ */
 /* ---- gom dòng -> đơn (phí/escrow chỉ tính 1 lần / đơn, như ops-responder) ---- */
 function _ops2Ords(rows){
+ /* Đơn huỷ mà Shopee VẪN trả tiền (hàng thất lạc, Shopee đền bù) thì về mặt kinh tế là
+    đã bán thành công và đã nhận tiền — phải tính vào doanh thu, giá vốn và tiền thực nhận,
+    không được xếp chung với đơn huỷ thật. Cờ này được set sau khi gom xong toàn đơn. */
  var m={},list=[];
  rows.forEach(function(r){var o=m[r.sn];
   if(!o){o=m[r.sn]={sn:r.sn,d:r.d,ms:r.ms,cancel:false,gmv:0,qty:0,f0:r.f0,f1:r.f1,f2:r.f2,esc:r.esc,paid:r.paid,pay:r.pay,carrier:r.carrier,shipMs:r.shipMs,doneMs:r.doneMs,hasRec:!!r.hasRec};list.push(o);}
@@ -5001,6 +5004,12 @@ function _ops2Ords(rows){
   if(!o.doneMs&&r.doneMs)o.doneMs=r.doneMs;
   if(!o.pay&&r.pay)o.pay=r.pay;
  });
+ /* PHÂN LOẠI THEO TIỀN VỀ, KHÔNG THEO TRẠNG THÁI ĐƠN. Đã đối chiếu với đơn thật:
+    · 260130DF34NGHG "Đã huỷ" nhưng Shopee đền bù hàng thất lạc → escrow 13,99tr → BÁN ĐƯỢC
+    · 260715PQC60580 "Hoàn thành" nhưng khách trả hàng        → escrow ≤ 0    → HOÀN TRẢ
+    Trạng thái đơn không phản ánh được hai ca này; chỉ dòng tiền mới nói đúng.
+    Đơn chưa có dữ liệu đối soát thì đành tạm dùng trạng thái. */
+ list.forEach(function(o){o.paid=o.hasRec?(o.esc>0):(!o.cancel);});
  return list;
 }
 /* ---- khối UI dùng chung ---- */
@@ -5188,28 +5197,29 @@ function _ops2AdsFor(win){
    tháng, để hai chế độ không bao giờ ra số khác nhau. */
 function _ops2FinCalc(win,DIM){
  var ords=_ops2Ords(win);
- var gross=0,cancel=0;win.forEach(function(r){gross+=r.gmv;if(r.cancel)cancel+=r.gmv;});
+ var paidSn={};ords.forEach(function(o){if(o.paid)paidSn[o.sn]=1;});
+ var gross=0,cancel=0;
+ win.forEach(function(r){gross+=r.gmv;if(!paidSn[r.sn])cancel+=r.gmv;});
  var net=gross-cancel;
- /* HOÀN TRẢ: Returns API của Shopee trả 0 bản ghi, nhưng đơn "Đã huỷ" mà ĐÃ CÓ ngày xuất
-    hàng thì hàng đã rời kho rồi mới quay về — đó chính là hàng bị trả. Tách khỏi phần huỷ
-    trước khi giao. Đây là mức TỐI THIỂU: đơn huỷ không lấy được mốc xuất hàng vẫn có thể
-    là hàng trả, nên con số thật có thể cao hơn. */
+ /* HOÀN TRẢ: Returns API của Shopee trả 0 bản ghi. Dấu hiệu thật là ĐƠN ĐÃ RỜI KHO
+    (có mốc xuất hàng hoặc hoàn thành) MÀ SHOPEE KHÔNG TRẢ TIỀN — hàng đi rồi quay về.
+    Không dùng trạng thái đơn vì Shopee vẫn để "Hoàn thành" cho đơn bị trả. */
  var retGmv=0,retN=0;
- ords.forEach(function(o){if(o.cancel&&o.shipMs){retGmv+=o.gmv;retN++;}});
+ ords.forEach(function(o){if(!o.paid&&(o.shipMs||o.doneMs)){retGmv+=o.gmv;retN++;}});
  var cancelPre=cancel-retGmv;
  /* Khối B = đơn ĐÃ được Shopee đối soát. Lọc theo "đã có dữ liệu" chứ không theo dấu của
     số tiền, vì đơn đã hoàn tiền có escrow ÂM và từng bị loại oan. */
  var B=ords.filter(function(o){return o.hasRec;});
  var gB=0,netB=0,f0=0,f1=0,f2=0,esc=0;
- B.forEach(function(o){gB+=o.gmv;if(!o.cancel)netB+=o.gmv;f0+=o.f0;f1+=o.f1;f2+=o.f2;esc+=o.esc;});
+ B.forEach(function(o){gB+=o.gmv;if(o.paid){netB+=o.gmv;f0+=o.f0;f1+=o.f1;f2+=o.f2;esc+=o.esc;}});
  var fee=f0+f1+f2,other=netB-fee-esc;
- var noRec=ords.filter(function(o){return !o.hasRec&&!o.cancel;});
+ var noRec=ords.filter(function(o){return !o.hasRec&&o.paid;});
  var noRecGmv=noRec.reduce(function(a,x){return a+x.gmv;},0);
- var refund=ords.filter(function(o){return o.hasRec&&!o.cancel&&o.esc<=0;});
+ var refund=ords.filter(function(o){return o.hasRec&&o.paid&&o.esc<=0;});
  var refundGmv=refund.reduce(function(a,x){return a+x.gmv;},0);
- var snB={};B.forEach(function(o){if(!o.cancel)snB[o.sn]=1;});
+ var snB={};B.forEach(function(o){if(o.paid)snB[o.sn]=1;});
  var cogs=0,qMatch=0,qTot=0;
- win.forEach(function(r){if(r.cancel||!snB[r.sn])return;qTot+=r.qty;var m=DIM.sku[r.sku];if(m&&m.cost>0){cogs+=m.cost*r.qty;qMatch+=r.qty;}});
+ win.forEach(function(r){if(!snB[r.sn])return;qTot+=r.qty;var m=DIM.sku[r.sku];if(m&&m.cost>0){cogs+=m.cost*r.qty;qMatch+=r.qty;}});
  var hasB=B.length>0&&netB>0;
  /* Doanh thu THUẦN theo chuẩn kế toán = doanh thu ghi nhận − giảm giá/voucher.
     Quan hệ luôn đúng: doanh thu thuần − phí sàn = tiền thực nhận. */

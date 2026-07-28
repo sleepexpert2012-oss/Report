@@ -110,3 +110,25 @@ Chrome có sẵn tại `/Applications/Google Chrome.app/Contents/MacOS/Google Ch
 4. Khi sửa lệch: giữ nguyên dữ liệu gốc, ghi phần chênh thành bản ghi riêng có nhãn. Đừng sửa đè lên số gốc — mất khả năng truy vết.
 
 5. Khi bù phần chênh vào dữ liệu theo ngày, phải kiểm tra mức chi suy ra có hợp lý so với những ngày đã có số không. Lần đầu tôi dồn hết chênh của tháng 4 vào đúng 1 ngày trống, tạo ra một ngày chi gấp 8 lần bình thường — số tổng đúng nhưng biểu đồ theo ngày thành vô nghĩa. Quy tắc: chỉ dồn vào ngày trống khi mức suy ra nằm trong 0,3–3 lần mức ngày đã có, ngoài khoảng đó thì rải đều.
+
+---
+
+## 2026-07-28 · Trạng thái đơn Shopee KHÔNG phản ánh thực tế — phải nhìn dòng tiền
+
+**Sai gì:** Để phát hiện hàng bị trả, tôi dùng dấu hiệu "đơn Đã huỷ mà đã có ngày xuất hàng", bắt được 65 đơn và tưởng là đúng. Chủ shop gửi 3 mã đơn hoàn hàng thật để đối chiếu thì cả 3 đều **không nằm trong danh sách** — vì trạng thái của chúng là **"Hoàn thành"** chứ không phải "Đã huỷ".
+
+Ngược lại, một đơn "Đã huỷ" khác lại là hàng thất lạc được Shopee đền bù đủ tiền, tức bán thành công.
+
+**Bài học cốt lõi:** trạng thái đơn của Shopee mô tả *quy trình vận hành*, không mô tả *kết quả kinh tế*. Đơn khách trả vẫn để "Hoàn thành"; đơn được đền bù vẫn để "Đã huỷ". Dùng trạng thái để tính doanh thu là sai từ gốc.
+
+**Sửa gì:** phân loại theo tiền thực nhận:
+- escrow > 0 → bán thành công (kể cả đơn "Đã huỷ" được đền bù)
+- escrow ≤ 0 mà hàng đã rời kho → hoàn trả
+- escrow ≤ 0 mà hàng chưa rời kho → huỷ trước khi giao
+
+Sau khi sửa, cả 5 mã đơn chủ shop xác nhận đều rơi đúng nhóm; hoàn trả 2025 từ 0 lên 171,5tr (81 đơn).
+
+**Rule rút ra:**
+1. Với dữ liệu sàn thương mại điện tử, **dòng tiền là sự thật, trạng thái chỉ là nhãn**. Khi hai thứ mâu thuẫn, tin dòng tiền.
+2. Đừng tự nghĩ ra dấu hiệu nhận diện rồi tin luôn. Phải xin vài mã bản ghi thật từ người dùng để đối chiếu — chi phí gần như bằng 0 mà bắt được lỗi mà tự kiểm không bao giờ thấy.
+3. Kiểm tra CẢ HAI CHIỀU: cái mình bắt được có đúng không, và cái đúng mình có bỏ sót không. Lần này tôi chỉ tự tin vì 65 đơn bắt được trông hợp lý, mà không biết đang sót hàng chục đơn khác.
