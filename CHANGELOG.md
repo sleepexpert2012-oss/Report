@@ -6,6 +6,14 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R56 — 28/07/2026
+
+- Thiết kế lại bảng P&L cho dễ đọc: phần trăm nay mang cùng dấu với số tiền (trước đây lợi nhuận âm nhưng % vẫn dương).
+- Phân cấp rõ bằng cỡ chữ và nền: dải tiêu đề khối, dòng gốc, dòng trừ (thụt vào, chữ nhỏ xám), dòng thông tin, dòng kết quả, và dòng lợi nhuận cuối cùng nổi bật nhất — thay vì mọi dòng cùng cỡ như trước.
+- Bỏ chữ "triệu" lặp trên từng dòng, đưa đơn vị lên tiêu đề cột; mọi số cố định một chữ số thập phân nên các cột thẳng hàng, dễ quét mắt.
+- Giảm nhiễu màu: dòng trừ để xám thay vì tô đỏ toàn bộ; chỉ tô màu dòng kết quả cuối và các dòng kết quả bị âm.
+- Ẩn cột ghi chú trên màn hình hẹp để bảng không bị tràn.
+
 ## R55 — 28/07/2026
 
 - Sửa lỗi bảng P&L: đơn có tiền thực nhận âm (đơn đã hoàn tiền, Shopee trả về escrow âm vài nghìn đồng) bị loại nhầm khỏi khối đối soát, làm doanh thu sau huỷ và doanh thu nhóm đối soát lệch nhau không giải thích được. Tổng cộng 16 đơn / 15,2 triệu bị loại oan trong 4 tháng.
