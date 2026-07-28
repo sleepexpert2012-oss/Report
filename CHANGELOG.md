@@ -6,6 +6,12 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R60 — 28/07/2026
+
+- Lấp toàn bộ dữ liệu đối soát cho đơn cũ: 1.825 đơn từ 01/2025 đến 03/2026 nay đã có phí sàn, tiền thực nhận, phương thức thanh toán và đơn vị vận chuyển. Độ phủ đạt 100% ở cả 19 tháng.
+- Sửa lỗi làm sai lợi nhuận: khi kỳ đang xem không còn dữ liệu Ads, bảng trước đây coi chi phí Ads bằng 0 nên lợi nhuận bị thổi lên. Nay để trống và ghi rõ không tính được.
+- Trường hợp kỳ chỉ có dữ liệu Ads một phần (Shopee Ads API chỉ lưu khoảng 6 tháng) thì cảnh báo rõ rằng lợi nhuận thật thấp hơn số hiển thị.
+
 ## R59 — 28/07/2026
 
 - Hoàn nguyên bảng P&L về giao diện ban đầu theo yêu cầu: các thay đổi giao diện ở R56–R58 đã được gỡ bỏ.
