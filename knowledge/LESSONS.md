@@ -97,7 +97,7 @@ Chrome có sẵn tại `/Applications/Google Chrome.app/Contents/MacOS/Google Ch
 
 ## 2026-07-28 · Số API khớp "có vẻ hợp lý" nhưng lệch báo cáo gốc
 
-**Sai gì:** Tôi báo tổng chi phí Ads 2026 là 58,7 triệu dựa trên `ads_fact`, kèm cảnh báo thiếu ngày. Người dùng mở Seller Centre đối chiếu thì thấy sai — thực tế 70,5 triệu. Lệch 11,8 triệu (20%).
+**Sai gì:** Tôi báo tổng chi phí Ads 2026 là 58,7 triệu dựa trên `ads_fact`, kèm cảnh báo thiếu ngày. Người dùng mở Seller Centre đối chiếu thì thấy sai — thực tế **94,7 triệu**. Lệch 36 triệu, tức con số tôi đưa ra chỉ bằng 62% sự thật.
 
 **Nguyên nhân:** hàm đồng bộ Ads có hai phần — lấy chi phí theo từng chiến dịch, và một bước "đối soát" gọi API tổng shop rồi ghi phần chênh. Bước đối soát **chưa từng chạy thành công**: trong toàn bộ dữ liệu không có một dòng "CPC khác (chưa phân bổ SP)" nào. Nên bảng chỉ có chi phí cấp chiến dịch, thiếu phần CPC cấp shop và các chiến dịch đã xoá.
 
@@ -108,3 +108,5 @@ Chrome có sẵn tại `/Applications/Google Chrome.app/Contents/MacOS/Google Ch
 2. Khi hệ thống có sẵn một bước đối soát với nguồn tổng, phải kiểm tra bước đó có thật sự chạy không — đếm số bản ghi nó tạo ra. Code có logic đúng không đảm bảo logic đó được thực thi.
 3. Với số liệu tài chính, luôn đối chiếu ít nhất một kỳ với báo cáo gốc của nhà cung cấp trước khi công bố. Tôi đã bỏ qua bước này và đưa ra con số sai.
 4. Khi sửa lệch: giữ nguyên dữ liệu gốc, ghi phần chênh thành bản ghi riêng có nhãn. Đừng sửa đè lên số gốc — mất khả năng truy vết.
+
+5. Khi bù phần chênh vào dữ liệu theo ngày, phải kiểm tra mức chi suy ra có hợp lý so với những ngày đã có số không. Lần đầu tôi dồn hết chênh của tháng 4 vào đúng 1 ngày trống, tạo ra một ngày chi gấp 8 lần bình thường — số tổng đúng nhưng biểu đồ theo ngày thành vô nghĩa. Quy tắc: chỉ dồn vào ngày trống khi mức suy ra nằm trong 0,3–3 lần mức ngày đã có, ngoài khoảng đó thì rải đều.

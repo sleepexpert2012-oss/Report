@@ -8,7 +8,9 @@ Quy ước từ ngày 26/07/2026:
 
 ## R62 — 28/07/2026
 
-- Đối chiếu chi phí Ads 2026 với báo cáo Seller Centre và ghi dòng điều chỉnh cho 4 tháng lệch: 02, 04, 05 và 06/2026. Tổng chi phí Ads 2026 tăng từ 58,7 lên 70,5 triệu.
+- Đối chiếu chi phí Ads 2026 với báo cáo Seller Centre và ghi dòng điều chỉnh cho cả 6 tháng 01–06. Tổng chi phí Ads 2026 tăng từ 58,7 lên 94,7 triệu — con số cũ thiếu 61%.
+- Riêng tháng 01/2026 chỉ có 7/31 ngày từ API (8,1 triệu) trong khi thực tế 32,3 triệu.
+- Phần chênh được rải theo nguyên tắc có kiểm tra tính hợp lý: nếu mức chi suy ra cho ngày trống nằm trong khoảng 0,3–3 lần mức chi ngày đã có thì dồn vào ngày trống, ngược lại rải đều cả tháng để tránh tạo ra ngày tăng vọt giả.
 - Phát hiện nguyên nhân lệch: bước đối soát tổng shop trong hàm đồng bộ Ads chưa từng chạy thành công (không có dòng "CPC khác" nào trong dữ liệu), nên bảng chỉ có chi phí cấp chiến dịch — vừa thiếu ngày vừa không khớp tổng thật.
 - Dữ liệu gốc từ API được giữ nguyên; phần chênh ghi thành dòng riêng có nhãn rõ ràng để đối chiếu lại được.
 
