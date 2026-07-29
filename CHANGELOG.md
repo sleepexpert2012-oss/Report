@@ -6,6 +6,13 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R71 — 29/07/2026
+
+- Chuẩn hoá thẻ KPI trên toàn bộ 7 màn Vận hành Shopee theo đúng chuỗi P&L: GMV → Đã huỷ → Hoàn trả → Khuyến mãi → NMV (doanh thu thực). Mọi màn dùng chung một hàm tính nên không còn màn nào hiểu "doanh thu" theo kiểu riêng.
+- Mỗi thẻ hiển thị kèm tỷ trọng trên GMV để thấy ngay khoản nào đang bào mòn doanh thu nhiều nhất.
+- Các chỉ số riêng của từng màn (AOV, thời gian giao, phương thức thanh toán…) được giữ nguyên và xếp sau dải KPI chuẩn.
+- Xoá bỏ phiên bản cũ của hàm dựng màn Vận hành đã bị thay thế nhưng vẫn nằm trong file, tránh sửa nhầm về sau.
+
 ## R70 — 29/07/2026
 
 - Sửa mâu thuẫn số liệu giữa các màn: màn Tổng quan vận hành trước đây lấy doanh thu từ Edge Function, nơi chỉ trừ đơn có trạng thái "Đã huỷ", nên báo cao hơn bảng P&L mà không giải thích được. Nay cả hai màn dùng chung một hàm tính duy nhất.

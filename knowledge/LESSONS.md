@@ -150,3 +150,18 @@ Bóc tách khoảng lệch 13,3tr của tháng 7: 8,7tr là đơn hoàn trả m�
 2. Nguy hiểm nhất là khi một bên tính ở backend còn bên kia tính ở frontend — chúng lệch dần theo thời gian mà không ai thấy, vì không có chỗ nào so hai bên với nhau.
 3. Khi sửa định nghĩa ở một chỗ (ở đây: chuyển sang phân loại theo dòng tiền), phải rà xem còn màn nào đang dùng định nghĩa cũ không. Tôi đã đổi cách tính cho bảng P&L mà quên màn Tổng quan.
 4. Nếu buộc phải có nhiều chỉ tiêu doanh thu khác nhau thì đặt tên khác nhau và hiện cạnh nhau, đừng để hai màn cùng một nhãn.
+
+---
+
+## 2026-07-29 · Sửa nhầm vào bản cũ đã chết vì file còn giữ cả hai
+
+**Sai gì:** Khi chuẩn hoá KPI cho màn Tổng quan, tôi sửa vào `renderShopeePage` phiên bản v1 — hàm đã bị v2 ghi đè bằng `renderShopeePage=function(){...}` nên không bao giờ chạy. Sửa xong thấy syntax pass, tưởng đã xong, nhưng màn hình vẫn hiện số cũ.
+
+Chỉ phát hiện được vì tôi viết test render cả 7 màn rồi so dải KPI với nhau — 6 màn khớp, riêng màn Tổng quan lệch. Nếu không có test đó thì đã commit một thay đổi hoàn toàn vô tác dụng.
+
+**Sửa gì:** áp dụng vào đúng `_ops2Ops`, rồi **xoá hẳn 9.487 bytes code v1 đã chết** để không còn hai bản cùng tên trong file.
+
+**Rule rút ra:**
+1. Khi ghi đè hàm bằng `foo=function(){}` mà vẫn để `function foo(){}` cũ nằm lại, file có hai bản cùng tên — grep ra hai kết quả và rất dễ sửa nhầm bản chết. Ghi đè xong thì xoá bản cũ ngay, đừng để dành.
+2. Trước khi sửa, kiểm tra hàm đó có thật sự được gọi không: đếm số định nghĩa, số lần gán, và xem router gọi cái nào.
+3. Test so sánh chéo giữa các màn bắt được loại lỗi mà syntax check và test một màn đều bỏ qua. Với dữ liệu dùng chung nhiều nơi, luôn có một test "mọi màn phải ra cùng con số".
