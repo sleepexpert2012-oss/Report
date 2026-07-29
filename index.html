@@ -4898,7 +4898,7 @@ function _ops2Get(table,select){
 function _ops2Sf(){
  if(_OPS2_SF)return Promise.resolve(_OPS2_SF);
  if(_OPS2_SF_P)return _OPS2_SF_P;
- _OPS2_SF_P=_ops2Get('sales_fact','ma_don_hang,ngay_dat_hang,trang_thai_don_hang,ly_do_huy,don_vi_van_chuyen,ngay_xuat_hang,thoi_gian_hoan_thanh_don_hang,sku_phan_loai_hang,ten_san_pham,so_luong,so_luong_san_pham_duoc_hoan_tra,tong_gia_ban_san_pham,phi_co_dinh,phi_dich_vu,phi_thanh_toan,tien_ky_quy,tong_so_tien_nguoi_mua_thanh_toan,phuong_thuc_thanh_toan')
+ _OPS2_SF_P=_ops2Get('sales_fact','ma_don_hang,ngay_dat_hang,trang_thai_don_hang,ly_do_huy,don_vi_van_chuyen,ngay_xuat_hang,thoi_gian_hoan_thanh_don_hang,sku_phan_loai_hang,ten_san_pham,so_luong,so_luong_san_pham_duoc_hoan_tra,tong_gia_ban_san_pham,phi_co_dinh,phi_dich_vu,phi_thanh_toan,tien_ky_quy,tong_so_tien_nguoi_mua_thanh_toan,phuong_thuc_thanh_toan,trang_thai_tra_hang_hoan_tien,tong_so_tien_duoc_nguoi_ban_tro_gia')
  .then(function(rows){
   _OPS2_SF=rows.map(function(x){
    var st=String(x.trang_thai_don_hang||'');
@@ -4911,7 +4911,9 @@ function _ops2Sf(){
     /* Ô TRỐNG = Shopee chưa đối soát. Giá trị 0 hoặc ÂM = đã đối soát (đơn hoàn tiền có
        escrow âm vài nghìn đồng). Phải phân biệt hai ca này, không dùng phép so sánh >0. */
     hasRec:!!(String(x.tien_ky_quy==null?'':x.tien_ky_quy).trim()||String(x.phi_co_dinh==null?'':x.phi_co_dinh).trim()),
-    paid:_ops2N(x.tong_so_tien_nguoi_mua_thanh_toan),pay:String(x.phuong_thuc_thanh_toan||'').trim()};
+    paid:_ops2N(x.tong_so_tien_nguoi_mua_thanh_toan),pay:String(x.phuong_thuc_thanh_toan||'').trim(),
+    retSt:String(x.trang_thai_tra_hang_hoan_tien||'').trim()!=='',
+    vsl:_ops2N(x.tong_so_tien_duoc_nguoi_ban_tro_gia)};
   }).filter(function(r){return r.d;});
   return _OPS2_SF;
  }).catch(function(e){_OPS2_SF_P=null;throw e;});
@@ -4996,20 +4998,24 @@ function _ops2Ords(rows){
     không được xếp chung với đơn huỷ thật. Cờ này được set sau khi gom xong toàn đơn. */
  var m={},list=[];
  rows.forEach(function(r){var o=m[r.sn];
-  if(!o){o=m[r.sn]={sn:r.sn,d:r.d,ms:r.ms,cancel:false,gmv:0,qty:0,f0:r.f0,f1:r.f1,f2:r.f2,esc:r.esc,paid:r.paid,pay:r.pay,carrier:r.carrier,shipMs:r.shipMs,doneMs:r.doneMs,hasRec:!!r.hasRec};list.push(o);}
+  if(!o){o=m[r.sn]={sn:r.sn,d:r.d,ms:r.ms,cancel:false,gmv:0,qty:0,f0:r.f0,f1:r.f1,f2:r.f2,esc:r.esc,paid:r.paid,pay:r.pay,carrier:r.carrier,shipMs:r.shipMs,doneMs:r.doneMs,hasRec:!!r.hasRec,retSt:!!r.retSt,vsl:r.vsl};list.push(o);}
   o.cancel=o.cancel||r.cancel;o.gmv+=r.gmv;if(!r.cancel)o.qty+=r.qty;
   o.hasRec=o.hasRec||!!r.hasRec;
   if(!o.carrier&&r.carrier)o.carrier=r.carrier;
   if(!o.shipMs&&r.shipMs)o.shipMs=r.shipMs;
   if(!o.doneMs&&r.doneMs)o.doneMs=r.doneMs;
   if(!o.pay&&r.pay)o.pay=r.pay;
+  o.retSt=o.retSt||!!r.retSt;
  });
  /* PHÂN LOẠI THEO TIỀN VỀ, KHÔNG THEO TRẠNG THÁI ĐƠN. Đã đối chiếu với đơn thật:
     · 260130DF34NGHG "Đã huỷ" nhưng Shopee đền bù hàng thất lạc → escrow 13,99tr → BÁN ĐƯỢC
     · 260715PQC60580 "Hoàn thành" nhưng khách trả hàng        → escrow ≤ 0    → HOÀN TRẢ
     Trạng thái đơn không phản ánh được hai ca này; chỉ dòng tiền mới nói đúng.
     Đơn chưa có dữ liệu đối soát thì đành tạm dùng trạng thái. */
- list.forEach(function(o){o.paid=o.hasRec?(o.esc>0):(!o.cancel);});
+ /* Trạng thái trả hàng CHÍNH THỨC thắng cả dòng tiền: đơn đang trong quy trình trả
+    (TO_RETURN) có thể tiền CHƯA bị thu hồi, nhưng theo quy tắc của shop đã tính là hoàn
+    trả. Đền bù thất lạc (esc > 0, không có retSt) vẫn là bán được. */
+ list.forEach(function(o){o.paid=o.retSt?false:(o.hasRec?(o.esc>0):(!o.cancel));});
  return list;
 }
 /* ---- khối UI dùng chung ---- */
@@ -5201,22 +5207,27 @@ function _ops2FinCalc(win,DIM){
  var gross=0,cancel=0;
  win.forEach(function(r){gross+=r.gmv;if(!paidSn[r.sn])cancel+=r.gmv;});
  var net=gross-cancel;
- /* HOÀN TRẢ — ƯỚC TÍNH, chưa phải số chuẩn.
-    Nguồn chuẩn là cột "Trạng thái Trả hàng/Hoàn tiền" = "Đã Chấp Thuận Yêu Cầu" trong file
-    xuất từ Seller Centre. Cột đó có trong bảng (trang_thai_tra_hang_hoan_tien) nhưng đang
-    TRỐNG vì hàm đồng bộ gộp mọi trạng thái ≠ CANCELLED thành "Hoàn thành", nuốt mất trạng
-    thái TO_RETURN của Shopee.
-    Tạm ước tính: hàng đã rời kho + không nhận được tiền + GMV > 0 (loại hàng tặng). */
- var retGmv=0,retN=0;
- /* Loại đơn GMV = 0: hàng TẶNG cũng rời kho với tiền về = 0, không phải hàng bị trả. */
- ords.forEach(function(o){if(!o.paid&&o.gmv>0&&(o.shipMs||o.doneMs)){retGmv+=o.gmv;retN++;}});
+ /* HOÀN TRẢ: ưu tiên trạng thái CHÍNH THỨC "Đã Chấp Thuận Yêu Cầu" (Order API TO_RETURN,
+    connector ghi vào trang_thai_tra_hang_hoan_tien từ 28/07/2026). Đơn cũ đã trả xong từ
+    lâu thì Shopee không còn giữ trạng thái này — bổ sung bằng ước tính dòng tiền:
+    không nhận được tiền + hàng đã rời kho + GMV > 0 (loại hàng tặng). */
+ var retGmv=0,retN=0,retOff=0;
+ ords.forEach(function(o){
+  if(o.paid)return;
+  if(o.retSt){retGmv+=o.gmv;retN++;retOff++;}
+  else if(o.gmv>0&&(o.shipMs||o.doneMs)){retGmv+=o.gmv;retN++;}
+ });
  var cancelPre=cancel-retGmv;
  /* Khối B = đơn ĐÃ được Shopee đối soát. Lọc theo "đã có dữ liệu" chứ không theo dấu của
     số tiền, vì đơn đã hoàn tiền có escrow ÂM và từng bị loại oan. */
  var B=ords.filter(function(o){return o.hasRec;});
  var gB=0,netB=0,f0=0,f1=0,f2=0,esc=0;
  B.forEach(function(o){gB+=o.gmv;if(o.paid){netB+=o.gmv;f0+=o.f0;f1+=o.f1;f2+=o.f2;esc+=o.esc;}});
- var fee=f0+f1+f2,other=netB-fee-esc;
+ var fee=f0+f1+f2;
+ /* Voucher shop lấy từ CỘT THẬT của API (trước phải suy ngược từ chênh lệch đối soát).
+    Phần dư sau khi trừ đủ voucher là điều chỉnh nhỏ còn lại. */
+ var vSeller=0;B.forEach(function(o){if(o.paid)vSeller+=o.vsl||0;});
+ var other=netB-fee-esc-vSeller;
  var noRec=ords.filter(function(o){return !o.hasRec&&o.paid;});
  var noRecGmv=noRec.reduce(function(a,x){return a+x.gmv;},0);
  var refund=ords.filter(function(o){return o.hasRec&&o.paid&&o.esc<=0;});
@@ -5227,13 +5238,13 @@ function _ops2FinCalc(win,DIM){
  var hasB=B.length>0&&netB>0;
  /* Doanh thu THUẦN theo chuẩn kế toán = doanh thu ghi nhận − giảm giá/voucher.
     Quan hệ luôn đúng: doanh thu thuần − phí sàn = tiền thực nhận. */
- var netRev=hasB?netB-other:null;
+ var netRev=hasB?netB-vSeller-other:null;
  var gp=hasB?esc-cogs:null;
  var ads=_ops2AdsFor(win);
  var opProfit=(ads.sp==null||gp==null)?null:gp-ads.sp;
  return {ords:ords,gross:gross,cancel:cancel,net:net,B:B,gB:gB,netB:netB,f0:f0,f1:f1,f2:f2,
-  fee:fee,other:other,esc:esc,noRec:noRec,noRecGmv:noRecGmv,refund:refund,refundGmv:refundGmv,
-  cogs:cogs,qMatch:qMatch,qTot:qTot,hasB:hasB,gp:gp,netRev:netRev,retGmv:retGmv,retN:retN,cancelPre:cancelPre,
+  fee:fee,other:other,vSeller:vSeller,esc:esc,noRec:noRec,noRecGmv:noRecGmv,refund:refund,refundGmv:refundGmv,
+  cogs:cogs,qMatch:qMatch,qTot:qTot,hasB:hasB,gp:gp,netRev:netRev,retGmv:retGmv,retN:retN,retOff:retOff,cancelPre:cancelPre,
   adsSp:ads.sp,adsNote:ads.note,adsPartial:ads.partial,opProfit:opProfit};
 }
 /* Bảng P&L xoay ngang: mỗi tháng một cột. Dùng CHUNG _ops2FinCalc với bảng tổng kỳ nên
@@ -5254,9 +5265,10 @@ function _ops2FinPivot(SF,DIM,months){
   [0,'Số đơn',function(C){return C.ords.length;},fmI,null],
   [0,'GMV tổng (gồm cả đơn huỷ)',function(C){return C.gross;},fmM,null],
   [1,'(−) Huỷ trước khi giao',function(C){return -C.cancelPre;},fmM,gA],
-  [1,'(−) Hoàn trả sau bán (ước tính)',function(C){return -C.retGmv;},fmM,gA],
+  [1,'(−) Hoàn trả sau bán',function(C){return -C.retGmv;},fmM,gA],
   [1,'(−) Đơn chưa được đối soát',function(C){return -C.noRecGmv;},fmM,gA],
-  [1,'(−) Giảm giá, voucher của shop',function(C){return C.hasB?-C.other:null;},fmM,gA],
+  [1,'(−) Voucher của shop',function(C){return C.hasB?-C.vSeller:null;},fmM,gA],
+  [1,'(−) Điều chỉnh đối soát khác',function(C){return C.hasB?-C.other:null;},fmM,gA],
   [0,'= DOANH THU THUẦN',function(C){return C.netRev;},fmM,gA],
   ['h','KHỐI B — TỪ DOANH THU THUẦN ĐẾN LỢI NHUẬN'],
   [1,'(−) Phí cố định',function(C){return C.hasB?-C.f0:null;},fmM,gB],
@@ -5337,16 +5349,15 @@ function _ops2Finance(host,p,SF,DIM){
   (function(){
    var ms=_ops2MonthsIn(SF);
    return _ops2Card('Bảng phân tích P&L theo tháng — '+_ops2PLabel(SF),
-    'Mỗi tháng một cột · đơn vị triệu đồng · số nhỏ in nghiêng là % (khối A tính trên GMV tổng, khối B tính trên doanh thu thuần)',
+    'Mỗi tháng một cột · đơn vị triệu đồng · số nhỏ in nghiêng là % (khối A trên GMV tổng, khối B trên doanh thu thuần) · hoàn trả theo trạng thái Trả hàng/Hoàn tiền từ API; đơn cũ API không còn giữ trạng thái thì ước tính theo dòng tiền',
     _ops2FinPivot(SF,DIM,ms));
   })()+
   '<div class="ops-grid">'+
   _ops2Card('Cơ cấu phí sàn theo thời gian','Cột chồng: 3 loại phí (triệu) · đường: % tổng phí / DT đối soát — '+_ops2GLabel(g),_ops2Canvas('opsFeeTrend'))+
   _ops2Miss([
-   ['Trợ giá seller vs Shopee','Cột trợ giá trong Data Sale trống toàn bộ — phần này đang nằm gộp trong "Giảm trừ đối soát khác".'],
-   ['Voucher / xu / combo','Các cột mã giảm giá shop, mã Shopee, hoàn xu, combo đều trống — chưa tách riêng được.'],
-   ['Phí vận chuyển','Phí VC dự kiến / người mua trả / phí trả hàng đều trống — chưa phân tích được trợ giá ship.'],
-   ['Giá gốc vs giá ưu đãi','Hai cột giá đều trống — chưa đo được mức giảm giá trung bình.']
+   ['Hoàn trả lịch sử','Shopee chỉ giữ trạng thái "Trả hàng/Hoàn tiền" cho đơn ĐANG xử lý; đơn đã trả xong từ trước được ước tính theo dòng tiền (ghi rõ trong bảng).'],
+   ['Ngày giao dự kiến','Cột ngay_giao_hang_du_kien vẫn trống — cần thêm ship_by_date vào connector để tính % giao đúng cam kết.'],
+   ['Quận / huyện','Shopee mask cả quận/huyện ("****") giống tỉnh/thành — chưa phân tích được khu vực.']
   ])+
   '</div>';
  _ops2Chart('opsFeeTrend',{type:'bar',data:{labels:labsB,datasets:[

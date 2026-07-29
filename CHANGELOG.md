@@ -6,6 +6,14 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R69 — 29/07/2026
+
+- Đồng bộ lại toàn bộ 2.111 đơn bằng connector mới. Tám cột trước đây trống nay đã đầy đủ cho cả 2.691 dòng: giá gốc, giá ưu đãi, voucher shop, trợ giá Shopee, phí vận chuyển người mua trả, hoàn xu, quận/huyện.
+- Phí thanh toán hết bị cộng đôi: đơn mẫu từ 94.060 về đúng 47.030 như Shopee báo. Tổng tiền thực nhận không đổi (2.172.790.958đ) nên các con số lợi nhuận vẫn nhất quán.
+- Bảng P&L tách "Voucher của shop" thành dòng riêng lấy từ cột thật của API, thay vì suy ngược từ chênh lệch đối soát như trước; phần dư còn lại đưa vào "Điều chỉnh đối soát khác".
+- Hoàn trả nay ưu tiên trạng thái chính thức "Đã Chấp Thuận Yêu Cầu" từ Order API; đơn cũ Shopee không còn giữ trạng thái thì mới ước tính theo dòng tiền.
+- Cập nhật lại mục dữ liệu còn thiếu trên màn Tài chính cho khớp thực tế: chỉ còn ngày giao dự kiến và quận/huyện (Shopee mask).
+
 ## R67 — 28/07/2026
 
 - Phân loại đơn theo DÒNG TIỀN thay vì theo trạng thái đơn, sau khi đối chiếu với các mã đơn thật do chủ shop cung cấp. Shopee vẫn để trạng thái "Hoàn thành" cho đơn khách đã trả hàng, và để "Đã huỷ" cho đơn thất lạc mà Shopee đã đền bù — trạng thái đơn không phản ánh đúng thực tế.
