@@ -5453,7 +5453,7 @@ function _ops2Regions(host,p,SF,DIM){
   ]);
 }
 /* ================= MÀN: TỔNG QUAN VẬN HÀNH (nâng cấp) ================= */
-function _ops2Ops(host,p){
+function _ops2Ops(host,p,SF,DIM){
  var top=(p.issues||[]).slice(0,6);
  var dq=p.data_quality||{};
  var ap=(p.ads_products||[]).slice(0,8);
@@ -5679,10 +5679,10 @@ renderShopeePage=function(){
  var hosts={shopops:'shopopsHost',shoporders:'shopordersHost',shopfinance:'shopfinanceHost',shopreturns:'shopreturnsHost',shoplogistics:'shoplogisticsHost',shopaffiliate:'shopaffiliateHost',shopcontent:'shopcontentHost',shopissues:'shopissuesHost',shopregions:'shopregionsHost'};
  var host=document.getElementById(hosts[S.page]);if(!host)return;
  host.innerHTML=_opsHead('Đang tải dữ liệu vận hành','Đang tổng hợp Data Sale, Data Ads và tồn kho Shopee.')+'<div class="ops-empty">Đang đọc và đối chiếu dữ liệu API...</div>';
- var needSf=['shoporders','shopreturns','shopfinance','shoplogistics','shopregions','shopissues'].indexOf(S.page)>=0;
+ var needSf=['shopops','shoporders','shopreturns','shopfinance','shoplogistics','shopregions','shopissues'].indexOf(S.page)>=0;
  Promise.all([_opsLoad(false),needSf?_ops2Sf():Promise.resolve(null),needSf?_ops2Dim():Promise.resolve(null)]).then(function(A){
   var p=A[0],SF=A[1],DIM=A[2];
-  if(S.page==='shopops')_ops2Ops(host,p);
+  if(S.page==='shopops')_ops2Ops(host,p,SF,DIM);
   else if(S.page==='shoporders')_ops2Orders(host,p,SF,DIM);
   else if(S.page==='shopreturns')_ops2Returns(host,p,SF,DIM);
   else if(S.page==='shopfinance')_ops2Finance(host,p,SF,DIM);
@@ -5705,7 +5705,19 @@ function renderShopeePage(){
  _opsLoad(false).then(function(p){
   if(S.page==='shopops'){
    var top=(p.issues||[]).slice(0,6);
-   host.innerHTML=_opsHead('Tổng quan vận hành Shopee','Bức tranh 90 ngày: kết quả, rủi ro và tình trạng kết nối nguồn dữ liệu.')+_opsKpis(p)+'<div class="ops-grid"><div class="ops-card"><h2>Ưu tiên cần xử lý</h2><div class="ops-sub">Xếp theo mức độ nghiêm trọng và giá trị ảnh hưởng</div>'+_opsIssueRows(top)+'</div><div class="ops-card"><h2>Sức khoẻ nguồn dữ liệu</h2><div class="ops-sub">Không sử dụng số liệu ước đoán cho API chưa kết nối</div>'+_opsSources(p)+'</div></div>'+_opsCoverage(p);
+   /* KPI tính bằng CHÍNH _ops2FinCalc như màn Tài chính, trên cùng cửa sổ 90 ngày.
+     Trước đây màn này lấy summary từ Edge Function — nơi chỉ trừ đơn có trạng thái
+     "Đã huỷ" — nên doanh thu cao hơn bảng P&L mà không ai giải thích được. */
+  var K=(SF&&DIM)?_ops2FinCalc(_ops2Win(SF,90),DIM):null;
+  host.innerHTML=_opsHead('Tổng quan vận hành Shopee','Bức tranh 90 ngày: kết quả, rủi ro và tình trạng kết nối nguồn dữ liệu.')+
+  (K?_opsMiniKpis([
+   ['GMV tổng',_opsMoney(K.gross),K.ords.length.toLocaleString('vi-VN')+' đơn · gồm cả đơn huỷ'],
+   ['Doanh thu sau huỷ & hoàn',_opsMoney(K.net),'đã trừ '+_opsMoney(K.cancelPre)+' huỷ + '+_opsMoney(K.retGmv)+' hoàn trả'],
+   ['Doanh thu thuần',K.netRev==null?'—':_opsMoney(K.netRev),'sau voucher — cơ sở tính lợi nhuận'],
+   ['Tiền thực nhận',K.hasB?_opsMoney(K.esc):'—','Shopee trả về ví shop'],
+   ['Lãi gộp',K.gp==null?'—':_opsMoney(K.gp),'sau phí sàn & giá vốn'],
+   ['LN vận hành',K.opProfit==null?'—':_opsMoney(K.opProfit),K.opProfit==null?'thiếu chi phí Ads':'sau chi phí Ads']
+  ]):_opsKpis(p))+'<div class="ops-grid"><div class="ops-card"><h2>Ưu tiên cần xử lý</h2><div class="ops-sub">Xếp theo mức độ nghiêm trọng và giá trị ảnh hưởng</div>'+_opsIssueRows(top)+'</div><div class="ops-card"><h2>Sức khoẻ nguồn dữ liệu</h2><div class="ops-sub">Không sử dụng số liệu ước đoán cho API chưa kết nối</div>'+_opsSources(p)+'</div></div>'+_opsCoverage(p);
   }else if(S.page==='shopissues'){
    var types=[['all','Tất cả'],['cancel','Huỷ đơn'],['ads','Ads lãng phí'],['stock','Tồn chậm'],['stockout','Hết hàng']];
    var arr=(p.issues||[]).filter(function(x){return _OPS_FILTER==='all'||x.type===_OPS_FILTER;});

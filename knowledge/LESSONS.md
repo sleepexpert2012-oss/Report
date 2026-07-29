@@ -132,3 +132,21 @@ Sau khi sửa, cả 5 mã đơn chủ shop xác nhận đều rơi đúng nhóm;
 1. Với dữ liệu sàn thương mại điện tử, **dòng tiền là sự thật, trạng thái chỉ là nhãn**. Khi hai thứ mâu thuẫn, tin dòng tiền.
 2. Đừng tự nghĩ ra dấu hiệu nhận diện rồi tin luôn. Phải xin vài mã bản ghi thật từ người dùng để đối chiếu — chi phí gần như bằng 0 mà bắt được lỗi mà tự kiểm không bao giờ thấy.
 3. Kiểm tra CẢ HAI CHIỀU: cái mình bắt được có đúng không, và cái đúng mình có bỏ sót không. Lần này tôi chỉ tự tin vì 65 đơn bắt được trông hợp lý, mà không biết đang sót hàng chục đơn khác.
+
+---
+
+## 2026-07-29 · Hai màn cùng gọi là "doanh thu" nhưng tính hai kiểu
+
+**Sai gì:** Màn Tổng quan báo doanh thu 82tr trong khi bảng P&L cùng tháng ghi 69tr. Người dùng phát hiện và nói thẳng là "dữ liệu chồng chéo, mâu thuẫn".
+
+Nguyên nhân: hai màn tính từ hai nguồn khác nhau. Màn Tổng quan lấy `summary.net_gmv` do Edge Function `ops-responder` tính — chỉ trừ đơn có trạng thái "Đã huỷ". Bảng P&L tính tại trình duyệt bằng `_ops2FinCalc` — trừ theo dòng tiền nên gồm cả đơn hoàn trả, rồi trừ tiếp voucher.
+
+Bóc tách khoảng lệch 13,3tr của tháng 7: 8,7tr là đơn hoàn trả mà Shopee vẫn ghi trạng thái "Hoàn thành", 3,6tr voucher shop, 1,0tr điều chỉnh đối soát. Không dòng nào sai — nhưng người đọc không có cách nào biết điều đó.
+
+**Sửa gì:** cho màn Tổng quan gọi CHÍNH `_ops2FinCalc` trên cùng cửa sổ 90 ngày, thay vì đọc summary dựng sẵn. Đối chiếu lại: sáu chỉ tiêu khớp tuyệt đối.
+
+**Rule rút ra:**
+1. Một khái niệm nghiệp vụ (doanh thu, lợi nhuận) chỉ được có ĐÚNG MỘT chỗ tính trong toàn hệ thống. Hai màn cùng gọi tên "doanh thu" mà ra hai số là lỗi nghiêm trọng, kể cả khi mỗi số đều đúng theo định nghĩa riêng.
+2. Nguy hiểm nhất là khi một bên tính ở backend còn bên kia tính ở frontend — chúng lệch dần theo thời gian mà không ai thấy, vì không có chỗ nào so hai bên với nhau.
+3. Khi sửa định nghĩa ở một chỗ (ở đây: chuyển sang phân loại theo dòng tiền), phải rà xem còn màn nào đang dùng định nghĩa cũ không. Tôi đã đổi cách tính cho bảng P&L mà quên màn Tổng quan.
+4. Nếu buộc phải có nhiều chỉ tiêu doanh thu khác nhau thì đặt tên khác nhau và hiện cạnh nhau, đừng để hai màn cùng một nhãn.

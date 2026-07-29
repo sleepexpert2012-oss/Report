@@ -6,6 +6,12 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R70 — 29/07/2026
+
+- Sửa mâu thuẫn số liệu giữa các màn: màn Tổng quan vận hành trước đây lấy doanh thu từ Edge Function, nơi chỉ trừ đơn có trạng thái "Đã huỷ", nên báo cao hơn bảng P&L mà không giải thích được. Nay cả hai màn dùng chung một hàm tính duy nhất.
+- Màn Tổng quan hiển thị đủ chuỗi: GMV tổng → doanh thu sau huỷ và hoàn → doanh thu thuần → tiền thực nhận → lãi gộp → lợi nhuận vận hành, thay cho các chỉ số rời rạc trước đây.
+- Đã đối chiếu: hai màn trên cùng kỳ 90 ngày cho ra số giống hệt nhau ở cả sáu chỉ tiêu.
+
 ## R69 — 29/07/2026
 
 - Đồng bộ lại toàn bộ 2.111 đơn bằng connector mới. Tám cột trước đây trống nay đã đầy đủ cho cả 2.691 dòng: giá gốc, giá ưu đãi, voucher shop, trợ giá Shopee, phí vận chuyển người mua trả, hoàn xu, quận/huyện.
