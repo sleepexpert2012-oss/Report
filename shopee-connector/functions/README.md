@@ -107,7 +107,8 @@ job, workflow đồng bộ tồn kho Shopee trước rồi:
 2. đọc song song 9 bảng nguồn;
 3. chạy đúng engine Python đang dùng trong dashboard;
 4. upsert một dòng `snapshot/current`;
-5. dashboard tải snapshot bằng một request.
+5. cập nhật lại `created_at` để app hiển thị đúng giờ snapshot mới nhất;
+6. dashboard tải snapshot bằng một request.
 
 Repository cần hai GitHub Actions secrets:
 

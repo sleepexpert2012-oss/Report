@@ -265,6 +265,9 @@ def main():
             "payload": raw,
             "bytes": len(payload.encode("utf-8")),
             "uploaded_by": "backend-snapshot",
+            # Upsert giữ nguyên DEFAULT created_at của dòng hiện hữu nếu không
+            # truyền lại trường này, khiến app báo snapshot vẫn từ tháng trước.
+            "created_at": datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat(),
         },
         timeout=120,
     )
