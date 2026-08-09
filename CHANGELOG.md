@@ -6,6 +6,19 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R73 — 09/08/2026
+
+- Chuẩn hoá một công thức doanh thu thuần sau thuế cho toàn app: GMV đơn chưa huỷ − giảm giá seller − hoàn trả thực tế; nguồn duy nhất là Shopee API `sales_fact`.
+- Đơn đang xử lý/đang giao được ghi nhận; đơn huỷ có doanh thu bằng 0; giảm giá seller chỉ tính một lần mỗi đơn và được phân bổ xuống SKU theo tỷ trọng GMV.
+- Chỉ trừ hoàn khi API có số lượng hoàn thực tế; không trừ VAT, voucher Shopee, phí sàn, Ads hoặc escrow khỏi doanh thu.
+- Đồng bộ Tổng quan, Doanh thu & đơn hàng, Tài chính/P&L, Ads và các màn vận hành sang kết quả backend chuẩn hoá; phân biệt rõ GMV quy gán Affiliate/Video với doanh thu thuần.
+- Sửa preset P&L 90 ngày trước đây cộng trọn các tháng giao nhau: dải KPI và bảng P&L nay dùng đúng cùng tập đơn.
+- Bổ sung đầy đủ quy tắc doanh thu vào màn Giới thiệu & Hướng dẫn; đã kiểm thử đối chiếu Kiot `44.479.078 − 4.959.000 = 39.520.078 đồng`.
+
+## R72 — 29/07/2026
+
+- Màn Ma trận sản phẩm có bộ lọc kỳ riêng và mặc định xem toàn kỳ.
+
 ## R71 — 29/07/2026
 
 - Chuẩn hoá thẻ KPI trên toàn bộ 7 màn Vận hành Shopee theo đúng chuỗi P&L: GMV → Đã huỷ → Hoàn trả → Khuyến mãi → NMV (doanh thu thực). Mọi màn dùng chung một hàm tính nên không còn màn nào hiểu "doanh thu" theo kiểu riêng.

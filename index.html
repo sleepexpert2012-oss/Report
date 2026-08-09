@@ -441,7 +441,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <input type="password" id="gpw" placeholder="Mật khẩu nội bộ" aria-label="Mật khẩu nội bộ" autocomplete="current-password">
     <button id="gbtn">Đăng nhập</button>
     <div class="gerr" id="gerr"></div>
-    <div class="gnote">Công cụ nội bộ Phòng Supply Chain — Sleep Expert. Không chia sẻ ra ngoài công ty.<br><b style="color:#fff">Phiên bản v49 · cập nhật 11/07/2026</b></div>
+    <div class="gnote">Công cụ nội bộ Phòng Supply Chain — Sleep Expert. Không chia sẻ ra ngoài công ty.<br><b style="color:#fff">Bản phát hành R73 · cập nhật 09/08/2026</b></div>
   </div>
 </div>
 <div class="app">
@@ -554,6 +554,12 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       </ul>
       <h2>Định nghĩa chính</h2>
       <ul>
+        <li><b>Doanh thu thuần sau thuế:</b> GMV của đơn chưa huỷ − giảm giá do seller tài trợ − giá trị hàng hoàn trả thực tế.</li>
+        <li><b>Trạng thái ghi nhận:</b> đơn đang xử lý, chờ lấy hàng và đang giao vẫn được tính doanh thu theo ngày đặt hàng; đơn đã huỷ có doanh thu bằng 0. Nếu đơn bị huỷ hoặc hoàn về sau, hệ thống cập nhật lại kỳ gốc của đơn.</li>
+        <li><b>Giảm giá seller:</b> trường cấp đơn có thể lặp trên nhiều dòng SKU nhưng chỉ tính một lần, sau đó phân bổ về SKU theo tỷ trọng GMV. Voucher và trợ giá do Shopee tài trợ không làm giảm doanh thu seller.</li>
+        <li><b>Hoàn trả:</b> chỉ giảm doanh thu khi Shopee API trả số lượng sản phẩm hoàn thực tế lớn hơn 0. Trạng thái “đã chấp thuận yêu cầu trả” nhưng số lượng hoàn bằng 0 chưa bị trừ.</li>
+        <li><b>Không trừ khỏi doanh thu:</b> VAT, phí sàn, chi phí Ads và escrow. Các khoản này dùng cho lợi nhuận hoặc đối soát dòng tiền. Bồi thường cho đơn đã huỷ được xếp vào thu nhập khác, không phải doanh thu bán hàng.</li>
+        <li><b>Một nguồn duy nhất:</b> mọi KPI mang tên Doanh thu trong app đều lấy từ Shopee API bảng <code>sales_fact</code> qua snapshot backend chuẩn hoá. GMV quy gán của Ads, Affiliate, Livestream và Video chỉ dùng để đo hiệu quả kênh, không phải doanh thu thuần.</li>
         <li><b>Vòng đời:</b> Mới (SP 25/26 đang ramp-up) · In-line (kinh doanh bình thường; BedGear ép In-line) · Phase-out (giảm mạnh, có SP thay thế cùng brand) · Suy giảm (giảm mạnh, CHƯA có thay thế → gap) · Ngưng bán/Clear tồn (DT 3T &lt;5% đỉnh hoặc GM âm = thanh lý). SP mới 2025/26 không rơi nhóm Ngưng bán (trừ GM âm).</li>
         <li><b>AOV</b> hiển thị = giá bán bình quân/đơn vị (ASP = Doanh thu ÷ Unit) — proxy do dữ liệu không có mã đơn hàng.</li>
         <li>Data đã chuẩn hoá brand và loại class Hàng mẫu. GM = GP ÷ Doanh thu (khớp cột Profit ERP).</li>
@@ -1043,7 +1049,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
   <h1>📝 Nhật ký cập nhật &amp; đồng bộ</h1>
   <div class="sub" style="margin-bottom:14px">Theo dõi phiên bản GitHub, API Shopee đang sử dụng, độ mới dữ liệu và nội dung thay đổi của từng bản phát hành.</div>
   <div class="ops-kpis">
-    <div class="ops-kpi"><div class="lab">Bản phát hành GitHub</div><div class="val">R51</div><div class="hint">Nhánh main · phát hành 26/07/2026</div></div>
+    <div class="ops-kpi"><div class="lab">Bản phát hành GitHub</div><div class="val">R73</div><div class="hint">Nhánh main · phát hành 09/08/2026</div></div>
     <div class="ops-kpi"><div class="lab">Dữ liệu Shopee mới nhất</div><div class="val" id="logDataLatest">Đang đọc…</div><div class="hint">Ngày nghiệp vụ mới nhất từ API</div></div>
     <div class="ops-kpi"><div class="lab">API đồng bộ gần nhất</div><div class="val" id="logApiSync">Đang đọc…</div><div class="hint">Lần ghi dữ liệu API vào Supabase</div></div>
     <div class="ops-kpi"><div class="lab">App nạp dữ liệu gần nhất</div><div class="val" id="logAppSync">Đang đọc…</div><div class="hint">Thời điểm app tổng hợp báo cáo</div></div>
@@ -1065,6 +1071,8 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <h2>Lịch sử thay đổi</h2>
       <div class="ops-sub">Ghi nhận từ R50 trở đi; mỗi lần phát hành phải tạo một mục mới</div>
       <table class="ops-table"><thead><tr><th>Bản</th><th>Ngày</th><th>Thay đổi</th></tr></thead><tbody>
+        <tr><td><b>R73</b></td><td>09/08/2026</td><td>Chuẩn hoá một công thức doanh thu sau thuế từ Shopee API cho toàn app; trừ giảm giá seller đúng một lần mỗi đơn, chỉ trừ hoàn thực tế, đồng bộ Tổng quan/Doanh thu/P&amp;L/Ads và sửa bảng P&amp;L preset lấy thừa ngày. Bổ sung đầy đủ quy tắc vào màn Giới thiệu &amp; Hướng dẫn.</td></tr>
+        <tr><td><b>R72</b></td><td>29/07/2026</td><td>Bổ sung bộ lọc kỳ riêng cho màn Ma trận sản phẩm và mặc định xem toàn kỳ.</td></tr>
         <tr><td><b>R51</b></td><td>26/07/2026</td><td>Mở rộng đồng bộ có phân trang/checkpoint cho Affiliate và Video; bổ sung Product, Shop, Payment, Shipment, Logistics và Ads nâng cao; làm mới báo cáo Affiliate/Video và bảng độ phủ API.</td></tr>
         <tr><td><b>R50</b></td><td>26/07/2026</td><td>Kết nối báo cáo Affiliate và Shopee Video với dữ liệu API; bổ sung trạng thái dữ liệu Khách hàng; thêm nhật ký phiên bản, API và thời gian đồng bộ.</td></tr>
       </tbody></table>
@@ -1076,7 +1084,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
   <div class="sub" style="margin-bottom:10px">SKU phát sinh trong dữ liệu bán hàng nhưng chưa có trong danh mục sản phẩm (master). Nên bổ sung chính thức để đảm bảo giá vốn & phân tích chính xác.</div>
   <div id="warnHost"></div>
 </section>
-  <footer>Phòng Supply Chain — Sleep Expert · GM = GP/DT · Nội bộ · R51 · 26/07/2026</footer>
+  <footer>Phòng Supply Chain — Sleep Expert · GM = GP/DT · Nội bộ · R73 · 09/08/2026</footer>
 </main>
 <div id="xlsDlg" style="display:none;position:fixed;inset:0;background:rgba(10,20,40,.45);z-index:9000;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:12px;padding:18px 22px;min-width:320px;box-shadow:0 10px 40px rgba(0,0,0,.3)">
@@ -5015,9 +5023,9 @@ function _opsAffiliate(rows){
  var creators=_opsLists(((_opsFind(rows,'get_affiliate_performance')||{}).metrics)||{}).filter(function(x){return x.affiliate_id!=null&&x.affiliate_name;});
  var content=_opsLists(((_opsFind(rows,'get_content_performance')||{}).metrics)||{}).filter(function(x){return x.content_id;});
  var period=shop.fetched_date_range||'30 ngày gần nhất';
- var table=function(title,list,nameKey){return '<div class="ops-card"><h2>'+title+'</h2><div class="ops-sub">Xếp theo doanh thu ghi nhận · nguồn Affiliate API</div>'+(list.length?'<table class="ops-table"><thead><tr><th>#</th><th>Tên</th><th>Doanh thu</th><th>Đơn</th><th>Click / View</th><th>Hoa hồng</th><th>ROI</th></tr></thead><tbody>'+list.slice().sort(function(a,b){return Number(b.sales||0)-Number(a.sales||0);}).slice(0,15).map(function(x,i){return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x[nameKey]||x.content_title||x.item_name||'—')+'</b></td><td class="ops-num">'+_opsMoney(x.sales)+'</td><td class="ops-num">'+Number(x.orders||0).toLocaleString('vi-VN')+'</td><td class="ops-num">'+Number(x.clicks||x.views||0).toLocaleString('vi-VN')+'</td><td class="ops-num">'+_opsMoney(x.est_commission||0)+'</td><td class="ops-num">'+Number(x.roi||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+'</td></tr>';}).join('')+'</tbody></table>':'<div class="ops-empty"><b>Không phát sinh dữ liệu trong kỳ</b>Endpoint đã kết nối và trả danh sách rỗng.</div>')+'</div>';};
+ var table=function(title,list,nameKey){return '<div class="ops-card"><h2>'+title+'</h2><div class="ops-sub">Xếp theo GMV quy gán · nguồn Affiliate API</div>'+(list.length?'<table class="ops-table"><thead><tr><th>#</th><th>Tên</th><th>GMV quy gán</th><th>Đơn</th><th>Click / View</th><th>Hoa hồng</th><th>ROI</th></tr></thead><tbody>'+list.slice().sort(function(a,b){return Number(b.sales||0)-Number(a.sales||0);}).slice(0,15).map(function(x,i){return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x[nameKey]||x.content_title||x.item_name||'—')+'</b></td><td class="ops-num">'+_opsMoney(x.sales)+'</td><td class="ops-num">'+Number(x.orders||0).toLocaleString('vi-VN')+'</td><td class="ops-num">'+Number(x.clicks||x.views||0).toLocaleString('vi-VN')+'</td><td class="ops-num">'+_opsMoney(x.est_commission||0)+'</td><td class="ops-num">'+Number(x.roi||0).toLocaleString('vi-VN',{maximumFractionDigits:1})+'</td></tr>';}).join('')+'</tbody></table>':'<div class="ops-empty"><b>Không phát sinh dữ liệu trong kỳ</b>Endpoint đã kết nối và trả danh sách rỗng.</div>')+'</div>';};
  return _opsHead('Hiệu suất Affiliate','GMV, hoa hồng, publisher, nội dung và chiến dịch từ Shopee AMS.')+
-  _opsMiniKpis([['Doanh thu Affiliate',_opsMoney(shop.sales),period],['Hoa hồng dự kiến',_opsMoney(shop.est_commission),'ROI '+Number(shop.roi||0).toLocaleString('vi-VN',{maximumFractionDigits:1})],['Đơn Affiliate',Number(shop.orders||0).toLocaleString('vi-VN'),Number(shop.gross_item_sold||0)+' sản phẩm'],['Publisher có doanh thu',Number(creators.length).toLocaleString('vi-VN'),Number(shop.new_buyers||0)+' khách mới'],['Click',Number(shop.clicks||0).toLocaleString('vi-VN'),'Nguồn AMS'],['Nội dung tạo doanh thu',Number(content.length).toLocaleString('vi-VN'),'Video / Live']])+
+  _opsMiniKpis([['GMV Affiliate quy gán',_opsMoney(shop.sales),period+' · không phải doanh thu thuần'],['Hoa hồng dự kiến',_opsMoney(shop.est_commission),'ROI '+Number(shop.roi||0).toLocaleString('vi-VN',{maximumFractionDigits:1})],['Đơn Affiliate',Number(shop.orders||0).toLocaleString('vi-VN'),Number(shop.gross_item_sold||0)+' sản phẩm'],['Publisher có GMV',Number(creators.length).toLocaleString('vi-VN'),Number(shop.new_buyers||0)+' khách mới'],['Click',Number(shop.clicks||0).toLocaleString('vi-VN'),'Nguồn AMS'],['Nội dung tạo GMV',Number(content.length).toLocaleString('vi-VN'),'Video / Live']])+
   '<div class="ops-grid">'+table('Top publisher',creators,'affiliate_name')+table('Top sản phẩm Affiliate',product,'item_name')+table('Nội dung tạo chuyển đổi',content,'content_title')+'</div>';
 }
 function _opsVideo(rows){
@@ -5060,13 +5068,23 @@ function _ops2Sf(){
  if(_OPS2_SF_P)return _OPS2_SF_P;
  _OPS2_SF_P=_ops2Get('sales_fact','ma_don_hang,ngay_dat_hang,trang_thai_don_hang,ly_do_huy,don_vi_van_chuyen,ngay_xuat_hang,thoi_gian_hoan_thanh_don_hang,sku_phan_loai_hang,ten_san_pham,so_luong,so_luong_san_pham_duoc_hoan_tra,tong_gia_ban_san_pham,phi_co_dinh,phi_dich_vu,phi_thanh_toan,tien_ky_quy,tong_so_tien_nguoi_mua_thanh_toan,phuong_thuc_thanh_toan,trang_thai_tra_hang_hoan_tien,tong_so_tien_duoc_nguoi_ban_tro_gia')
  .then(function(rows){
+  /* Doanh thu chỉ được tính tại backend snapshot. Ghép lại theo đơn+SKU để mọi màn
+     dùng đúng một kết quả; REST ở đây chỉ bổ sung phí/escrow và thông tin vận hành. */
+  var cq={},canon=(RAW&&RAW.salesCanonical)||[];
+  if(!canon.length)throw new Error('Snapshot chưa có revenueRule chuẩn. Hãy chạy lại đồng bộ backend.');
+  canon.forEach(function(c){var k=String(c.o||'')+'|'+String(c.s||'');(cq[k]=cq[k]||[]).push(c);});
   _OPS2_SF=rows.map(function(x){
    var st=String(x.trang_thai_don_hang||'');
+   var ck=String(x.ma_don_hang||'')+'|'+String(x.sku_phan_loai_hang||'').trim();
+   var ca=(cq[ck]&&cq[ck].length)?cq[ck].shift():null;
+   var qty=_ops2N(x.so_luong),ret=_ops2N(x.so_luong_san_pham_duoc_hoan_tra),gmv=_ops2N(x.tong_gia_ban_san_pham);
+   if(!ca)return null;
    return {sn:String(x.ma_don_hang||''),d:_ops2D(x.ngay_dat_hang),ms:_ops2Ms(x.ngay_dat_hang),
-    cancel:/cancel|hủy|huỷ/i.test(st),reason:String(x.ly_do_huy||'').trim(),
+    cancel:!!ca.x,reason:String(x.ly_do_huy||'').trim(),
     carrier:String(x.don_vi_van_chuyen||'').trim(),shipMs:_ops2Ms(x.ngay_xuat_hang),doneMs:_ops2Ms(x.thoi_gian_hoan_thanh_don_hang),
     sku:String(x.sku_phan_loai_hang||'').trim(),name:String(x.ten_san_pham||'').trim(),
-    qty:_ops2N(x.so_luong),ret:_ops2N(x.so_luong_san_pham_duoc_hoan_tra),gmv:_ops2N(x.tong_gia_ban_san_pham),
+    qty:qty,ret:ret,netQty:_ops2N(ca.nq),gmv:gmv,
+    revenue:_ops2N(ca.r),sellerDiscount:_ops2N(ca.sd),returnValue:_ops2N(ca.rv),
     f0:_ops2N(x.phi_co_dinh),f1:_ops2N(x.phi_dich_vu),f2:_ops2N(x.phi_thanh_toan),esc:_ops2N(x.tien_ky_quy),
     /* Ô TRỐNG = Shopee chưa đối soát. Giá trị 0 hoặc ÂM = đã đối soát (đơn hoàn tiền có
        escrow âm vài nghìn đồng). Phải phân biệt hai ca này, không dùng phép so sánh >0. */
@@ -5074,7 +5092,7 @@ function _ops2Sf(){
     paid:_ops2N(x.tong_so_tien_nguoi_mua_thanh_toan),pay:String(x.phuong_thuc_thanh_toan||'').trim(),
     retSt:String(x.trang_thai_tra_hang_hoan_tien||'').trim()!=='',
     vsl:_ops2N(x.tong_so_tien_duoc_nguoi_ban_tro_gia)};
-  }).filter(function(r){return r.d;});
+  }).filter(function(r){return r&&r.d;});
   return _OPS2_SF;
  }).catch(function(e){_OPS2_SF_P=null;throw e;});
  return _OPS2_SF_P;
@@ -5153,13 +5171,12 @@ function _ops2H(h){return h>=48?((h/24).toLocaleString('vi-VN',{maximumFractionD
 function _ops2Tr(v){return Math.round((v||0)/1e4)/100;} /* VND -> triệu, 2 số lẻ */
 /* ---- gom dòng -> đơn (phí/escrow chỉ tính 1 lần / đơn, như ops-responder) ---- */
 function _ops2Ords(rows){
- /* Đơn huỷ mà Shopee VẪN trả tiền (hàng thất lạc, Shopee đền bù) thì về mặt kinh tế là
-    đã bán thành công và đã nhận tiền — phải tính vào doanh thu, giá vốn và tiền thực nhận,
-    không được xếp chung với đơn huỷ thật. Cờ này được set sau khi gom xong toàn đơn. */
+ /* Doanh thu và phân bổ giảm giá đã được backend chuẩn hoá. Hàm này chỉ gom dòng SKU
+    thành đơn và giữ phí/escrow một lần để đối soát tài chính. */
  var m={},list=[];
  rows.forEach(function(r){var o=m[r.sn];
-  if(!o){o=m[r.sn]={sn:r.sn,d:r.d,ms:r.ms,cancel:false,gmv:0,qty:0,f0:r.f0,f1:r.f1,f2:r.f2,esc:r.esc,paid:r.paid,pay:r.pay,carrier:r.carrier,shipMs:r.shipMs,doneMs:r.doneMs,hasRec:!!r.hasRec,retSt:!!r.retSt,vsl:r.vsl};list.push(o);}
-  o.cancel=o.cancel||r.cancel;o.gmv+=r.gmv;if(!r.cancel)o.qty+=r.qty;
+  if(!o){o=m[r.sn]={sn:r.sn,d:r.d,ms:r.ms,cancel:false,gmv:0,revenue:0,sellerDiscount:0,returnValue:0,qty:0,f0:r.f0,f1:r.f1,f2:r.f2,esc:r.esc,paid:r.paid,pay:r.pay,carrier:r.carrier,shipMs:r.shipMs,doneMs:r.doneMs,hasRec:!!r.hasRec,retSt:!!r.retSt,vsl:r.vsl};list.push(o);}
+  o.cancel=o.cancel||r.cancel;o.gmv+=r.gmv;o.revenue+=r.revenue||0;o.sellerDiscount+=r.sellerDiscount||0;o.returnValue+=r.returnValue||0;if(!r.cancel)o.qty+=r.netQty||0;
   o.hasRec=o.hasRec||!!r.hasRec;
   if(!o.carrier&&r.carrier)o.carrier=r.carrier;
   if(!o.shipMs&&r.shipMs)o.shipMs=r.shipMs;
@@ -5167,15 +5184,8 @@ function _ops2Ords(rows){
   if(!o.pay&&r.pay)o.pay=r.pay;
   o.retSt=o.retSt||!!r.retSt;
  });
- /* PHÂN LOẠI THEO TIỀN VỀ, KHÔNG THEO TRẠNG THÁI ĐƠN. Đã đối chiếu với đơn thật:
-    · 260130DF34NGHG "Đã huỷ" nhưng Shopee đền bù hàng thất lạc → escrow 13,99tr → BÁN ĐƯỢC
-    · 260715PQC60580 "Hoàn thành" nhưng khách trả hàng        → escrow ≤ 0    → HOÀN TRẢ
-    Trạng thái đơn không phản ánh được hai ca này; chỉ dòng tiền mới nói đúng.
-    Đơn chưa có dữ liệu đối soát thì đành tạm dùng trạng thái. */
- /* Trạng thái trả hàng CHÍNH THỨC thắng cả dòng tiền: đơn đang trong quy trình trả
-    (TO_RETURN) có thể tiền CHƯA bị thu hồi, nhưng theo quy tắc của shop đã tính là hoàn
-    trả. Đền bù thất lạc (esc > 0, không có retSt) vẫn là bán được. */
- list.forEach(function(o){o.paid=o.retSt?false:(o.hasRec?(o.esc>0):(!o.cancel));});
+ /* Bồi thường của Shopee cho đơn đã huỷ là thu nhập khác, không phải doanh thu bán hàng. */
+ list.forEach(function(o){o.paid=!o.cancel&&o.revenue>0;});
  return list;
 }
 /* ---- khối UI dùng chung ---- */
@@ -5236,12 +5246,10 @@ function _ops2Orders(host,p,SF,DIM){
  var win=_ops2Wsel(SF),g=_ops2G(_ops2Span(win));
  /* Dùng chung hàm tính với bảng P&L — không tự cộng theo trạng thái đơn nữa. */
  var C=_ops2FinCalc(win,DIM),ords=C.ords;
- var gross=C.gross,cancel=C.cancel,units=0;
- var paidSn={};ords.forEach(function(o){if(o.paid)paidSn[o.sn]=1;});
- win.forEach(function(r){if(paidSn[r.sn])units+=r.qty;});
- var net=gross-cancel,oc=0;ords.forEach(function(o){if(o.cancel)oc++;});
- var okN=ords.length-oc;
- var se=_ops2Series(win,g,function(){return {g:0,c:0,o:{},n:0,oc:{}};},function(a,r){a.g+=r.gmv;if(r.cancel){a.c+=r.gmv;a.oc[r.sn]=1;}a.o[r.sn]=1;});
+ var gross=C.gross,cancel=C.cancel,units=C.qTot,net=C.netRev;
+ var oc=0;ords.forEach(function(o){if(o.cancel)oc++;});
+ var okN=ords.filter(function(o){return !o.cancel&&o.revenue>0;}).length;
+ var se=_ops2Series(win,g,function(){return {g:0,c:0,r:0,o:{},n:0,oc:{}};},function(a,r){a.g+=r.gmv;a.r+=r.revenue||0;if(r.cancel){a.c+=r.gmv;a.oc[r.sn]=1;}a.o[r.sn]=1;});
  var labs=se.keys.map(function(k){return _ops2Lab(k,g);});
  var okO=ords.filter(function(o){return !o.cancel;});
  var nShip=okO.filter(function(o){return o.shipMs>0;}).length,nDone=okO.filter(function(o){return o.doneMs>0;}).length;
@@ -5250,28 +5258,28 @@ function _ops2Orders(host,p,SF,DIM){
   .map(function(x){return '<tr><td><b>'+x[0]+'</b></td><td class="ops-num">'+x[1].toLocaleString('vi-VN')+'</td><td class="ops-num">'+_opsPct(x[2])+'<div class="ops-bar"><i style="width:'+(x[2]*100).toFixed(1)+'%"></i></div></td></tr>';}).join('')+
   '</tbody></table><div class="ops-sub" style="margin-top:8px">Shopee chỉ trả 2 trạng thái "Hoàn thành / Đã hủy"; mốc xuất hàng &amp; hoàn thành chỉ có ở đơn đồng bộ từ Order API (~90 ngày gần nhất) — đơn cũ import không có mốc.</div>';
  var bySku={};
- win.forEach(function(r){if(!r.sku)return;var x=bySku[r.sku]=bySku[r.sku]||{sku:r.sku,name:r.name,g:0,c:0,q:0};x.g+=r.gmv;if(r.cancel)x.c+=r.gmv;else x.q+=r.qty;if(!x.name&&r.name)x.name=r.name;});
- var top=Object.keys(bySku).map(function(k){return bySku[k];}).sort(function(a,b){return (b.g-b.c)-(a.g-a.c);}).slice(0,15);
- var topT='<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>#</th><th>SKU</th><th>Ngành / Brand / Class</th><th>ABC</th><th>SL</th><th>DT sau huỷ</th><th>% DT</th><th>Tỷ lệ huỷ</th></tr></thead><tbody>'+top.map(function(x,i){
-  var mst=DIM.sku[x.sku]||{},nv=x.g-x.c,cr=x.g?x.c/x.g:0;
+ win.forEach(function(r){if(!r.sku)return;var x=bySku[r.sku]=bySku[r.sku]||{sku:r.sku,name:r.name,g:0,c:0,r:0,q:0};x.g+=r.gmv;x.r+=r.revenue||0;if(r.cancel)x.c+=r.gmv;else x.q+=r.netQty||0;if(!x.name&&r.name)x.name=r.name;});
+ var top=Object.keys(bySku).map(function(k){return bySku[k];}).sort(function(a,b){return b.r-a.r;}).slice(0,15);
+ var topT='<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>#</th><th>SKU</th><th>Ngành / Brand / Class</th><th>ABC</th><th>SL thuần</th><th>Doanh thu thuần</th><th>% DT</th><th>Tỷ lệ huỷ</th></tr></thead><tbody>'+top.map(function(x,i){
+  var mst=DIM.sku[x.sku]||{},nv=x.r,cr=x.g?x.c/x.g:0;
   return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.sku)+'</b><div class="ops-sub">'+_opsEsc((x.name||'').slice(0,46))+'</div></td><td>'+_opsEsc([mst.nganh,mst.brand,mst.cls].filter(Boolean).join(' · ')||'Chưa khai báo')+'</td><td>'+_opsEsc(mst.abc||'—')+'</td><td class="ops-num">'+x.q.toLocaleString('vi-VN')+'</td><td class="ops-num">'+_opsMoney(nv)+'</td><td class="ops-num">'+_opsPct(net?nv/net:0)+'</td><td class="ops-num"'+(cr>=0.3?' style="color:#D92D20;font-weight:700"':'')+'>'+_opsPct(cr)+'</td></tr>';
  }).join('')+'</tbody></table></div>';
  host.innerHTML=_opsHead('Doanh thu & đơn hàng Shopee','GMV, đơn, huỷ và SKU dẫn dắt theo kỳ chọn — tính trực tiếp từ Data Sale (sales_fact).')+
   _ops2PeriodSel(SF,[30,60,90,180,9999])+
   _ops2KpiChain(C,[
-   ['AOV đơn bán được',_opsMoney(okN?net/okN:0),okN.toLocaleString('vi-VN')+' đơn'],
+   ['AOV đơn ghi nhận',_opsMoney(okN?net/okN:0),okN.toLocaleString('vi-VN')+' đơn có doanh thu'],
    ['SP đã bán',units.toLocaleString('vi-VN'),'không tính đơn huỷ/hoàn']
   ])+
   '<div class="ops-grid">'+
-  _ops2Card('Xu hướng doanh thu','GMV đặt hàng · DT sau huỷ · GMV huỷ — '+_ops2GLabel(g),_ops2Canvas('opsOrdRev'))+
+  _ops2Card('Xu hướng doanh thu','GMV đặt hàng · Doanh thu thuần · GMV huỷ — '+_ops2GLabel(g),_ops2Canvas('opsOrdRev'))+
   _ops2Card('Đơn hàng & tỷ lệ huỷ','Cột: số đơn · đường: % GMV huỷ — '+_ops2GLabel(g),_ops2Canvas('opsOrdCnt'))+
   '</div><div class="ops-grid">'+
   _ops2Card('Phễu mốc vận hành','Độ phủ mốc trên đơn không huỷ trong kỳ',fun)+
-  _ops2Card('Top 15 SKU theo DT sau huỷ','Gắn ngành / brand / class &amp; ABC từ danh mục SKU',topT)+
+  _ops2Card('Top 15 SKU theo doanh thu thuần','Gắn ngành / brand / class &amp; ABC từ danh mục SKU',topT)+
   '</div>';
  _ops2Chart('opsOrdRev',{type:'line',data:{labels:labs,datasets:[
   _ops2Line('GMV đặt hàng',se.keys.map(function(k){return _ops2Tr(se.map[k].g);}),OPSC.gmv),
-  _ops2Line('DT sau huỷ',se.keys.map(function(k){return _ops2Tr(se.map[k].g-se.map[k].c);}),OPSC.net),
+  _ops2Line('Doanh thu thuần',se.keys.map(function(k){return _ops2Tr(se.map[k].r);}),OPSC.net),
   _ops2Line('GMV huỷ',se.keys.map(function(k){return _ops2Tr(se.map[k].c);}),OPSC.cancel)
  ]},options:_ops2Opts('triệu')});
  _ops2Chart('opsOrdCnt',{type:'bar',data:{labels:labs,datasets:[
@@ -5362,63 +5370,47 @@ function _ops2AdsFor(win){
    tháng, để hai chế độ không bao giờ ra số khác nhau. */
 /* DAI KPI CHUAN — dùng NGUYÊN VĂN trên mọi màn Vận hành Shopee để không màn nào
    hiểu "doanh thu" theo một kiểu riêng. Chuỗi khép kín:
-     GMV − Đã huỷ − Hoàn trả − Khuyến mãi = NMV (doanh thu thực)
+     GMV − Đã huỷ − giảm giá seller − hoàn trả = doanh thu thuần sau thuế
    Mọi số lấy từ _ops2FinCalc, tức cùng một chỗ tính với bảng P&L. */
 function _ops2KpiChain(C,extra){
  var g=C.gross||0;
  var pc=function(v){return g?_opsPct(Math.abs(v)/g):'—';};
- var km=(C.vSeller||0)+(C.other||0);   /* voucher shop + điều chỉnh đối soát */
+ var km=C.vSeller||0;
  var k=[
   ['GMV',_opsMoney(g),C.ords.length.toLocaleString('vi-VN')+' đơn · gồm cả đơn huỷ'],
   ['Đã huỷ','−'+_opsMoney(C.cancelPre),pc(C.cancelPre)+' GMV · huỷ trước khi giao'],
   ['Hoàn trả','−'+_opsMoney(C.retGmv),pc(C.retGmv)+' GMV · '+C.retN+' đơn đã giao rồi bị trả'],
-  ['Khuyến mãi',C.hasB?('−'+_opsMoney(km)):'—',C.hasB?(pc(km)+' GMV · voucher shop & điều chỉnh'):'chưa có đối soát'],
-  ['NMV — doanh thu thực',C.netRev==null?'—':_opsMoney(C.netRev),C.netRev==null?'chưa tính được':(pc(C.netRev)+' GMV · cơ sở tính lợi nhuận')]
+  ['Giảm giá seller','−'+_opsMoney(km),pc(km)+' GMV · lấy một lần mỗi đơn'],
+  ['Doanh thu thuần sau thuế',_opsMoney(C.netRev),pc(C.netRev)+' GMV · đã trừ hoàn thực tế']
  ];
- if(C.noRecGmv>0)k.push(['Chưa đối soát','−'+_opsMoney(C.noRecGmv),C.noRec.length+' đơn Shopee chưa trả dữ liệu phí']);
+ if(C.noRecGmv>0)k.push(['Chưa đối soát phí',_opsMoney(C.noRecGmv),C.noRec.length+' đơn vẫn đã tính doanh thu']);
  return _opsMiniKpis(k.concat(extra||[]));
 }
 function _ops2FinCalc(win,DIM){
  var ords=_ops2Ords(win);
- var paidSn={};ords.forEach(function(o){if(o.paid)paidSn[o.sn]=1;});
- var gross=0,cancel=0;
- win.forEach(function(r){gross+=r.gmv;if(!paidSn[r.sn])cancel+=r.gmv;});
+ var gross=0,cancel=0,netRev=0,retGmv=0,retN=0,vSeller=0;
+ ords.forEach(function(o){gross+=o.gmv;netRev+=o.revenue;vSeller+=o.sellerDiscount;if(o.cancel)cancel+=o.gmv;if(o.returnValue>0){retGmv+=o.returnValue;retN++;}});
  var net=gross-cancel;
- /* HOÀN TRẢ: ưu tiên trạng thái CHÍNH THỨC "Đã Chấp Thuận Yêu Cầu" (Order API TO_RETURN,
-    connector ghi vào trang_thai_tra_hang_hoan_tien từ 28/07/2026). Đơn cũ đã trả xong từ
-    lâu thì Shopee không còn giữ trạng thái này — bổ sung bằng ước tính dòng tiền:
-    không nhận được tiền + hàng đã rời kho + GMV > 0 (loại hàng tặng). */
- var retGmv=0,retN=0,retOff=0;
- ords.forEach(function(o){
-  if(o.paid)return;
-  if(o.retSt){retGmv+=o.gmv;retN++;retOff++;}
-  else if(o.gmv>0&&(o.shipMs||o.doneMs)){retGmv+=o.gmv;retN++;}
- });
- var cancelPre=cancel-retGmv;
+ var cancelPre=cancel,retOff=retN;
  /* Khối B = đơn ĐÃ được Shopee đối soát. Lọc theo "đã có dữ liệu" chứ không theo dấu của
     số tiền, vì đơn đã hoàn tiền có escrow ÂM và từng bị loại oan. */
  var B=ords.filter(function(o){return o.hasRec;});
  var gB=0,netB=0,f0=0,f1=0,f2=0,esc=0;
- B.forEach(function(o){gB+=o.gmv;if(o.paid){netB+=o.gmv;f0+=o.f0;f1+=o.f1;f2+=o.f2;esc+=o.esc;}});
+ B.forEach(function(o){gB+=o.gmv;if(!o.cancel){netB+=o.revenue;f0+=o.f0;f1+=o.f1;f2+=o.f2;esc+=o.esc;}});
  var fee=f0+f1+f2;
- /* Voucher shop lấy từ CỘT THẬT của API (trước phải suy ngược từ chênh lệch đối soát).
-    Phần dư sau khi trừ đủ voucher là điều chỉnh nhỏ còn lại. */
- var vSeller=0;B.forEach(function(o){if(o.paid)vSeller+=o.vsl||0;});
- var other=netB-fee-esc-vSeller;
- var noRec=ords.filter(function(o){return !o.hasRec&&o.paid;});
- var noRecGmv=noRec.reduce(function(a,x){return a+x.gmv;},0);
- var refund=ords.filter(function(o){return o.hasRec&&o.paid&&o.esc<=0;});
+ var other=0;
+ var noRec=ords.filter(function(o){return !o.hasRec&&!o.cancel&&o.revenue>0;});
+ var noRecGmv=noRec.reduce(function(a,x){return a+x.revenue;},0);
+ var refund=ords.filter(function(o){return o.returnValue>0;});
  var refundGmv=refund.reduce(function(a,x){return a+x.gmv;},0);
- var snB={};B.forEach(function(o){if(o.paid)snB[o.sn]=1;});
  var cogs=0,qMatch=0,qTot=0;
- win.forEach(function(r){if(!snB[r.sn])return;qTot+=r.qty;var m=DIM.sku[r.sku];if(m&&m.cost>0){cogs+=m.cost*r.qty;qMatch+=r.qty;}});
- var hasB=B.length>0&&netB>0;
- /* Doanh thu THUẦN theo chuẩn kế toán = doanh thu ghi nhận − giảm giá/voucher.
-    Quan hệ luôn đúng: doanh thu thuần − phí sàn = tiền thực nhận. */
- var netRev=hasB?netB-vSeller-other:null;
- var gp=hasB?esc-cogs:null;
+ win.forEach(function(r){if(r.cancel)return;qTot+=r.netQty||0;var m=DIM.sku[r.sku];if(m&&m.cost>0){cogs+=m.cost*(r.netQty||0);qMatch+=r.netQty||0;}});
+ var hasB=B.length>0;
+ /* Một định nghĩa duy nhất: doanh thu sau thuế đã trừ giảm giá seller và hoàn thực tế.
+    Escrow/phí chỉ dùng cho đối soát và lợi nhuận, không được thay đổi doanh thu. */
+ var gp=netRev-cogs;
  var ads=_ops2AdsFor(win);
- var opProfit=(ads.sp==null||gp==null)?null:gp-ads.sp;
+ var opProfit=(ads.sp==null||!hasB||noRec.length)?null:gp-fee-ads.sp;
  return {ords:ords,gross:gross,cancel:cancel,net:net,B:B,gB:gB,netB:netB,f0:f0,f1:f1,f2:f2,
   fee:fee,other:other,vSeller:vSeller,esc:esc,noRec:noRec,noRecGmv:noRecGmv,refund:refund,refundGmv:refundGmv,
   cogs:cogs,qMatch:qMatch,qTot:qTot,hasB:hasB,gp:gp,netRev:netRev,retGmv:retGmv,retN:retN,retOff:retOff,cancelPre:cancelPre,
@@ -5442,18 +5434,16 @@ function _ops2FinPivot(SF,DIM,months){
   [0,'Số đơn',function(C){return C.ords.length;},fmI,null],
   [0,'GMV tổng (gồm cả đơn huỷ)',function(C){return C.gross;},fmM,null],
   [1,'(−) Huỷ trước khi giao',function(C){return -C.cancelPre;},fmM,gA],
-  [1,'(−) Hoàn trả sau bán',function(C){return -C.retGmv;},fmM,gA],
-  [1,'(−) Đơn chưa được đối soát',function(C){return -C.noRecGmv;},fmM,gA],
-  [1,'(−) Voucher của shop',function(C){return C.hasB?-C.vSeller:null;},fmM,gA],
-  [1,'(−) Điều chỉnh đối soát khác',function(C){return C.hasB?-C.other:null;},fmM,gA],
-  [0,'= DOANH THU THUẦN',function(C){return C.netRev;},fmM,gA],
+  [1,'(−) Giảm giá do seller tài trợ',function(C){return -C.vSeller;},fmM,gA],
+  [1,'(−) Hoàn trả thực tế',function(C){return -C.retGmv;},fmM,gA],
+  [0,'= DOANH THU THUẦN SAU THUẾ',function(C){return C.netRev;},fmM,gA],
   ['h','KHỐI B — TỪ DOANH THU THUẦN ĐẾN LỢI NHUẬN'],
   [1,'(−) Phí cố định',function(C){return C.hasB?-C.f0:null;},fmM,gB],
   [1,'(−) Phí dịch vụ',function(C){return C.hasB?-C.f1:null;},fmM,gB],
   [1,'(−) Phí thanh toán',function(C){return C.hasB?-C.f2:null;},fmM,gB],
   [0,'= Tổng phí sàn Shopee',function(C){return C.hasB?-C.fee:null;},fmM,gB],
   [0,'= Tiền thực nhận (escrow)',function(C){return C.hasB?C.esc:null;},fmM,gB],
-  [1,'(−) Giá vốn hàng bán',function(C){return C.hasB?-C.cogs:null;},fmM,gB],
+  [1,'(−) Giá vốn hàng bán',function(C){return -C.cogs;},fmM,gB],
   [0,'= Lãi gộp',function(C){return C.gp;},fmM,gB],
   [1,'(−) Chi phí Ads',function(C){return C.adsSp==null?null:-C.adsSp;},fmM,gB],
   [0,'= LỢI NHUẬN VẬN HÀNH',function(C){return C.opProfit;},fmM,gB]
@@ -5510,7 +5500,7 @@ function _ops2Finance(host,p,SF,DIM){
  var seB=(function(){
   var map={},keys=[];
   B.forEach(function(o){var k=_ops2Bk(o.d,g);if(!map[k]){map[k]={f0:0,f1:0,f2:0,net:0};keys.push(k);}
-   map[k].f0+=o.f0;map[k].f1+=o.f1;map[k].f2+=o.f2;if(!o.cancel)map[k].net+=o.gmv;});
+   map[k].f0+=o.f0;map[k].f1+=o.f1;map[k].f2+=o.f2;if(!o.cancel)map[k].net+=o.revenue;});
   keys.sort();return {keys:keys,map:map};
  })();
  var labsB=seB.keys.map(function(k){return _ops2Lab(k,g);});
@@ -5519,20 +5509,22 @@ function _ops2Finance(host,p,SF,DIM){
   _ops2KpiChain(C,[
    ['Tiền thực nhận',hasB?_opsMoney(esc):'—',hasB?B.length.toLocaleString('vi-VN')+' đơn có đối soát':'Chưa có đơn nào được đối soát'],
    ['Tổng phí sàn',hasB?_opsMoney(fee):'—',hasB?_opsPct(netB?fee/netB:0)+' DT đối soát':'Chờ đồng bộ escrow'],
-   ['Lãi gộp sau phí & giá vốn',gp==null?'—':_opsMoney(gp),gp==null?'Chưa tính được':_opsPct(netB?gp/netB:0)+' DT đối soát'],
-   ['LN vận hành sau Ads',opProfit==null?'—':_opsMoney(opProfit),opProfit==null?(gp==null?'Chưa tính được — thiếu đối soát':'Thiếu chi phí Ads kỳ này'):(adsPartial?'⚠ thiếu một phần chi phí Ads':_opsPct(netB?opProfit/netB:0)+' DT đối soát')]
+   ['Lãi gộp',_opsMoney(gp),_opsPct(netRev?gp/netRev:0)+' doanh thu thuần · trước phí sàn'],
+   ['LN vận hành sau Ads',opProfit==null?'—':_opsMoney(opProfit),opProfit==null?(noRec.length?'Chưa tính — còn đơn chưa đối soát phí':'Thiếu chi phí Ads kỳ này'):(adsPartial?'⚠ thiếu một phần chi phí Ads':_opsPct(netRev?opProfit/netRev:0)+' doanh thu thuần')]
   ])+
-  (hasB?'':'<div class="ops-card" style="border-left:4px solid #D92D20"><h2 style="color:#D92D20">Kỳ này chưa có dữ liệu đối soát escrow</h2><div class="ops-sub" style="margin-bottom:0">Toàn bộ '+ords.length.toLocaleString('vi-VN')+' đơn trong kỳ chưa được đồng bộ phí sàn và tiền thực nhận từ Shopee Payment API, nên <b>không tính được lãi gộp và lợi nhuận vận hành</b> — phần dưới để trống chứ không phải bằng 0, và cũng KHÔNG có nghĩa là kỳ này lỗ. Doanh thu và tỷ lệ huỷ ở Khối A vẫn là số thật.<br>Cách xử lý: bấm <b>↻ Đồng bộ phân tích</b> ở góc trên; nếu vẫn trống thì Edge Function <code>ops-sync</code> chưa chạy tới các đơn này — xem checkpoint <code>order_enrichment/escrow_tracking</code>.</div></div>')+
+  (hasB?'':'<div class="ops-card" style="border-left:4px solid #D92D20"><h2 style="color:#D92D20">Kỳ này chưa có dữ liệu đối soát escrow</h2><div class="ops-sub" style="margin-bottom:0">Doanh thu thuần và lãi gộp trước phí vẫn được tính từ Order API. Riêng phí sàn, tiền thực nhận và lợi nhuận vận hành để trống vì Shopee Payment API chưa trả dữ liệu đối soát.<br>Cách xử lý: bấm <b>↻ Đồng bộ phân tích</b> ở góc trên; nếu vẫn trống thì xem checkpoint <code>order_enrichment/escrow_tracking</code>.</div></div>')+
   (function(){
-   var ms=_ops2MonthsIn(SF);
+   /* Dùng đúng tập dòng của kỳ đã chọn. Trước đây preset 90 ngày nhưng bảng tháng
+      lại lấy trọn các tháng giao nhau, khiến tổng P&L lớn hơn dải KPI. */
+   var ms=_ops2Months(win);
    return _ops2Card('Bảng phân tích P&L theo tháng — '+_ops2PLabel(SF),
-    'Mỗi tháng một cột · đơn vị triệu đồng · số nhỏ in nghiêng là % (khối A trên GMV tổng, khối B trên doanh thu thuần) · hoàn trả theo trạng thái Trả hàng/Hoàn tiền từ API; đơn cũ API không còn giữ trạng thái thì ước tính theo dòng tiền',
-    _ops2FinPivot(SF,DIM,ms));
+    'Mỗi tháng một cột · đơn vị triệu đồng · doanh thu sau thuế · giảm giá seller lấy một lần mỗi đơn · hoàn trả chỉ trừ theo số lượng hoàn thực tế từ Shopee API',
+    _ops2FinPivot(win,DIM,ms));
   })()+
   '<div class="ops-grid">'+
   _ops2Card('Cơ cấu phí sàn theo thời gian','Cột chồng: 3 loại phí (triệu) · đường: % tổng phí / DT đối soát — '+_ops2GLabel(g),_ops2Canvas('opsFeeTrend'))+
   _ops2Miss([
-   ['Hoàn trả lịch sử','Shopee chỉ giữ trạng thái "Trả hàng/Hoàn tiền" cho đơn ĐANG xử lý; đơn đã trả xong từ trước được ước tính theo dòng tiền (ghi rõ trong bảng).'],
+   ['Hoàn trả lịch sử','Chỉ ghi giảm doanh thu khi Shopee API trả số lượng sản phẩm hoàn thực tế lớn hơn 0; không suy đoán theo trạng thái hay dòng tiền.'],
    ['Ngày giao dự kiến','Cột ngay_giao_hang_du_kien vẫn trống — cần thêm ship_by_date vào connector để tính % giao đúng cam kết.'],
    ['Quận / huyện','Shopee mask cả quận/huyện ("****") giống tỉnh/thành — chưa phân tích được khu vực.']
   ])+
@@ -5603,7 +5595,7 @@ function _ops2Regions(host,p,SF,DIM){
  var regHtml;
  if(rr.length){
   var mx=Math.max.apply(null,rr.map(function(x){return x.gmv;}));
-  regHtml='<div class="ops-card"><h2>Xếp hạng tỉnh/thành</h2><div class="ops-sub">Nguồn: recipient_address từ Shopee Order API</div><div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>#</th><th>Tỉnh / thành</th><th>Doanh thu</th><th>Tỷ trọng</th><th>Đơn</th><th>AOV</th><th>Tỷ lệ huỷ</th><th>Top sản phẩm</th></tr></thead><tbody>'+rr.map(function(x,i){
+  regHtml='<div class="ops-card"><h2>Xếp hạng tỉnh/thành</h2><div class="ops-sub">Nguồn: recipient_address từ Shopee Order API · giá trị là GMV, không phải doanh thu thuần</div><div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>#</th><th>Tỉnh / thành</th><th>GMV</th><th>Tỷ trọng</th><th>Đơn</th><th>AOV GMV</th><th>Tỷ lệ huỷ</th><th>Top sản phẩm</th></tr></thead><tbody>'+rr.map(function(x,i){
    return '<tr><td>'+(i+1)+'</td><td><b>'+_opsEsc(x.province)+'</b><div class="ops-bar"><i style="width:'+((x.gmv/mx)*100).toFixed(1)+'%"></i></div></td><td class="ops-num">'+_opsMoney(x.gmv)+'</td><td class="ops-num">'+_opsPct(x.gmv/(rr.reduce(function(a,b){return a+b.gmv;},0)||1))+'</td><td class="ops-num">'+x.orders+'</td><td class="ops-num">'+_opsMoney(x.aov)+'</td><td class="ops-num">'+_opsPct(x.cancel_rate)+'</td><td>'+(x.top_products||[]).map(function(tp){return _opsEsc(tp.name);}).join(', ')+'</td></tr>';
   }).join('')+'</tbody></table></div></div>';
  }else{
@@ -5611,9 +5603,9 @@ function _ops2Regions(host,p,SF,DIM){
  }
  var payOrds=ords.filter(function(o){return o.pay;});
  var pays={};var pg=0;
- payOrds.forEach(function(o){var x=pays[o.pay]=pays[o.pay]||{pay:o.pay,n:0,g:0,cn:0,cg:0};x.n++;x.g+=o.gmv;pg+=o.gmv;if(o.cancel){x.cn++;x.cg+=o.gmv;}});
+ payOrds.forEach(function(o){var x=pays[o.pay]=pays[o.pay]||{pay:o.pay,n:0,g:0,cn:0,cg:0};x.n++;x.g+=o.revenue;pg+=o.revenue;if(o.cancel){x.cn++;x.cg+=o.gmv;}});
  var pl=Object.keys(pays).map(function(k){return pays[k];}).sort(function(a,b){return b.g-a.g;});
- var payHtml=pl.length?'<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>Phương thức thanh toán</th><th>Đơn</th><th>GMV</th><th>% GMV nhóm</th><th>% đơn huỷ</th></tr></thead><tbody>'+pl.map(function(x){
+ var payHtml=pl.length?'<div style="overflow-x:auto"><table class="ops-table"><thead><tr><th>Phương thức thanh toán</th><th>Đơn</th><th>Doanh thu thuần</th><th>% doanh thu nhóm</th><th>% đơn huỷ</th></tr></thead><tbody>'+pl.map(function(x){
    var cod=/cash on delivery|cod/i.test(x.pay);
    return '<tr><td><b>'+_opsEsc(x.pay)+'</b>'+(cod?' <span style="font-size:10px;color:#B54708;background:#FEF0C7;border-radius:8px;padding:1px 7px">COD</span>':'')+'</td><td class="ops-num">'+x.n+'</td><td class="ops-num">'+_opsMoney(x.g)+'</td><td class="ops-num">'+_opsPct(pg?x.g/pg:0)+'<div class="ops-bar"><i style="width:'+(pg?(x.g/pg*100).toFixed(1):0)+'%"></i></div></td><td class="ops-num"'+(x.n&&x.cn/x.n>=0.2?' style="color:#D92D20;font-weight:700"':'')+'>'+_opsPct(x.n?x.cn/x.n:0)+'</td></tr>';
   }).join('')+'</tbody></table></div><div class="ops-sub" style="margin-top:8px">Phương thức thanh toán chỉ có ở '+payOrds.length+' đơn đồng bộ từ Order API (~90 ngày gần nhất); đơn cũ import không có trường này.</div>':'<div class="ops-empty"><b>Chưa có đơn nào kèm phương thức thanh toán trong kỳ chọn</b></div>';
@@ -5650,17 +5642,18 @@ function _ops2Ops(host,p,SF,DIM){
  host.innerHTML=_opsHead('Tổng quan vận hành Shopee','Bức tranh 90 ngày: kết quả, rủi ro và tình trạng kết nối nguồn dữ liệu.')+
   (K?_ops2KpiChain(K,[
    ['Tiền thực nhận',K.hasB?_opsMoney(K.esc):'—','Shopee trả về ví shop'],
-   ['Lãi gộp',K.gp==null?'—':_opsMoney(K.gp),'sau phí sàn & giá vốn'],
+   ['Lãi gộp',K.gp==null?'—':_opsMoney(K.gp),'doanh thu thuần − giá vốn · trước phí sàn'],
    ['LN vận hành',K.opProfit==null?'—':_opsMoney(K.opProfit),K.opProfit==null?'thiếu chi phí Ads':'sau chi phí Ads']
   ]):_opsKpis(p))+
-  _ops2Card('Xu hướng 90 ngày','GMV đặt hàng · DT sau huỷ · GMV huỷ — gộp theo tuần · đường mảnh: số đơn (trục phải)',_ops2Canvas('opsDailyC',280))+
+  _ops2Card('Xu hướng 90 ngày','GMV đặt hàng · Doanh thu thuần sau thuế · GMV huỷ — gộp theo tuần · đường mảnh: số đơn (trục phải)',_ops2Canvas('opsDailyC',280))+
   '<div class="ops-grid"><div class="ops-card"><h2>Ưu tiên cần xử lý</h2><div class="ops-sub">Xếp theo mức độ nghiêm trọng và giá trị ảnh hưởng</div>'+_opsIssueRows(top)+'</div><div class="ops-card"><h2>Sức khoẻ nguồn dữ liệu</h2><div class="ops-sub">Không sử dụng số liệu ước đoán cho API chưa kết nối</div>'+_opsSources(p)+'</div></div>'+
   '<div class="ops-grid">'+
   _ops2Card('Top sản phẩm Ads theo chi phí','Từ Data Ads 90 ngày · ROAS xanh ≥ 6, cam ≥ 3, đỏ &lt; 3',apT)+
   _ops2Card('Chất lượng dữ liệu','Độ phủ các trường quan trọng — % thấp nghĩa là phân tích tương ứng chỉ phủ một phần',dqT)+
   '</div>'+
   _opsCoverage(p);
- var daily=p.daily||[];
+ var daily=[];
+ if(SF){var dm={};_ops2Win(SF,90).forEach(function(r){var x=dm[r.d]=dm[r.d]||{date:r.d,gross:0,net:0,cancel:0,orders:{}};x.gross+=r.gmv;x.net+=r.revenue||0;if(r.cancel)x.cancel+=r.gmv;x.orders[r.sn]=1;});daily=Object.keys(dm).sort().map(function(k){var x=dm[k];x.orders=Object.keys(x.orders).length;return x;});}
  if(daily.length){
   var map={},keys=[];
   daily.forEach(function(x){var k=_ops2Bk(x.date,daily.length>35?'w':'d');if(!map[k]){map[k]={g:0,n:0,c:0,o:0};keys.push(k);}
@@ -5669,7 +5662,7 @@ function _ops2Ops(host,p,SF,DIM){
   var labs=keys.map(function(k){return _ops2Lab(k,daily.length>35?'w':'d');});
   _ops2Chart('opsDailyC',{type:'line',data:{labels:labs,datasets:[
    _ops2Line('GMV đặt hàng',keys.map(function(k){return _ops2Tr(map[k].g);}),OPSC.gmv,{yAxisID:'y'}),
-   _ops2Line('DT sau huỷ',keys.map(function(k){return _ops2Tr(map[k].n);}),OPSC.net,{yAxisID:'y'}),
+   _ops2Line('Doanh thu thuần',keys.map(function(k){return _ops2Tr(map[k].n);}),OPSC.net,{yAxisID:'y'}),
    _ops2Line('GMV huỷ',keys.map(function(k){return _ops2Tr(map[k].c);}),OPSC.cancel,{yAxisID:'y'}),
    _ops2Line('Số đơn',keys.map(function(k){return map[k].o;}),OPSC.orders,{yAxisID:'y1',borderWidth:1.5,borderDash:[4,3]})
   ]},options:_ops2Opts('triệu','đơn')});
@@ -5685,7 +5678,7 @@ function _ops2IssueExtra(p,SF,DIM){
   var dt=new Date(+last.slice(0,4),+last.slice(5,7)-1,+last.slice(8,10));dt.setDate(dt.getDate()-29);
   var cut=dt.getFullYear()+'.'+_ops2Pad(dt.getMonth()+1)+'.'+_ops2Pad(dt.getDate());
   var win30=_ops2Win(SF,30);
-  var sold={};win30.forEach(function(r){if(!r.cancel&&r.sku)sold[r.sku]=(sold[r.sku]||0)+r.qty;});
+  var sold={};win30.forEach(function(r){if(!r.cancel&&r.sku)sold[r.sku]=(sold[r.sku]||0)+(r.netQty||0);});
   RAW.ads.prod.forEach(function(pr){
    var sp=0,bd=pr.byD||{};
    Object.keys(bd).forEach(function(dk){if(dk>=cut)sp+=(bd[dk][8]||0);});
@@ -5722,15 +5715,14 @@ _opsAffiliate=function(rows){
  try{
   var shop=((_opsFind(rows||[],'get_shop_performance')||{}).metrics)||{};
   var sales=Number(shop.sales||0);
-  if(sales>0&&_OPS&&_OPS.daily&&_OPS.daily.length){
-   var last30=_OPS.daily.slice(-30);
-   var net30=last30.reduce(function(a,x){return a+(x.net||0);},0);
+  if(sales>0&&_OPS2_SF&&_OPS2_DIM){
+   var net30=_ops2FinCalc(_ops2Win(_OPS2_SF,30),_OPS2_DIM).netRev;
    if(net30>0){
-    h+='<div class="ops-card"><h2>Đóng góp Affiliate vào doanh thu</h2><div class="ops-sub">So sánh cùng cửa sổ 30 ngày: DT Affiliate (AMS) với DT sau huỷ toàn shop (Data Sale)</div>'+
+    h+='<div class="ops-card"><h2>Đóng góp Affiliate vào doanh thu</h2><div class="ops-sub">So sánh cùng cửa sổ 30 ngày: GMV Affiliate quy gán với doanh thu thuần sau thuế toàn shop</div>'+
      _opsMiniKpis([
-      ['Tỷ trọng Affiliate',_opsPct(sales/net30),'DT Affiliate / DT sau huỷ 30 ngày'],
-      ['DT Affiliate',_opsMoney(sales),String(shop.fetched_date_range||'30 ngày gần nhất')],
-      ['DT sau huỷ toàn shop',_opsMoney(net30),'30 ngày gần nhất từ Data Sale']
+      ['Tỷ trọng Affiliate',_opsPct(sales/net30),'GMV Affiliate / doanh thu thuần 30 ngày'],
+      ['GMV Affiliate quy gán',_opsMoney(sales),String(shop.fetched_date_range||'30 ngày gần nhất')],
+      ['Doanh thu thuần toàn shop',_opsMoney(net30),'sau thuế · 30 ngày gần nhất']
      ])+'</div>';
    }
   }

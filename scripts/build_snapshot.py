@@ -17,6 +17,13 @@ from openpyxl import Workbook
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from revenue_rules import (
+    canonical_daily,
+    canonical_totals,
+    canonicalize_sales_rows,
+    is_cancelled,
+)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 HTML = ROOT / "index.html"
@@ -135,9 +142,9 @@ def add_cancel_rates(raw: dict, sales_rows: list[dict]) -> None:
             gmv = float(row.get("tong_gia_ban_san_pham") or 0)
         except (TypeError, ValueError):
             gmv = 0.0
-        is_cancelled = str(row.get("trang_thai_don_hang") or "").strip() == "Đã hủy"
+        cancelled = is_cancelled(row.get("trang_thai_don_hang"))
         gmv_by_month[month][1] += gmv
-        if is_cancelled:
+        if cancelled:
             gmv_by_month[month][0] += gmv
 
     raw["cancelGmvByM"] = {
@@ -146,9 +153,50 @@ def add_cancel_rates(raw: dict, sales_rows: list[dict]) -> None:
     }
 
 
+def add_ads_cancel_rates(raw: dict, canonical_rows: list[dict], sku_rows: list[dict]) -> None:
+    """Replace legacy Ads cancellation rates with original Shopee GMV rates."""
+    sku_to_product = {
+        str(row.get("sku") or "").strip(): str(row.get("id_ma_san_pham_shopee") or "").strip()
+        for row in sku_rows
+        if str(row.get("sku") or "").strip()
+    }
+    by_product: dict[str, list[float]] = defaultdict(lambda: [0.0, 0.0])
+    shop = [0.0, 0.0]
+    for row in canonical_rows:
+        gmv = float(row.get("g") or 0)
+        cancelled = bool(row.get("x"))
+        shop[1] += gmv
+        if cancelled:
+            shop[0] += gmv
+        product_id = sku_to_product.get(str(row.get("s") or "").strip(), "")
+        if product_id:
+            by_product[product_id][1] += gmv
+            if cancelled:
+                by_product[product_id][0] += gmv
+
+    ads = raw.get("ads")
+    if not isinstance(ads, dict):
+        return
+    ads["cancelShop"] = round(shop[0] / shop[1], 6) if shop[1] else 0
+    for row in ads.get("prod") or []:
+        if isinstance(row, dict):
+            product_id = str(row.get("shop") or "").strip()
+        else:
+            product_id = str(row[0] if isinstance(row, list) and row else "").strip()
+        values = by_product.get(product_id)
+        if not values:
+            continue
+        rate = round(values[0] / values[1], 6) if values[1] else 0
+        if isinstance(row, dict):
+            row["cancel"] = rate
+        elif len(row) > 6:
+            row[6] = rate
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="Tính snapshot nhưng không ghi Supabase")
+    parser.add_argument("--output", type=Path, help="Ghi payload JSON để kiểm thử local")
     args = parser.parse_args()
 
     source = HTML.read_text(encoding="utf-8")
@@ -169,13 +217,29 @@ def main():
         tables = {table: future.result() for table, future in futures.items()}
     print("Số dòng:", {table: len(rows) for table, rows in tables.items()}, flush=True)
 
-    raw = run_engine(source, table_map, tables)
+    engine_tables = dict(tables)
+    engine_sales, canonical_sales = canonicalize_sales_rows(tables.get("sales_fact", []))
+    engine_tables["sales_fact"] = engine_sales
+    raw = run_engine(source, table_map, engine_tables)
+    raw["salesCanonical"] = canonical_sales
+    raw["salesD"] = canonical_daily(canonical_sales)
+    raw["revenueRule"] = {
+        "version": "shopee-net-after-tax-v1",
+        "source": "Shopee API / sales_fact",
+        "definition": "GMV đơn chưa hủy - giảm giá seller - hoàn trả thực tế",
+        "totals": canonical_totals(canonical_sales),
+    }
     add_cancel_rates(raw, tables.get("sales_fact", []))
+    add_ads_cancel_rates(raw, canonical_sales, tables.get("sku", []))
     if tables.get("tonkho"):
         raw["stockDate"] = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime("%d/%m/%Y")
         raw["stockSource"] = "Shopee API"
     payload = json.dumps(raw, ensure_ascii=False, separators=(",", ":"))
     print(f"Snapshot hoàn tất: {len(payload):,} bytes", flush=True)
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(payload, encoding="utf-8")
+        print(f"Đã ghi snapshot kiểm thử: {args.output}", flush=True)
     if args.dry_run:
         return
 
