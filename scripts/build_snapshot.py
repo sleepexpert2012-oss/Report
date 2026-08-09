@@ -238,6 +238,14 @@ def main():
         "definition": "(GMV đơn chưa hủy - giảm giá seller - hoàn trả thực tế) / 1.08",
         "totals": canonical_totals(canonical_sales),
     }
+    generated_at = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat()
+    raw["snapshotGeneratedAt"] = generated_at
+    report_path = os.getenv("SYNC_REPORT_PATH", "").strip()
+    if report_path and Path(report_path).exists():
+        report = json.loads(Path(report_path).read_text(encoding="utf-8"))
+        if not report.get("ok"):
+            raise RuntimeError("Freshness gate chưa đạt; không được publish snapshot")
+        raw["syncManifest"] = report
     add_cancel_rates(raw, tables.get("sales_fact", []))
     add_ads_cancel_rates(raw, canonical_sales, tables.get("sku", []))
     if tables.get("tonkho"):
@@ -267,7 +275,7 @@ def main():
             "uploaded_by": "backend-snapshot",
             # Upsert giữ nguyên DEFAULT created_at của dòng hiện hữu nếu không
             # truyền lại trường này, khiến app báo snapshot vẫn từ tháng trước.
-            "created_at": datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat(),
+            "created_at": generated_at,
         },
         timeout=120,
     )
