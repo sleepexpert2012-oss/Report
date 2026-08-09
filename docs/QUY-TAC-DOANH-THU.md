@@ -34,6 +34,17 @@ Trong đó:
 - Kỳ doanh thu lấy theo ngày đặt hàng.
 - Khi đơn bị huỷ hoặc hoàn trả về sau, hệ thống tính lại kỳ gốc của đơn.
 
+## Quy tắc giá vốn thống nhất
+
+```text
+COGS = Số lượng bán thuần × Giá vốn (+VAT)
+```
+
+- `Giá vốn (+VAT)` là nguồn ưu tiên cho mọi màn hình và mọi cấp tổng hợp.
+- Chỉ fallback sang `Unit Cost (VND)` khi SKU chưa khai báo giá vốn có VAT.
+- Số lượng bán thuần bằng số lượng bán trừ số lượng hoàn trả thực tế; đơn đã huỷ có số lượng thuần bằng 0.
+- Tổng quan, P&L, tồn kho, biểu đồ ngành và drill-down SKU/Class phải dùng cùng kết quả này.
+
 ## Đối chiếu chuẩn
 
 Tệp Kiot tháng 08/2026 đã được dùng để xác nhận:

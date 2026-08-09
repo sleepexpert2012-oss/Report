@@ -91,6 +91,9 @@ h1.pt{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px}
 .kpi:before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
 .kpi .t{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700}
 .kpi .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;margin:3px 0 1px}
+.kpi .v.kpi-pair{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.kpi-rate{font-size:12px;line-height:1;padding:5px 7px;border-radius:999px;background:#EEF1FB;color:var(--ink);white-space:nowrap}
+#ovKpis{grid-template-columns:repeat(3,minmax(0,1fr))}
 .kpi .u{font-size:10px;color:var(--muted)}
 .kpi .d{font-size:11px;font-variant-numeric:tabular-nums}
 .d.up{color:var(--up)}.d.down{color:var(--down)}.d.na{color:var(--muted)}
@@ -110,6 +113,9 @@ thead th:hover{background:var(--ink2)}
 thead th.num{text-align:right}
 td{padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 td.num{text-align:right}
+.hier-label{--hier-level:0;padding-left:calc(8px + var(--hier-level)*18px)!important;text-align:left!important}
+.hier-label>.treeTog,.hier-label>.exp{display:inline-flex;width:16px;min-width:16px;align-items:center;justify-content:center;margin-right:4px;vertical-align:middle}
+.hier-label .clsLink,.hier-label .clsLink2,.hier-label .clsLinkT{vertical-align:middle}
 td .mut{color:var(--muted)}
 tbody tr:hover{background:#F5F8FC}
 .pos{color:var(--up);font-weight:600}.neg{color:var(--down);font-weight:600}
@@ -226,6 +232,7 @@ main{padding:10px 10px 22px}
 .presets button{padding:7px 8px;flex:1}
 .ptxt{margin-left:0;text-align:left;flex:1 1 100%}
 .kpis{grid-template-columns:repeat(2,1fr);gap:7px}
+#ovKpis{grid-template-columns:repeat(2,minmax(0,1fr))}
 .kpi .v{font-size:17px}
 .grid{grid-template-columns:1fr}
 .ch{height:240px}.ch.tall{height:360px}
@@ -441,7 +448,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <input type="password" id="gpw" placeholder="Mật khẩu nội bộ" aria-label="Mật khẩu nội bộ" autocomplete="current-password">
     <button id="gbtn">Đăng nhập</button>
     <div class="gerr" id="gerr"></div>
-    <div class="gnote">Công cụ nội bộ Phòng Supply Chain — Sleep Expert. Không chia sẻ ra ngoài công ty.<br><b style="color:#fff">Bản phát hành R73 · cập nhật 09/08/2026</b></div>
+    <div class="gnote">Công cụ nội bộ Phòng Supply Chain — Sleep Expert. Không chia sẻ ra ngoài công ty.<br><b style="color:#fff">Bản phát hành R74 · cập nhật 09/08/2026</b></div>
   </div>
 </div>
 <div class="app">
@@ -559,6 +566,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
         <li><b>Giảm giá seller:</b> trường cấp đơn có thể lặp trên nhiều dòng SKU nhưng chỉ tính một lần, sau đó phân bổ về SKU theo tỷ trọng GMV. Voucher và trợ giá do Shopee tài trợ không làm giảm doanh thu seller.</li>
         <li><b>Hoàn trả:</b> chỉ giảm doanh thu khi Shopee API trả số lượng sản phẩm hoàn thực tế lớn hơn 0. Trạng thái “đã chấp thuận yêu cầu trả” nhưng số lượng hoàn bằng 0 chưa bị trừ.</li>
         <li><b>Không trừ khỏi doanh thu:</b> VAT, phí sàn, chi phí Ads và escrow. Các khoản này dùng cho lợi nhuận hoặc đối soát dòng tiền. Bồi thường cho đơn đã huỷ được xếp vào thu nhập khác, không phải doanh thu bán hàng.</li>
+        <li><b>Giá vốn thống nhất:</b> COGS = số lượng bán thuần × <code>Giá vốn (+VAT)</code>. Chỉ khi SKU chưa khai báo giá vốn có VAT mới dùng <code>Unit Cost (VND)</code>. Quy tắc này áp dụng chung cho Tổng quan, P&amp;L, tồn kho, biểu đồ và mọi cấp drill-down.</li>
         <li><b>Một nguồn duy nhất:</b> mọi KPI mang tên Doanh thu trong app đều lấy từ Shopee API bảng <code>sales_fact</code> qua snapshot backend chuẩn hoá. GMV quy gán của Ads, Affiliate, Livestream và Video chỉ dùng để đo hiệu quả kênh, không phải doanh thu thuần.</li>
         <li><b>Vòng đời:</b> Mới (SP 25/26 đang ramp-up) · In-line (kinh doanh bình thường; BedGear ép In-line) · Phase-out (giảm mạnh, có SP thay thế cùng brand) · Suy giảm (giảm mạnh, CHƯA có thay thế → gap) · Ngưng bán/Clear tồn (DT 3T &lt;5% đỉnh hoặc GM âm = thanh lý). SP mới 2025/26 không rơi nhóm Ngưng bán (trừ GM âm).</li>
         <li><b>AOV</b> hiển thị = giá bán bình quân/đơn vị (ASP = Doanh thu ÷ Unit) — proxy do dữ liệu không có mã đơn hàng.</li>
@@ -576,7 +584,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <div class="grid">
       <div class="card"><h2>Xu hướng theo tháng</h2><div class="sub" id="ovTrendS">—</div><div class="ch"><canvas id="ovTrend"></canvas></div></div>
       <div class="card"><h2>Ngành hàng — chọn (đen) vs SS (xám)</h2><div class="sub" id="ovIndS">—</div><div class="ch"><canvas id="ovInd"></canvas></div></div>
-      <div class="card"><h2>Cơ cấu nhóm brand — kỳ SS vs kỳ chọn</h2><div class="sub">Bar ngang: xám = kỳ SS, đen = kỳ chọn · nhãn kèm % tỷ trọng + mũi tên (kỳ chọn) · triệu</div><div class="ch"><canvas id="ovPie"></canvas></div></div>
+      <div class="card"><h2>GM% &amp; COGS ngành theo tháng</h2><div class="sub">Cột chồng = COGS từng ngành (triệu) · đường = GM% toàn công ty · theo bộ lọc hiện tại</div><div class="ch"><canvas id="ovGmCogs"></canvas></div></div>
       <div class="card"><h2>Cơ cấu ngành — Ecommerce</h2><div class="sub">Toàn bộ doanh thu hiện lấy từ Shopee và được ghi nhận vào kênh Ecommerce · cột chồng theo ngành · đơn vị triệu</div><div class="ch"><canvas id="ovKenh"></canvas></div></div>
       <div class="card w2"><h2>Chi tiết ngành — Ecommerce</h2><div class="sub">Doanh thu và tỷ trọng từng ngành trong kênh Ecommerce · kỳ chọn · đơn vị triệu</div><div class="twrap"><table id="ovKenhTbl" style="font-size:11px"></table></div></div>
       <div class="card w2" id="ovBrandCard"><h2>Bảng tổng hợp brand</h2><div class="sub">DT kỳ SS vs kỳ chọn · GM% · tăng trưởng · nhóm House/Exclusive/Leading · sắp theo DT kỳ chọn</div><div class="twrap"><table id="ovBrandTbl" style="font-size:11px"><thead><tr><th></th><th>Brand</th><th>Nhóm</th><th>DT SS (triệu)</th><th>DT chọn (triệu)</th><th>% Sale</th><th>↑DT</th><th>GM% SS</th><th>GM% chọn</th><th>↑GM (đ%)</th><th>Unit</th></tr></thead><tbody></tbody></table></div></div>
@@ -1049,7 +1057,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
   <h1>📝 Nhật ký cập nhật &amp; đồng bộ</h1>
   <div class="sub" style="margin-bottom:14px">Theo dõi phiên bản GitHub, API Shopee đang sử dụng, độ mới dữ liệu và nội dung thay đổi của từng bản phát hành.</div>
   <div class="ops-kpis">
-    <div class="ops-kpi"><div class="lab">Bản phát hành GitHub</div><div class="val">R73</div><div class="hint">Nhánh main · phát hành 09/08/2026</div></div>
+    <div class="ops-kpi"><div class="lab">Bản phát hành GitHub</div><div class="val">R74</div><div class="hint">Nhánh main · phát hành 09/08/2026</div></div>
     <div class="ops-kpi"><div class="lab">Dữ liệu Shopee mới nhất</div><div class="val" id="logDataLatest">Đang đọc…</div><div class="hint">Ngày nghiệp vụ mới nhất từ API</div></div>
     <div class="ops-kpi"><div class="lab">API đồng bộ gần nhất</div><div class="val" id="logApiSync">Đang đọc…</div><div class="hint">Lần ghi dữ liệu API vào Supabase</div></div>
     <div class="ops-kpi"><div class="lab">App nạp dữ liệu gần nhất</div><div class="val" id="logAppSync">Đang đọc…</div><div class="hint">Thời điểm app tổng hợp báo cáo</div></div>
@@ -1071,6 +1079,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <h2>Lịch sử thay đổi</h2>
       <div class="ops-sub">Ghi nhận từ R50 trở đi; mỗi lần phát hành phải tạo một mục mới</div>
       <table class="ops-table"><thead><tr><th>Bản</th><th>Ngày</th><th>Thay đổi</th></tr></thead><tbody>
+        <tr><td><b>R74</b></td><td>09/08/2026</td><td>Thêm KPI Giảm giá và Tỷ lệ hoàn hàng trên Tổng quan; thay biểu đồ brand bằng GM% &amp; COGS ngành theo tháng; chuẩn hoá căn cấp bảng; đồng nhất toàn app về Giá vốn (+VAT), fallback Unit Cost khi thiếu. COGS tháng 08 khớp P&amp;L 37,9 triệu.</td></tr>
         <tr><td><b>R73</b></td><td>09/08/2026</td><td>Chuẩn hoá một công thức doanh thu sau thuế từ Shopee API cho toàn app; trừ giảm giá seller đúng một lần mỗi đơn, chỉ trừ hoàn thực tế, đồng bộ Tổng quan/Doanh thu/P&amp;L/Ads và sửa bảng P&amp;L preset lấy thừa ngày. Bổ sung đầy đủ quy tắc vào màn Giới thiệu &amp; Hướng dẫn.</td></tr>
         <tr><td><b>R72</b></td><td>29/07/2026</td><td>Bổ sung bộ lọc kỳ riêng cho màn Ma trận sản phẩm và mặc định xem toàn kỳ.</td></tr>
         <tr><td><b>R51</b></td><td>26/07/2026</td><td>Mở rộng đồng bộ có phân trang/checkpoint cho Affiliate và Video; bổ sung Product, Shop, Payment, Shipment, Logistics và Ads nâng cao; làm mới báo cáo Affiliate/Video và bảng độ phủ API.</td></tr>
@@ -1084,7 +1093,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
   <div class="sub" style="margin-bottom:10px">SKU phát sinh trong dữ liệu bán hàng nhưng chưa có trong danh mục sản phẩm (master). Nên bổ sung chính thức để đảm bảo giá vốn & phân tích chính xác.</div>
   <div id="warnHost"></div>
 </section>
-  <footer>Phòng Supply Chain — Sleep Expert · GM = GP/DT · Nội bộ · R73 · 09/08/2026</footer>
+  <footer>Phòng Supply Chain — Sleep Expert · GM = GP/DT · Nội bộ · R74 · 09/08/2026</footer>
 </main>
 <div id="xlsDlg" style="display:none;position:fixed;inset:0;background:rgba(10,20,40,.45);z-index:9000;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:12px;padding:18px 22px;min-width:320px;box-shadow:0 10px 40px rgba(0,0,0,.3)">
@@ -1338,7 +1347,8 @@ function mkBar(id,horiz,stack,names,colors){return new Chart(document.getElement
 function mkPie(id){return new Chart(document.getElementById(id),{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:PAL}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right'}}}});}
 const CH={
  ovTrend:mkLine('ovTrend',['Kỳ chọn — tổng','Riêng SP mới'],[NAVY,SPNEW],[0,1]),
- ovInd:mkBar('ovInd'),ovPie:mkBar('ovPie',true,false,['Kỳ so sánh','Kỳ chọn'],[GOLD,NAVY]),
+ ovInd:mkBar('ovInd'),
+ ovGmCogs:new Chart(document.getElementById('ovGmCogs'),{type:'bar',data:{labels:[],datasets:[]},options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,position:'left',title:{display:true,text:'COGS (triệu)'},ticks:{callback:function(v){return fmAxV(this.chart,v);}}},y1:{position:'right',min:0,suggestedMax:60,title:{display:true,text:'GM %'},ticks:{callback:v=>v+'%'},grid:{drawOnChartArea:false}}}}}),
  ovKenh:new Chart(document.getElementById('ovKenh'),{type:'bar',data:{labels:['Ecommerce'],datasets:[]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{filter:it=>!/\(SS\)/.test(it.text)}},noVal:true},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,title:{display:true,text:'triệu'},ticks:{callback:function(v){return fmAxV(this.chart,v);}}}}}}),
 
 
@@ -1353,16 +1363,15 @@ const CH={
  spByYear:mkBar('spByYear',false,true,['Thành công','Thất bại'],['#2E8B57','#C0392B']),
  spByNganh:mkBar('spByNganh',true,true,['Thành công','Thất bại'],['#2E8B57','#C0392B']),
  cdC1:null,cdC2:null,cdUnit:null,cdRank:null};
-for(const c of [CH.ovInd,CH.ovPie,CH.indType,CH.indSeg])c.options.plugins.pct={on:true,ds:1};
- [CH.ovPie].forEach(ch=>{if(ch)ch.options.onClick=(e,els)=>{if(els&&els.length)gotoBrand(ch.data.labels[els[0].index]);};});
+for(const c of [CH.ovInd,CH.indType,CH.indSeg])c.options.plugins.pct={on:true,ds:1};
 
 function kpiHTML(items){
  return items.map(k=>{
   let d='';
   if(k.prev===null||k.prev===undefined)d='<div class="d na">— không có kỳ so sánh</div>';
   else if(k.pp!==undefined){const dd=k.v2-k.prev,good=k.badUp?dd<=0:dd>=0;d=`<div class="d ${good?'up':'down'}">${dd>=0?'▲ +':'▼ '}${dd.toFixed(1).replace('.',',')} điểm %</div>`;}
-  else{const dd=k.prev?(k.raw-k.prev)/k.prev:0;d=`<div class="d ${dd>=0?'up':'down'}">${dd>=0?'▲ +':'▼ '}${pc(dd)} vs kỳ SS</div>`;}
-  return`<div class="kpi"><div class="t">${k.t}</div><div class="v">${k.v}</div><div class="u">${k.u||''}</div>${k.pv?`<div class="pv" style="font-size:11px;color:#8494A8;margin-top:2px">Kỳ SS: ${k.pv}</div>`:''}${d}</div>`;}).join('');
+  else{const dd=k.prev?(k.raw-k.prev)/k.prev:0,good=k.badUp?dd<=0:dd>=0;d=`<div class="d ${good?'up':'down'}">${dd>=0?'▲ +':'▼ '}${pc(dd)} vs kỳ SS</div>`;}
+  return`<div class="kpi"><div class="t">${k.t}</div><div class="v${k.rate?' kpi-pair':''}"><span>${k.v}</span>${k.rate?`<span class="kpi-rate">${k.rate}</span>`:''}</div><div class="u">${k.u||''}</div>${k.pv?`<div class="pv" style="font-size:11px;color:#8494A8;margin-top:2px">Kỳ SS: ${k.pv}</div>`:''}${d}</div>`;}).join('');
 }
 function stdKpis(a,extra){
  const gm=a.S?a.P/a.S:0,gmp=a.Sp?a.Pp/a.Sp:0,has=cmpRange()&&a.Sp>0;
@@ -1741,7 +1750,12 @@ function scanTips(){
   const t=th.textContent.replace(/⬇\s*Excel/,'').replace(/\s+/g,' ').trim();
   if(TIPS[t])th.dataset.tip=TIPS[t];});
 }
-function scanUI(){try{scanXBtns();scanTips();}catch(e){}}
+function alignHierarchy(root){
+ (root||document).querySelectorAll('.treeTog').forEach(t=>{const td=t.closest('td');if(!td)return;const key=t.dataset.tp||'';td.classList.add('hier-label');td.style.setProperty('--hier-level',(key.match(/-/g)||[]).length);});
+ (root||document).querySelectorAll('.brow>td:first-child').forEach(td=>{td.classList.add('hier-label');td.style.setProperty('--hier-level',0);});
+ (root||document).querySelectorAll('.bdet table tr td:first-child').forEach(td=>{td.classList.add('hier-label');td.style.setProperty('--hier-level',td.querySelector('.clsLink2')?2:1);});
+}
+function scanUI(){try{scanXBtns();scanTips();alignHierarchy();}catch(e){}}
 let _moT;try{new MutationObserver(function(){clearTimeout(_moT);_moT=setTimeout(scanUI,150);}).observe(document.body,{childList:true,subtree:true});}catch(e){}
 scanUI();
 const STK=RAW.stk||[],STKSKU=RAW.stkSku||[];
@@ -2169,7 +2183,7 @@ function ensureCancelRates(){
 function renderOverview(){
  renderOvKenh();
  const a=sum();
- const overviewKpis=stdKpis(a);
+ const baseKpis=stdKpis(a);
  const cancelRateFor=(lo,hi)=>{
   const byM=RAW.cancelGmvByM||{},months=RAW.months||[],tot=[0,0];
   for(let i=lo;i<=hi;i++){const x=byM[months[i]];if(x){tot[0]+=+x[0]||0;tot[1]+=+x[1]||0;}}
@@ -2177,7 +2191,7 @@ function renderOverview(){
  };
  const cancelRate=cancelRateFor(S.m0,S.m1),cancelCmp=cmpRange();
  const cancelPrev=cancelCmp?cancelRateFor(cancelCmp[0],cancelCmp[1]):null;
- overviewKpis[6]={
+ const cancelKpi={
   t:'Tỷ lệ hủy đơn',
   v:cancelRate===null?'—':pc(cancelRate),
   u:'GMV đơn hủy ÷ GMV gộp',
@@ -2187,6 +2201,13 @@ function renderOverview(){
   prev:cancelPrev===null?null:cancelPrev*100,
   pv:cancelPrev===null?null:pc(cancelPrev)
  };
+ const canonicalRows=RAW.salesCanonical||[],hasCanonical=canonicalRows.length>0;
+ const canonicalAdjust=(lo,hi)=>{const out={g:0,sd:0,rv:0};const wanted=new Set(M.slice(lo,hi+1).map(m=>m.replace('.','-')));canonicalRows.forEach(x=>{const ym=String(x.d||'').slice(0,7);if(!wanted.has(ym))return;out.g+=+x.g||0;out.sd+=+x.sd||0;out.rv+=+x.rv||0;});return out;};
+ const adj=canonicalAdjust(S.m0,S.m1),cr=cmpRange(),adjP=cr?canonicalAdjust(cr[0],cr[1]):null;
+ const discountRate=adj.g?adj.sd/adj.g:0,returnRate=adj.g?adj.rv/adj.g:0;
+ const discountKpi={t:'Giảm giá',v:hasCanonical?fmT(adj.sd/1e6):'—',rate:hasCanonical?pc(discountRate):'—',u:'Giá trị giảm seller · % GMV gộp',raw:adj.sd/1e6,prev:hasCanonical&&adjP?adjP.sd/1e6*kf():null,pv:hasCanonical&&adjP?fmT(adjP.sd/1e6*kf())+' · '+pc(adjP.g?adjP.sd/adjP.g:0):null};
+ const returnKpi={t:'Tỷ lệ hoàn hàng',v:hasCanonical?fmT(adj.rv/1e6):'—',rate:hasCanonical?pc(returnRate):'—',u:'Giá trị hoàn thực tế · % GMV gộp',raw:adj.rv/1e6,prev:hasCanonical&&adjP?adjP.rv/1e6*kf():null,pv:hasCanonical&&adjP?fmT(adjP.rv/1e6*kf())+' · '+pc(adjP.g?adjP.rv/adjP.g:0):null,badUp:1};
+ const overviewKpis=[...baseKpis.slice(0,6),discountKpi,returnKpi,cancelKpi];
  document.getElementById('ovKpis').innerHTML=kpiHTML(overviewKpis);
  if(!RAW.cancelGmvByM)ensureCancelRates();
  const mnote=MNAME();
@@ -2198,11 +2219,11 @@ function renderOverview(){
  {let tC=0,tP=0;cur.forEach(v=>tC+=v.S);prv.forEach(v=>tP+=v.S);const gr=tP>0?tC/tP-1:null;document.getElementById('ovIndS').innerHTML='Chỉ số: '+mnote+' · Tổng kỳ SS <b>'+fmT2(tP)+'</b> → kỳ chọn <b>'+fmT2(tC)+'</b> · tăng trưởng '+(gr==null?'—':(gr>=0?'<span class="pos">▲ +'+pc(gr)+'</span>':'<span class="neg">▼ '+pc(gr)+'</span>'));}
  barUpd(CH.ovInd,ks.map(k=>CAT.PGshort[k]),ks.map(k=>mvo(prv.get(k))),ks.map(k=>mvo(cur.get(k))));
  const brC=byDim('Brand',null,'cur'),brP=byDim('Brand',null,'prev');
- // ovPie: gộp theo 3 nhóm mới
- {const gC={House:0,Exclusive:0,Leading:0},gP={House:0,Exclusive:0,Leading:0};
-  brC.forEach((v,k)=>{gC[BRGRP(k)]+=v.S;});brP.forEach((v,k)=>{gP[BRGRP(k)]+=v.S;});
-  const G=['House','Exclusive','Leading'];CH.ovPie.data.labels=G;
-  CH.ovPie.data.datasets[0].data=G.map(g=>gP[g]);CH.ovPie.data.datasets[1].data=G.map(g=>gC[g]);CH.ovPie.update();}
+ {const mis=[];for(let m=S.m0;m<=S.m1;m++)mis.push(m);const pgSet=[...new Set(RAW.rows.filter(r=>pass(r)&&inR(r[C.MonthIdx])).map(r=>r[C.PGshort]))].sort((x,y)=>x-y);
+  const cogs={};pgSet.forEach(pg=>cogs[pg]=mis.map(()=>0));const sales=mis.map(()=>0),profit=mis.map(()=>0),miMap=new Map(mis.map((m,i)=>[m,i]));
+  RAW.rows.forEach(r=>{if(!pass(r)||!inR(r[C.MonthIdx]))return;const i=miMap.get(r[C.MonthIdx]);cogs[r[C.PGshort]][i]+=r[C.COGSTr];sales[i]+=r[C.SalesTr];profit[i]+=r[C.ProfitTr];});
+  CH.ovGmCogs.data.labels=mis.map(m=>M[m].slice(2));CH.ovGmCogs.data.datasets=pgSet.map((pg,i)=>({label:'COGS · '+CAT.PGshort[pg],data:cogs[pg],backgroundColor:PAL[i%PAL.length],stack:'cogs',yAxisID:'y'}));
+  CH.ovGmCogs.data.datasets.push({label:'GM% toàn công ty',type:'line',data:sales.map((v,i)=>v?profit[i]/v*100:0),borderColor:'#E39A16',backgroundColor:'#E39A16',borderWidth:3,pointRadius:3,tension:.25,fill:false,yAxisID:'y1'});CH.ovGmCogs.update();}
  // bảng tổng hợp brand
  {const ks=[...brC.keys()].sort((x,y)=>brC.get(y).S-brC.get(x).S);
   const totS=ks.reduce((s,k)=>s+brC.get(k).S,0);

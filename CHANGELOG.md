@@ -6,6 +6,14 @@ Quy ước từ ngày 26/07/2026:
 - Mỗi bản phải ghi ngày phát hành và những thay đổi người dùng có thể nhận biết.
 - Thay đổi kỹ thuật nhỏ chưa phát hành không tạo số `R` mới.
 
+## R74 — 09/08/2026
+
+- Màn Tổng quan bổ sung KPI Giảm giá và Tỷ lệ hoàn hàng, cùng hiển thị giá trị và tỷ trọng trên GMV; có số kỳ so sánh.
+- Thay biểu đồ cơ cấu nhóm brand bằng biểu đồ COGS từng ngành theo tháng kết hợp đường GM% toàn công ty.
+- Chuẩn hoá căn lề cây phân cấp từ cấp 0 đến cấp n trên các bảng xổ xuống trong toàn ứng dụng.
+- Quy toàn bộ app về một nền giá vốn: `COGS = số lượng bán thuần × Giá vốn (+VAT)`; chỉ fallback sang `Unit Cost (VND)` khi thiếu giá vốn có VAT.
+- Đã đối chiếu tháng 08/2026: COGS Tổng quan tăng từ 35,06 triệu lên 37,86 triệu, khớp P&L 37,9 triệu.
+
 ## R73 — 09/08/2026
 
 - Chuẩn hoá một công thức doanh thu thuần sau thuế cho toàn app: GMV đơn chưa huỷ − giảm giá seller − hoàn trả thực tế; nguồn duy nhất là Shopee API `sales_fact`.

@@ -29,6 +29,19 @@ def is_cancelled(status: Any) -> bool:
     return bool(_CANCELLED.search(str(status or "").strip()))
 
 
+def canonical_unit_cost(row: dict) -> float:
+    """Return the single COGS basis used throughout the application.
+
+    The project reports after-tax values, so Giá vốn (+VAT) is authoritative.
+    Legacy Unit Cost (VND) is retained only as a fallback for incomplete master
+    data. Keeping this rule here prevents Overview, P&L and inventory from
+    selecting different cost columns.
+    """
+
+    cost_with_vat = number(row.get("gia_von_vat"))
+    return cost_with_vat if cost_with_vat > 0 else number(row.get("unit_cost_vnd"))
+
+
 def canonicalize_sales_rows(rows: list[dict]) -> tuple[list[dict], list[dict]]:
     """Return engine-ready rows and compact canonical line metrics.
 

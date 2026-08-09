@@ -20,6 +20,7 @@ from urllib3.util.retry import Retry
 from revenue_rules import (
     canonical_daily,
     canonical_totals,
+    canonical_unit_cost,
     canonicalize_sales_rows,
     is_cancelled,
 )
@@ -218,6 +219,14 @@ def main():
     print("Số dòng:", {table: len(rows) for table, rows in tables.items()}, flush=True)
 
     engine_tables = dict(tables)
+    # One COGS truth for the whole app: the legacy engine reads Unit Cost (VND),
+    # therefore feed it the canonical after-tax cost before calculating every
+    # Overview/chart/drill-down/inventory aggregate. P&L already applies the
+    # same Giá vốn (+VAT) -> Unit Cost fallback in the browser.
+    engine_tables["sku"] = [
+        {**row, "unit_cost_vnd": canonical_unit_cost(row)}
+        for row in tables.get("sku", [])
+    ]
     engine_sales, canonical_sales = canonicalize_sales_rows(tables.get("sales_fact", []))
     engine_tables["sales_fact"] = engine_sales
     raw = run_engine(source, table_map, engine_tables)

@@ -1,6 +1,6 @@
 import unittest
 
-from revenue_rules import canonical_totals, canonicalize_sales_rows
+from revenue_rules import canonical_totals, canonical_unit_cost, canonicalize_sales_rows
 
 
 def row(order, sku, gmv, qty=1, discount=0, status="Đang giao", returned=0):
@@ -17,6 +17,12 @@ def row(order, sku, gmv, qty=1, discount=0, status="Đang giao", returned=0):
 
 
 class RevenueRulesTest(unittest.TestCase):
+    def test_cogs_uses_after_tax_cost_first(self):
+        self.assertEqual(canonical_unit_cost({"gia_von_vat": 1_080_000, "unit_cost_vnd": 1_000_000}), 1_080_000)
+
+    def test_cogs_falls_back_to_unit_cost(self):
+        self.assertEqual(canonical_unit_cost({"gia_von_vat": None, "unit_cost_vnd": 1_000_000}), 1_000_000)
+
     def test_order_discount_is_counted_once_and_allocated(self):
         rows = [row("A", "S1", 600_000, discount=100_000), row("A", "S2", 400_000, discount=100_000)]
         _, canonical = canonicalize_sales_rows(rows)
