@@ -2,6 +2,14 @@ name: Build dashboard snapshot
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "scripts/build_snapshot.py"
+      - "scripts/revenue_rules.py"
+      - "scripts/requirements.txt"
+      - ".github/workflows/build-dashboard-snapshot.yml"
   schedule:
     # Chạy sau các đợt đồng bộ Shopee 06:00 / 12:00 / 20:00 (giờ Việt Nam).
     - cron: "35 23,5,13 * * *"
