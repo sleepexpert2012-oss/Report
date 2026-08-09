@@ -17,46 +17,51 @@ def row(order, sku, gmv, qty=1, discount=0, status="Đang giao", returned=0):
 
 
 class RevenueRulesTest(unittest.TestCase):
-    def test_cogs_uses_after_tax_cost_first(self):
-        self.assertEqual(canonical_unit_cost({"gia_von_vat": 1_080_000, "unit_cost_vnd": 1_000_000}), 1_080_000)
+    def test_cogs_uses_ex_vat_cost_first(self):
+        self.assertEqual(canonical_unit_cost({"gia_von_vat": 1_080_000, "unit_cost_vnd": 1_000_000}), 1_000_000)
 
-    def test_cogs_falls_back_to_unit_cost(self):
-        self.assertEqual(canonical_unit_cost({"gia_von_vat": None, "unit_cost_vnd": 1_000_000}), 1_000_000)
+    def test_cogs_removes_vat_when_only_vat_inclusive_cost_exists(self):
+        self.assertAlmostEqual(canonical_unit_cost({"gia_von_vat": 1_080_000, "unit_cost_vnd": None}), 1_000_000, places=5)
 
     def test_order_discount_is_counted_once_and_allocated(self):
         rows = [row("A", "S1", 600_000, discount=100_000), row("A", "S2", 400_000, discount=100_000)]
         _, canonical = canonicalize_sales_rows(rows)
-        self.assertEqual(sum(x["sd"] for x in canonical), 100_000)
-        self.assertEqual(sum(x["r"] for x in canonical), 900_000)
-        self.assertEqual([x["r"] for x in canonical], [540_000, 360_000])
+        self.assertAlmostEqual(sum(x["sdat"] for x in canonical), 100_000)
+        self.assertAlmostEqual(sum(x["rat"] for x in canonical), 900_000)
+        self.assertAlmostEqual(sum(x["sd"] for x in canonical), 100_000 / 1.08, places=5)
+        self.assertAlmostEqual(sum(x["r"] for x in canonical), 900_000 / 1.08, places=5)
 
     def test_processing_and_in_transit_are_recognised(self):
         rows = [row("A", "S1", 250_000, status="Đang xử lý"), row("B", "S2", 350_000, status="Đang giao")]
         _, canonical = canonicalize_sales_rows(rows)
-        self.assertEqual(canonical_totals(canonical)["revenue"], 600_000)
+        self.assertAlmostEqual(canonical_totals(canonical)["revenue"], 600_000 / 1.08, places=5)
 
     def test_cancelled_order_has_no_revenue_or_discount(self):
         _, canonical = canonicalize_sales_rows([row("A", "S1", 500_000, discount=50_000, status="Đã hủy")])
         self.assertEqual(canonical[0]["r"], 0)
         self.assertEqual(canonical[0]["sd"], 0)
-        self.assertEqual(canonical_totals(canonical)["cancel_gmv"], 500_000)
+        self.assertAlmostEqual(canonical_totals(canonical)["cancel_gmv"], 500_000 / 1.08)
 
     def test_partial_actual_return_reduces_revenue_and_units(self):
         _, canonical = canonicalize_sales_rows([row("A", "S1", 900_000, qty=3, discount=90_000, returned=1)])
         self.assertEqual(canonical[0]["nq"], 2)
-        self.assertEqual(canonical[0]["rv"], 270_000)
-        self.assertEqual(canonical[0]["r"], 540_000)
+        self.assertAlmostEqual(canonical[0]["rvat"], 270_000)
+        self.assertAlmostEqual(canonical[0]["rat"], 540_000)
+        self.assertAlmostEqual(canonical[0]["rv"], 270_000 / 1.08)
+        self.assertAlmostEqual(canonical[0]["r"], 540_000 / 1.08)
 
     def test_return_status_without_returned_quantity_does_not_reduce_revenue(self):
         x = row("A", "S1", 500_000)
         x["trang_thai_tra_hang_hoan_tien"] = "Đã Chấp Thuận Yêu Cầu"
         _, canonical = canonicalize_sales_rows([x])
-        self.assertEqual(canonical[0]["r"], 500_000)
+        self.assertAlmostEqual(canonical[0]["r"], 500_000 / 1.08)
 
     def test_kiot_reference_total(self):
         rows = [row("A", "S1", 44_479_078, discount=4_959_000)]
         _, canonical = canonicalize_sales_rows(rows)
-        self.assertEqual(canonical_totals(canonical)["revenue"], 39_520_078)
+        totals = canonical_totals(canonical)
+        self.assertEqual(totals["revenue_after_tax"], 39_520_078)
+        self.assertAlmostEqual(totals["revenue"], 39_520_078 / 1.08, places=5)
 
 
 if __name__ == "__main__":

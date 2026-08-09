@@ -220,9 +220,8 @@ def main():
 
     engine_tables = dict(tables)
     # One COGS truth for the whole app: the legacy engine reads Unit Cost (VND),
-    # therefore feed it the canonical after-tax cost before calculating every
-    # Overview/chart/drill-down/inventory aggregate. P&L already applies the
-    # same Giá vốn (+VAT) -> Unit Cost fallback in the browser.
+    # therefore feed it the canonical VAT-exclusive cost before calculating
+    # every Overview/chart/drill-down/inventory aggregate.
     engine_tables["sku"] = [
         {**row, "unit_cost_vnd": canonical_unit_cost(row)}
         for row in tables.get("sku", [])
@@ -233,9 +232,10 @@ def main():
     raw["salesCanonical"] = canonical_sales
     raw["salesD"] = canonical_daily(canonical_sales)
     raw["revenueRule"] = {
-        "version": "shopee-net-after-tax-v1",
+        "version": "shopee-accounting-net-ex-vat-8pct-v2",
         "source": "Shopee API / sales_fact",
-        "definition": "GMV đơn chưa hủy - giảm giá seller - hoàn trả thực tế",
+        "outputVatRate": 0.08,
+        "definition": "(GMV đơn chưa hủy - giảm giá seller - hoàn trả thực tế) / 1.08",
         "totals": canonical_totals(canonical_sales),
     }
     add_cancel_rates(raw, tables.get("sales_fact", []))

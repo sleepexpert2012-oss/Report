@@ -69,13 +69,19 @@ Sau đó chạy `shopee-connector/3_ops_sync_cron.sql` trong SQL Editor để b�
 - Lần đầu (chưa có state): xóa sạch `sales_fact` rồi kéo từ `SHOPEE_START_DATE`.
 - Khi đã đồng bộ xong toàn bộ (`done=true`): mỗi lần chỉ làm mới **N ngày gần nhất** (xóa theo từng mã đơn rồi ghi lại, không xóa sạch bảng).
 
-## Lịch tự chạy (pg_cron trên Supabase) — cập nhật 2026-07-17
+## Lịch tự chạy — cập nhật 2026-08-09
 | Job | Lịch (UTC) | Giờ VN | Gọi function |
 |---|---|---|---|
 | `shopee-sync-daily` | `0 23,5,13 * * *` | 06:00 / 12:00 / 20:00 | `smooth-responder` (đơn hàng) |
 | `shopee-ads-daily` | `10 23,5,13 * * *` | 06:10 / 12:10 / 20:10 | `bright-responder` (chi phí Ads) |
 | `shopee-ads-kw-daily` | `20 23 * * *` | 06:20 | `smart-endpoint` (từ khóa Ads) |
 | `shopee-inventory-daily` | `25 23,5,13 * * *` | 06:25 / 12:25 / 20:25 | `inventory-responder` (tồn kho) |
+
+> Từ R76, tồn kho phục vụ dashboard còn được đồng bộ **mỗi giờ** ngay trong
+> workflow `build-dashboard-snapshot.yml`. Workflow luôn gọi
+> `inventory-responder` thành công trước khi build snapshot, nên không còn khe
+> hở do pg_cron và GitHub Actions chạy lệch nhau. Job pg_cron 3 lần/ngày được
+> giữ làm phương án dự phòng.
 
 ## Đồng bộ tồn kho Shopee
 
@@ -94,13 +100,14 @@ Gỡ 1 job: `select cron.unschedule('<jobname>');`
 ## Snapshot dashboard (giai đoạn 2)
 
 Dashboard không còn đọc và tính lại toàn bộ bảng nguồn mỗi lần mở. Workflow
-`.github/workflows/build-dashboard-snapshot.yml` chạy lúc 06:35 / 12:35 / 20:35
-(giờ Việt Nam), sau các job đồng bộ Shopee, rồi:
+`.github/workflows/build-dashboard-snapshot.yml` chạy mỗi giờ. Trong cùng một
+job, workflow đồng bộ tồn kho Shopee trước rồi:
 
-1. đọc song song 9 bảng nguồn;
-2. chạy đúng engine Python đang dùng trong dashboard;
-3. upsert một dòng `snapshot/current`;
-4. dashboard tải snapshot bằng một request.
+1. xác nhận `inventory-responder` trả `ok=true`;
+2. đọc song song 9 bảng nguồn;
+3. chạy đúng engine Python đang dùng trong dashboard;
+4. upsert một dòng `snapshot/current`;
+5. dashboard tải snapshot bằng một request.
 
 Repository cần hai GitHub Actions secrets:
 
