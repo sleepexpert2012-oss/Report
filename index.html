@@ -93,17 +93,16 @@ h1.pt{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px}
 .kpi .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;margin:3px 0 1px}
 .kpi .v.kpi-pair{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .kpi-rate{font-size:12px;line-height:1;padding:5px 7px;border-radius:999px;background:#EEF1FB;color:var(--ink);white-space:nowrap}
-#ovKpis{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;align-items:stretch}
-#ovKpis .kpi{padding:9px 11px 8px;min-height:112px;display:flex;flex-direction:column;justify-content:flex-start}
+#ovKpis{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:7px;align-items:stretch}
+#ovKpis .kpi{padding:9px 11px 8px;min-height:120px;display:flex;flex-direction:column;justify-content:flex-start}
 #ovKpis .kpi .t{font-size:9.5px;line-height:1.2;min-height:12px}
 #ovKpis .kpi .v{font-size:18px;line-height:1.15;margin:2px 0 1px}
 #ovKpis .kpi .u{font-size:9.5px;line-height:1.3;white-space:normal;overflow:visible;overflow-wrap:anywhere}
-#ovKpis .kpi-foot{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:2px 8px;margin-top:auto;padding-top:5px;min-width:0}
+#ovKpis .kpi-foot{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;margin-top:auto;padding-top:5px;min-width:0}
 #ovKpis .kpi-foot .pv{font-size:9.5px!important;line-height:1.3;margin-top:0!important;white-space:normal;overflow:visible;min-width:0}
-#ovKpis .kpi-foot .d{font-size:9.5px;white-space:nowrap;flex:0 0 auto}
+#ovKpis .kpi-foot .d{font-size:9.5px;line-height:1.3;white-space:normal;overflow-wrap:anywhere}
 #ovKpis .kpi-rate{font-size:10px;padding:4px 6px}
-@media(min-width:981px) and (max-width:1250px){#ovKpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:980px){#ovKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:980px){#ovKpis{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}}
 @media(max-width:560px){#ovKpis{grid-template-columns:1fr}}
 .kpi .u{font-size:10px;color:var(--muted)}
 .kpi .d{font-size:11px;font-variant-numeric:tabular-nums}
@@ -459,7 +458,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
     <input type="password" id="gpw" placeholder="Mật khẩu nội bộ" aria-label="Mật khẩu nội bộ" autocomplete="current-password">
     <button id="gbtn">Đăng nhập</button>
     <div class="gerr" id="gerr"></div>
-    <div class="gnote">Công cụ nội bộ Phòng Supply Chain — Sleep Expert. Không chia sẻ ra ngoài công ty.<br><b style="color:#fff">Bản phát hành R74 · cập nhật 09/08/2026</b></div>
+    <div class="gnote">Công cụ nội bộ Phòng Supply Chain — Sleep Expert. Không chia sẻ ra ngoài công ty.<br><b style="color:#fff">Bản phát hành R79 · cập nhật 13/08/2026</b></div>
   </div>
 </div>
 <div class="app">
@@ -1069,7 +1068,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
   <h1>📝 Nhật ký cập nhật &amp; đồng bộ</h1>
   <div class="sub" style="margin-bottom:14px">Theo dõi phiên bản GitHub, API Shopee đang sử dụng, độ mới dữ liệu và nội dung thay đổi của từng bản phát hành.</div>
   <div class="ops-kpis">
-    <div class="ops-kpi"><div class="lab">Bản phát hành GitHub</div><div class="val">R78</div><div class="hint">Nhánh main · phát hành 09/08/2026</div></div>
+    <div class="ops-kpi"><div class="lab">Bản phát hành GitHub</div><div class="val">R79</div><div class="hint">Nhánh main · phát hành 13/08/2026</div></div>
     <div class="ops-kpi"><div class="lab">Dữ liệu Shopee mới nhất</div><div class="val" id="logDataLatest">Đang đọc…</div><div class="hint">Ngày nghiệp vụ mới nhất từ API</div></div>
     <div class="ops-kpi"><div class="lab">API đồng bộ gần nhất</div><div class="val" id="logApiSync">Đang đọc…</div><div class="hint">Lần ghi dữ liệu API vào Supabase</div></div>
     <div class="ops-kpi"><div class="lab">App nạp dữ liệu gần nhất</div><div class="val" id="logAppSync">Đang đọc…</div><div class="hint">Thời điểm app tổng hợp báo cáo</div></div>
@@ -1091,6 +1090,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
       <h2>Lịch sử thay đổi</h2>
       <div class="ops-sub">Ghi nhận từ R50 trở đi; mỗi lần phát hành phải tạo một mục mới</div>
       <table class="ops-table"><thead><tr><th>Bản</th><th>Ngày</th><th>Thay đổi</th></tr></thead><tbody>
+        <tr><td><b>R79</b></td><td>13/08/2026</td><td>Chuẩn hoá lại chiều rộng KPI Tổng quan trên PC: lưới tự thích ứng theo thẻ 160px, hiển thị 9 thẻ trên màn 1920px và 7 + 2 thẻ trên màn 1440px; tăng chiều cao linh hoạt và giữ đầy đủ mô tả, kỳ so sánh, biến động.</td></tr>
         <tr><td><b>R78</b></td><td>09/08/2026</td><td>Tối ưu cụm KPI Tổng quan: bỏ chế độ ép 9 thẻ trên một hàng, dùng lưới 5 + 4 thẻ trên desktop; cho mô tả, kỳ so sánh và biến động tự xuống dòng; loại bỏ ellipsis để mọi thông tin hiển thị đầy đủ.</td></tr>
         <tr><td><b>R77</b></td><td>09/08/2026</td><td>Hợp nhất toàn bộ đồng bộ Shopee thành một pipeline theo giờ: Sales, Ads, Ads mở rộng, tồn kho, tài chính/giao vận, Affiliate và Video chạy tuần tự; freshness gate chặn phát hành nếu nguồn bắt buộc chưa cập nhật; snapshot mang manifest đối soát và app tự nạp bản mới khi đang mở.</td></tr>
         <tr><td><b>R76</b></td><td>09/08/2026</td><td>Khép kín đồng bộ tồn kho theo giờ: workflow gọi Shopee Inventory API trước, chỉ build snapshot khi API trả thành công; loại bỏ khe hở giữa pg_cron và GitHub Actions. Kiểm chứng thực tế 1.012 unit, 336 dòng SKU × kho tại 11:21.</td></tr>
@@ -1109,7 +1109,7 @@ th[data-tip]:hover::before{content:'';position:absolute;top:100%;left:50%;transf
   <div class="sub" style="margin-bottom:10px">SKU phát sinh trong dữ liệu bán hàng nhưng chưa có trong danh mục sản phẩm (master). Nên bổ sung chính thức để đảm bảo giá vốn & phân tích chính xác.</div>
   <div id="warnHost"></div>
 </section>
-  <footer>Phòng Supply Chain — Sleep Expert · GM = GP/DT chưa VAT · Nội bộ · R78 · 09/08/2026</footer>
+  <footer>Phòng Supply Chain — Sleep Expert · GM = GP/DT chưa VAT · Nội bộ · R79 · 13/08/2026</footer>
 </main>
 <div id="xlsDlg" style="display:none;position:fixed;inset:0;background:rgba(10,20,40,.45);z-index:9000;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:12px;padding:18px 22px;min-width:320px;box-shadow:0 10px 40px rgba(0,0,0,.3)">
