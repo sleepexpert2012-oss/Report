@@ -1,0 +1,83 @@
+# ============================================================================
+# HỢP ĐỒNG DỮ LIỆU — MUA HÀNG
+# Sheet "4. Purchasing" trong file Master Data.
+# Mỗi dòng là một mã hàng trong một đơn đặt hàng (PO).
+# ============================================================================
+
+ten: Mua hàng
+mo_ta: >
+  Đơn đặt hàng gửi nhà cung cấp: số lượng, giá mua thật, ngày nhận, công nợ và
+  hạn thanh toán. Đây là nguồn giá vốn gốc — giá vốn trong danh mục SKU chính
+  là lấy từ đây.
+nguon: Phòng Supply Chain
+sheet: "4. Purchasing"
+dong_tieu_de: 1
+khoa: sku            # dòng mua hàng không có mã hàng thì vô dụng — loại
+
+cot:
+  - { ten_file: "PO",                  ten_chuan: po,            kieu: chuoi,     bat_buoc: true }
+  - { ten_file: "Code",                ten_chuan: sku,           kieu: chuoi,     bat_buoc: true }
+  - { ten_file: "Product Description", ten_chuan: mo_ta,         kieu: chuoi }
+  - { ten_file: "Supplier code",       ten_chuan: supplier_code, kieu: chuoi }
+  - { ten_file: "Supplier",            ten_chuan: supplier_name, kieu: chuoi,     bat_buoc: true }
+  - { ten_file: "Unit",                ten_chuan: don_vi,        kieu: chuoi }
+  - { ten_file: "Qty order",           ten_chuan: sl_dat,        kieu: so_nguyen }
+  - { ten_file: "Qty confirm",         ten_chuan: sl_xac_nhan,   kieu: so_nguyen }
+  - { ten_file: "Cost",                ten_chuan: gia_mua,       kieu: so }
+  - { ten_file: "Total Cost",          ten_chuan: thanh_tien,    kieu: so }
+  - { ten_file: "Total Cost\n(VAT)",   ten_chuan: thanh_tien_vat, kieu: so }
+
+  - { ten_file: "Date Request",        ten_chuan: ngay_dat,      kieu: ngay }
+  - { ten_file: "Date Supply confirm", ten_chuan: ngay_ncc_xac_nhan, kieu: ngay }
+  - { ten_file: "Date Receive",        ten_chuan: ngay_nhan,     kieu: ngay }
+
+  # ⚠ Cột "Leadtime" trong file KHÔNG chứa số ngày mà chứa số thứ tự ngày của
+  #   Excel (45879 = 10/08/2025), do công thức lấy "Date Receive − Date Request"
+  #   mà Date Request chỉ có 29/182 dòng. Khai kiểu số nguyên để giá trị hỏng
+  #   vẫn vào được nhưng luật bên dưới sẽ bắt và báo lên màn hình.
+  - { ten_file: "Leadtime",            ten_chuan: leadtime_nguon, kieu: so_nguyen }
+
+  - { ten_file: "Month",               ten_chuan: thang,         kieu: so_nguyen }
+  - { ten_file: "Year",                ten_chuan: nam,           kieu: so_nguyen }
+  - { ten_file: "Goods receipt status", ten_chuan: trang_thai_nhan, kieu: chuoi }
+  - { ten_file: "Note",                ten_chuan: ghi_chu,       kieu: chuoi }
+  - { ten_file: "Invoice Date",        ten_chuan: ngay_hoa_don,  kieu: ngay }
+  - { ten_file: "Payment Terms",       ten_chuan: han_tt_ngay,   kieu: so_nguyen }
+  - { ten_file: "Due Date",            ten_chuan: ngay_den_han,  kieu: ngay }
+  - { ten_file: "Payment status",      ten_chuan: trang_thai_tt, kieu: chuoi }
+  - { ten_file: "Days Overdue",        ten_chuan: so_ngay_qua_han, kieu: so_nguyen }
+
+  # ⚠ Cột này có 76/182 dòng ghi chữ FALSE thay vì số tiền. Khai kiểu số để
+  #   những ô đó bị bắt là sai kiểu, hiện lên báo cáo thay vì lọt vào kho.
+  - { ten_file: "Paid Amount",         ten_chuan: da_tra,        kieu: so }
+
+  - { ten_file: "Payment Date",        ten_chuan: ngay_tra,      kieu: ngay }
+  - { ten_file: "Outstanding Amount",  ten_chuan: con_no,        kieu: so }
+
+luat:
+  - loai: bat_buoc_co_gia_tri
+    cot: supplier_code
+    muc_do: canh_bao
+    ghi_chu: >
+      Thiếu mã nhà cung cấp thì không nối được dòng mua hàng với danh mục NCC.
+      Tên nhà cung cấp có đủ nhưng tên không phải khoá — sửa được thì nên sửa.
+
+  - loai: anh_xa_mot_mot
+    cot_a: supplier_code
+    cot_b: supplier_name
+    muc_do: canh_bao
+    ghi_chu: Một mã nhà cung cấp chỉ ứng với một tên.
+
+  - loai: bat_buoc_co_gia_tri
+    cot: ngay_dat
+    muc_do: canh_bao
+    ghi_chu: >
+      Thiếu ngày đặt thì không tính được lead time thực tế của từng đơn — đây
+      chính là lý do cột Leadtime trong file đang trả ra số thứ tự ngày Excel.
+
+  - loai: bat_buoc_co_gia_tri
+    cot: trang_thai_tt
+    muc_do: canh_bao
+    ghi_chu: >
+      Ô trống ở cột trạng thái thanh toán không phân biệt được "chưa trả" với
+      "chưa điền". Nên điền rõ để biết công nợ nào là thật.

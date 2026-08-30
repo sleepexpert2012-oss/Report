@@ -14,6 +14,7 @@ báo — và luôn nói rõ dòng nào, vì sao.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 from .contract import Cot, HopDong
@@ -128,6 +129,21 @@ def _ep_kieu(gia_tri: Any, kieu: str) -> Tuple[Any, bool]:
         return None, False
     if kieu == "chuoi":
         return str(gia_tri).strip(), False
+    if kieu == "ngay":
+        # Excel trả về datetime khi ô được định dạng ngày. Ô ghi SỐ ở cột ngày là
+        # dấu hiệu công thức hỏng (số thứ tự ngày của Excel) — báo lỗi chứ không
+        # tự quy đổi, vì đoán hộ ở đây sẽ giấu mất lỗi của file nguồn.
+        if isinstance(gia_tri, datetime):
+            return gia_tri.date().isoformat(), False
+        if isinstance(gia_tri, date):
+            return gia_tri.isoformat(), False
+        t = str(gia_tri).strip()
+        for dinh_dang in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+            try:
+                return datetime.strptime(t, dinh_dang).date().isoformat(), False
+            except ValueError:
+                continue
+        return None, True
     try:
         so = float(str(gia_tri).strip().replace(",", ""))
     except (TypeError, ValueError):

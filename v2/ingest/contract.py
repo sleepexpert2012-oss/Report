@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 import yaml
 
 
-KIEU_HOP_LE = {"chuoi", "so", "so_nguyen"}
+KIEU_HOP_LE = {"chuoi", "so", "so_nguyen", "ngay"}
 MUC_DO_HOP_LE = {"chan_dong", "canh_bao"}
 
 
