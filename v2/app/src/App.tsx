@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { TRUONG_HOAN_THIEN, coGiaTri, demHoanThien, type Sku } from './types'
 import { so, tien } from './format'
+import { docLoDangDung, docSku, type LoNap } from './kho'
 import { Icon } from './icons'
 
 type Cot = {
@@ -118,6 +119,7 @@ const MAN_HINH = [
 
 export default function App() {
   const [rows, setRows] = useState<Sku[] | null>(null)
+  const [lo, setLo] = useState<LoNap | null>(null)
   const [loi, setLoi] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [nganh, setNganh] = useState('')
@@ -127,12 +129,8 @@ export default function App() {
   const [sort, setSort] = useState<{ key: string; dir: 1 | -1 }>({ key: 'sku', dir: 1 })
 
   useEffect(() => {
-    fetch('/data/master-sku.json')
-      .then((r) => {
-        if (!r.ok) throw new Error(`Máy chủ trả về ${r.status}`)
-        return r.json()
-      })
-      .then(setRows)
+    Promise.all([docSku(), docLoDangDung()])
+      .then(([sku, l]) => { setRows(sku); setLo(l) })
       .catch((e) => setLoi(String(e.message ?? e)))
   }, [])
 
@@ -217,9 +215,16 @@ export default function App() {
             của <code>contracts/sku-master.yaml</code> — dòng nào không đạt thì bị loại và ghi rõ
             lý do trong báo cáo nạp, không lặng lẽ vào kho.
           </p>
+          {lo && (
+            <p className="sub" style={{ marginTop: 6 }}>
+              Đang đọc lô nạp <b>#{lo.id}</b> · nguồn <code>{lo.nguon}</code> · nhận {lo.so_dong_nhan},
+              loại {lo.so_dong_loai} dòng · {lo.nguoi_nap} nạp lúc{' '}
+              {new Date(lo.tao_luc).toLocaleString('vi-VN')}
+            </p>
+          )}
 
           {loi && (
-            <div className="state"><b>Không đọc được dữ liệu</b>{loi}. Chạy lại lệnh nạp để sinh <code>public/data/master-sku.json</code>.</div>
+            <div className="state"><b>Không đọc được kho</b>{loi}. Kiểm tra lô nạp đã được kích hoạt chưa.</div>
           )}
 
           {rows && (
