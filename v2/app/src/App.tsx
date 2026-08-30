@@ -33,7 +33,7 @@ export default function App() {
     <div className="app">
       <aside className="rail">
         <div className="rail-head">
-          <div className="mark">SLEEP EXPERT</div>
+          <img src="/logo-trang.png" alt="Sleep Expert" width={132} />
           <div className="name">Data App</div>
         </div>
         <nav>

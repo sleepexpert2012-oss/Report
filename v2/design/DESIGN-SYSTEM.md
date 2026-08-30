@@ -78,11 +78,19 @@ Luật gán màu:
 
 ## 4. Thanh menu
 
+- **Logo** đặt trên cùng, rộng 132px. Dùng bản trắng `public/logo-trang.png` sinh từ logo gốc:
+  màu chàm đổi thành trắng đặc, màu lavender đổi thành trắng mờ 42% để vầng trăng sau chữ *e*
+  vẫn đọc được trên nền tối. Toàn bộ hình giữ nguyên nhờ kênh alpha.
 - Rộng **212px**, nền `--rail`.
 - Mỗi mục cao **40px**: biểu tượng 17px + khoảng cách 11px + nhãn **14px**.
 - Mục đang mở: chữ trắng, đậm 600, nền sáng hơn 11%, vạch trắng 2px bên trái.
-- Mục chưa dựng: màu `--rail-quiet`, con trỏ thường, có tooltip "Màn này chưa dựng".
-- Tiêu đề nhóm: IBM Plex Mono 9,5px, giãn chữ 0,14em, chữ hoa.
+- Mục dùng được: **trắng `#FFFFFF`** — 11,6:1 trên nền thanh menu.
+- Mục chưa dựng: `#C3C8E8` — 7,0:1. Vẫn đọc rõ, chỉ khác sắc độ để phân biệt.
+- Tiêu đề nhóm: IBM Plex Mono 9,5px, giãn chữ 0,14em, chữ hoa, cùng màu `#C3C8E8`.
+
+> Bản đầu dùng `#A9AED6` cho mục thường và `#7D84BD` cho mục chưa dựng. Đo lại thì
+> `#7D84BD` chỉ đạt **3,26:1** — dưới chuẩn AA cho chữ thường. Đã sửa. Bài học: màu chữ
+> trên nền tối phải đo, đừng tin mắt.
 
 **Biểu tượng dùng SVG nét vẽ, không dùng emoji** — emoji đổi hình theo hệ điều hành nên mỗi máy
 nhìn một kiểu. Toàn bộ dùng chung độ dày nét 1,6 và bo đầu tròn. Định nghĩa tại `v2/app/src/icons.tsx`.
