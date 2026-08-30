@@ -1,0 +1,130 @@
+# ============================================================================
+# HỢP ĐỒNG DỮ LIỆU — MASTER SKU
+# ----------------------------------------------------------------------------
+# Mô tả file Excel danh mục SKU phải trông như thế nào thì mới được nạp.
+# Người không lập trình vẫn đọc và sửa được. Sửa file này = đổi luật nạp,
+# không cần sửa code.
+#
+# Áp dụng cho: data-goc/upload-erp/Master Data (them cot Brand).xlsx
+# Cập nhật 30/08/2026 — chuyển từ file "Data Model (Star Schema)" cũ sang
+# file "Master Data" mới; bổ sung cột Brand (thương hiệu).
+# ============================================================================
+
+ten: Master SKU
+mo_ta: >
+  Danh mục sản phẩm gốc của Sleep Expert. Mỗi dòng là một SKU bán được
+  (đúng model, đúng kích thước, đúng màu).
+nguon: Phòng Supply Chain xuất ra từ file quản lý danh mục
+sheet: "1. Master Data"
+dong_tieu_de: 7
+khoa: sku
+
+# ---------------------------------------------------------------------------
+# CỘT
+#   ten_file  : tiêu đề đúng như trong Excel
+#   cot_excel : ghim theo chữ cái cột. BẮT BUỘC ghim khi có từ hai cột trùng
+#               tên trở lên — nếu không, hệ thống từ chối nạp thay vì đoán bừa.
+#   kieu      : chuoi | so | so_nguyen
+#   bat_buoc  : true = thiếu cột này thì chặn cả file
+# ---------------------------------------------------------------------------
+cot:
+  - { ten_file: "Mã sản phẩm",  ten_chuan: ma_san_pham, kieu: chuoi, bat_buoc: true }
+  - { ten_file: "SKU",          ten_chuan: sku,         kieu: chuoi, bat_buoc: true }
+  - { ten_file: "Category",     ten_chuan: category,    kieu: chuoi, bat_buoc: true }
+  - { ten_file: "Ngành hàng",   ten_chuan: nganh_hang,  kieu: chuoi, bat_buoc: true }
+
+  # ⚠ Cột M có tiêu đề "Brand" nhưng nội dung là TÊN NHÀ CUNG CẤP — đây chính là
+  #   nguồn gốc việc bảng dim_brand cũ bị nạp nhầm bằng danh sách nhà cung cấp.
+  #   Cột AG mới thêm ngày 30/08/2026 mới là brand thật.
+  #   Đề nghị đổi tiêu đề cột M thành "Supplier Name" trong file gốc cho khỏi nhầm.
+  - { ten_file: "Supplier Code",       cot_excel: L,  ten_chuan: supplier_code, kieu: chuoi, bat_buoc: true }
+  - { ten_file: "Brand",               cot_excel: M,  ten_chuan: supplier_name, kieu: chuoi, bat_buoc: true }
+  - { ten_file: "Brand (thương hiệu)", cot_excel: AG, ten_chuan: brand,         kieu: chuoi, bat_buoc: true }
+
+  - { ten_file: "Subcategory code",      ten_chuan: subcategory_code, kieu: chuoi }
+  - { ten_file: "Subcategory name",      ten_chuan: subcategory_name, kieu: chuoi }
+  - { ten_file: "ID mã sản phẩm shopee", ten_chuan: shopee_item_id,   kieu: chuoi }
+  - { ten_file: "Variation code",        ten_chuan: variation_code,   kieu: chuoi }
+  - { ten_file: "Variation name",        ten_chuan: variation_name,   kieu: chuoi }
+  - { ten_file: "Tên Sản Phẩm & kích thước (Cao x Rộng x Dài - cm)", ten_chuan: ten_san_pham, kieu: chuoi, bat_buoc: true }
+  - { ten_file: "Vật liệu chính",  ten_chuan: vat_lieu_chinh, kieu: chuoi }
+
+  # "Cao" để kiểu chuỗi: gối công thái học có hai gờ cao thấp khác nhau nên ghi
+  # dạng "8/10", "9/7" — dữ liệu đúng, không phải lỗi. Việc tách thành
+  # cao_min/cao_max thuộc tầng chuẩn hoá, không phải tầng nạp.
+  - { ten_file: "Cao",             ten_chuan: cao,           kieu: chuoi }
+  - { ten_file: "Rộng",            ten_chuan: rong,          kieu: so }
+  - { ten_file: "Dài",             ten_chuan: dai,           kieu: so }
+  - { ten_file: "Net weight",      ten_chuan: net_weight,    kieu: so }
+  - { ten_file: "Gross Weight",    ten_chuan: gross_weight,  kieu: so }
+  - { ten_file: "Đóng gói",        ten_chuan: dong_goi,      kieu: chuoi }
+  - { ten_file: "Màu",             ten_chuan: mau,           kieu: chuoi }
+  - { ten_file: "Min. Order",      ten_chuan: min_order,     kieu: so_nguyen }
+  - { ten_file: "Leadtime",        ten_chuan: leadtime,      kieu: so_nguyen }
+  - { ten_file: "Unit Cost (usd)", ten_chuan: unit_cost_usd, kieu: so }
+  - { ten_file: "Unit Cost (vnd)", ten_chuan: unit_cost_vnd, kieu: so }
+  - { ten_file: "Giá Vốn (+VAT)",  ten_chuan: gia_von_vat,   kieu: so }
+  - { ten_file: "Sales Price (vnd)", ten_chuan: sales_price_vnd, kieu: so }
+  - { ten_file: "ABC Class.",      ten_chuan: abc_class,     kieu: chuoi }
+  - { ten_file: "M3",              ten_chuan: m3,            kieu: so }
+
+# ---------------------------------------------------------------------------
+# LUẬT KIỂM TRA
+#   muc_do: chan_dong = dòng sai bị loại, KHÔNG ghi vào kho
+#           canh_bao  = vẫn ghi, nhưng báo cho người nạp biết
+# ---------------------------------------------------------------------------
+luat:
+  - loai: khong_trung
+    cot: sku
+    muc_do: chan_dong
+    ghi_chu: Mỗi SKU chỉ được xuất hiện một lần.
+
+  - loai: bat_dau_bang
+    cot: sku
+    theo: ma_san_pham
+    muc_do: canh_bao
+    ghi_chu: SKU phải bắt đầu bằng mã sản phẩm (MAT001 → MAT001001).
+
+  # Luật brand do Louis chốt ngày 30/08/2026. Đã đối chiếu với master cũ
+  # (14/07/2026): khớp 146/146 SKU, không một ngoại lệ.
+  # Khi công ty có brand thứ ba, sửa bảng ánh xạ ngay dưới đây.
+  - loai: anh_xa_khai_bao
+    cot_nguon: supplier_code
+    cot_dich: brand
+    anh_xa:
+      SUCN0001: POWER X
+    mac_dinh: TUFT & NEEDLE
+    muc_do: canh_bao
+    ghi_chu: >
+      Nhà cung cấp POWER X (SUCN0001) làm hàng brand POWER X;
+      mọi nhà cung cấp còn lại làm hàng brand TUFT & NEEDLE.
+
+  - loai: thuoc_danh_sach
+    cot: brand
+    danh_sach: ["TUFT & NEEDLE", "POWER X"]
+    muc_do: canh_bao
+    ghi_chu: >
+      Brand lạ thường là dấu hiệu lấy nhầm cột. Có brand mới thì bổ sung vào đây.
+
+  - loai: anh_xa_mot_mot
+    cot_a: supplier_code
+    cot_b: supplier_name
+    muc_do: canh_bao
+    ghi_chu: >
+      Một mã nhà cung cấp chỉ ứng với một tên, và ngược lại. Luật này bắt được
+      trường hợp cột mã và cột tên bị lệch dòng.
+
+  - loai: it_nhat_mot_co_gia_tri
+    cot: [unit_cost_vnd, gia_von_vat]
+    muc_do: canh_bao
+    ghi_chu: >
+      SKU không có giá vốn thì không tính được COGS và GM%. Đã kiểm chứng
+      30/08/2026: các SKU thiếu giá vốn đều là SKU chưa từng có đơn mua và
+      chưa bán được đồng nào — nên đây là phản ánh đúng thực tế, không phải lỗi.
+
+  - loai: bat_buoc_co_gia_tri
+    cot: leadtime
+    muc_do: canh_bao
+    ghi_chu: >
+      Thiếu lead time thì kế hoạch tồn kho phải đoán. App cũ đoán bằng bảng
+      brand của công ty khác — không lặp lại chuyện đó.

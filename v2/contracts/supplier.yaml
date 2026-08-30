@@ -1,0 +1,49 @@
+# ============================================================================
+# HỢP ĐỒNG DỮ LIỆU — NHÀ CUNG CẤP
+# Sheet "0. Mã Supplier" trong file Master Data.
+# ============================================================================
+
+ten: Nhà cung cấp
+mo_ta: >
+  Danh mục nhà cung cấp. Mỗi dòng là một nhà cung cấp, kèm lead time và MOQ
+  cấp nhà cung cấp — dùng khi từng SKU không khai riêng.
+nguon: Phòng Supply Chain
+sheet: "0. Mã Supplier"
+dong_tieu_de: 5
+khoa: supplier_code
+
+cot:
+  - { ten_file: "Supplier Code\n(Mã nhà cung cấp)",       ten_chuan: supplier_code, kieu: chuoi, bat_buoc: true }
+  - { ten_file: "Supplier Name\n(Tên nhà cung cấp)",      ten_chuan: supplier_name, kieu: chuoi, bat_buoc: true }
+
+  # Ô này có nhà cung cấp ghi dạng khoảng ("15-20") nên PHẢI để kiểu chuỗi.
+  # Việc quy ra số ngày thuộc tầng chuẩn hoá, không phải tầng nạp.
+  - { ten_file: "Lead time (days)\n(Thời gian giao hàng)", ten_chuan: lead_time_nguon, kieu: chuoi }
+
+  - { ten_file: "MOQ",                                     ten_chuan: moq,           kieu: so_nguyen }
+  - { ten_file: "Payment Terms\n(Phương thức thanh toán)",  ten_chuan: payment_terms, kieu: so_nguyen }
+  - { ten_file: "Delivery Terms\n(Giao hàng)",             ten_chuan: giao_hang,     kieu: chuoi }
+  - { ten_file: "Location\n(Địa điểm)",                    ten_chuan: dia_diem,      kieu: chuoi }
+  - { ten_file: "Key Strengths\n(Ưu điểm)",                ten_chuan: uu_diem,       kieu: chuoi }
+  - { ten_file: "Supply Score",                            ten_chuan: diem_ncc,      kieu: so }
+
+luat:
+  - loai: khong_trung
+    cot: supplier_code
+    muc_do: chan_dong
+    ghi_chu: Mỗi mã nhà cung cấp chỉ được xuất hiện một lần.
+
+  - loai: anh_xa_mot_mot
+    cot_a: supplier_code
+    cot_b: supplier_name
+    muc_do: chan_dong
+    ghi_chu: >
+      Một mã ứng với đúng một tên. Đây là bảng tra cứu gốc — nếu nó đã lệch
+      thì mọi bảng khác tham chiếu tới đều sai theo, nên chặn thẳng.
+
+  - loai: bat_buoc_co_gia_tri
+    cot: lead_time_nguon
+    muc_do: canh_bao
+    ghi_chu: >
+      Thiếu lead time ở đây thì kế hoạch tồn kho phải đoán. Hiện chỉ 1/6 nhà
+      cung cấp có khai.
