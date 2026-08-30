@@ -1,0 +1,345 @@
+<title>Năm hướng giao diện</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600;800&family=Source+Sans+3:wght@300;400;600&display=swap">
+
+<style>
+:root{
+  --page:#FBFBFC; --card:#FFFFFF; --ink:#14161C; --ink2:#3D414B; --dim:#6E7280;
+  --hair:#E6E7EB; --hair2:#F1F2F5;
+  --brand:#353E99; --brand-soft:#E9EAF6; --lav:#C3C0D7;
+  --ok:#1F7A5C; --no:#B23A2E; --mid:#8A5F14;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0D0F16; --card:#151822; --ink:#EDEEF3; --ink2:#C3C6D0; --dim:#8D91A0;
+    --hair:#262A36; --hair2:#1D212C;
+    --brand:#7C86D8; --brand-soft:#232742; --lav:#9C98BE;
+    --ok:#57BF9B; --no:#E1857A; --mid:#D2A24C;
+  }
+}
+:root[data-theme="dark"]{
+  --page:#0D0F16; --card:#151822; --ink:#EDEEF3; --ink2:#C3C6D0; --dim:#8D91A0;
+  --hair:#262A36; --hair2:#1D212C;
+  --brand:#7C86D8; --brand-soft:#232742; --lav:#9C98BE;
+  --ok:#57BF9B; --no:#E1857A; --mid:#D2A24C;
+}
+
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font-family:"Be Vietnam Pro",-apple-system,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px 100px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* ---- đầu trang ---- */
+header{padding:64px 0 36px;border-bottom:1px solid var(--hair)}
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(34px,5vw,52px);line-height:1.05;letter-spacing:-.025em;font-weight:700;margin:14px 0 12px;text-wrap:balance}
+.lede{font-size:17px;color:var(--ink2);max-width:66ch;margin:0}
+
+/* ---- nền tảng chung ---- */
+.base{margin:36px 0 8px;padding:24px;border:1px solid var(--hair);border-radius:10px;background:var(--card)}
+.base h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);font-weight:600;margin:0 0 16px}
+.brandrow{display:flex;flex-wrap:wrap;gap:20px;align-items:stretch}
+.bcard{flex:1 1 260px;border:1px solid var(--hair);border-radius:8px;overflow:hidden;min-width:0}
+.bcard .chip{height:74px;display:flex;align-items:flex-end;padding:9px 12px;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:500}
+.bcard .meta{padding:11px 12px;font-size:13px;color:var(--ink2);line-height:1.5}
+.bcard .meta b{color:var(--ink)}
+.warnline{margin-top:18px;padding:12px 14px;border-left:3px solid var(--mid);background:color-mix(in srgb,var(--mid) 8%,transparent);border-radius:0 6px 6px 0;font-size:13.5px;color:var(--ink2)}
+
+/* ---- thẻ phương án ---- */
+.opt{margin-top:44px;border:1px solid var(--o-line);border-radius:12px;background:var(--o-card);color:var(--o-ink);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.opt-head{padding:22px 26px;border-bottom:1px solid var(--o-line);display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.opt-num{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:#fff;background:var(--o-accent);width:26px;height:26px;border-radius:6px;display:grid;place-items:center;flex-shrink:0;margin-top:3px}
+.opt-head h3{font-size:20px;font-weight:600;letter-spacing:-.015em;margin:0 0 4px;color:var(--o-ink)}
+.opt-head p{margin:0;color:var(--o-dim);font-size:14px;max-width:70ch}
+.opt-fonts{margin-left:auto;text-align:right;font-size:12px;color:var(--o-dim);line-height:1.7;white-space:nowrap}
+.opt-fonts b{color:var(--o-ink);font-weight:500}
+
+.opt-body{display:grid;grid-template-columns:1fr 340px;gap:0}
+@media(max-width:940px){.opt-body{grid-template-columns:1fr}}
+.pane{padding:26px}
+.pane + .pane{border-left:1px solid var(--o-line)}
+@media(max-width:940px){.pane + .pane{border-left:0;border-top:1px solid var(--o-line)}}
+.pane h4{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--o-dim);font-weight:600;margin:0 0 16px}
+
+/* thang chữ */
+.scale{display:flex;flex-direction:column;gap:15px}
+.srow{display:flex;gap:16px;align-items:baseline;border-bottom:1px dashed var(--o-line);padding-bottom:14px}
+.srow:last-child{border-bottom:0;padding-bottom:0}
+.sspec{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--o-dim);white-space:nowrap;width:132px;flex-shrink:0;line-height:1.5}
+.sdemo{min-width:0;overflow:hidden}
+
+/* bảng màu + tương phản */
+.sw{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+.swi{display:flex;align-items:center;gap:11px;font-size:12.5px}
+.swi span.box{width:30px;height:30px;border-radius:6px;border:1px solid rgba(0,0,0,.10);flex-shrink:0}
+.swi .nm{color:var(--o-ink)}
+.swi .hx{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--o-dim);margin-left:auto}
+
+.ct{display:flex;flex-direction:column;gap:7px}
+.ctrow{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:7px;font-size:13px}
+.ctrow .lbl{flex:1;min-width:0}
+.ratio{font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.pass{background:rgba(31,122,92,.14);color:var(--ok)}
+.fail{background:rgba(178,58,46,.14);color:var(--no)}
+.big{background:rgba(138,95,20,.16);color:var(--mid)}
+
+/* mẫu giao diện thật */
+.sample{border-top:1px solid var(--o-line)}
+.sample-hd{padding:10px 26px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--o-dim);font-weight:600;background:var(--o-sunk)}
+.frame{padding:26px;overflow-x:auto}
+.mini{min-width:660px;border-radius:9px;overflow:hidden;border:1px solid rgba(0,0,0,.09)}
+
+footer{margin-top:60px;padding-top:28px;border-top:1px solid var(--hair);color:var(--dim);font-size:13.5px;line-height:1.7}
+footer b{color:var(--ink)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="kicker">Sleep Expert · Data App v2 · 30/08/2026</div>
+  <h1>Năm hướng giao diện</h1>
+  <p class="lede">Chọn một hướng trước khi dựng tiếp app. Cả năm đều dùng đúng hai màu lấy ra từ logo công ty — khác nhau ở bộ chữ, thang cỡ tiêu đề, độ dày nét và cách đặt màu thương hiệu. Mỗi hướng có mẫu màn Master Data thật ở cuối thẻ để nhìn trong ngữ cảnh.</p>
+</header>
+
+<section class="base">
+  <h2>Nền tảng chung — màu đo từ logo, không phải chọn cảm tính</h2>
+  <div class="brandrow">
+    <div class="bcard">
+      <div class="chip" style="background:#353E99;color:#fff">#353E99</div>
+      <div class="meta"><b>Chàm — màu chính.</b> Chiếm 87,7% diện tích logo. Tương phản <b>9,13:1</b> trên nền trắng nên dùng làm chữ, tiêu đề, số liệu đều được.</div>
+    </div>
+    <div class="bcard">
+      <div class="chip" style="background:#C3C0D7;color:#2A2C45">#C3C0D7</div>
+      <div class="meta"><b>Lavender — màu phụ.</b> Chiếm 11,1%, là vầng trăng sau chữ <i>e</i>. Tương phản chỉ <b>1,77:1</b> trên trắng.</div>
+    </div>
+    <div class="bcard">
+      <div class="chip" style="background:#FFFFFF;color:#14161C;border-bottom:1px solid #E6E7EB">#FFFFFF</div>
+      <div class="meta"><b>Nền.</b> Mỗi hướng chỉnh sắc nền khác nhau — lạnh, ấm, hoặc trắng tinh — để hợp với bộ chữ của hướng đó.</div>
+    </div>
+  </div>
+  <div class="warnline">
+    <b>Một luật cứng cho mọi hướng:</b> không bao giờ đặt chữ màu lavender <span class="mono">#C3C0D7</span> lên nền trắng. Ở mức 1,77:1 người mắt kém sẽ không đọc được. Lavender chỉ dùng làm nền khối, viền, hoặc nét phụ của biểu đồ.
+  </div>
+</section>
+
+<p style="margin:34px 0 -10px;font-size:13.5px;color:var(--dim)">Năm thẻ dưới đây luôn hiển thị theo <b style="color:var(--ink)">chế độ sáng</b> — đó là chế độ app sẽ dùng. Trang này thì theo chế độ máy anh đang đặt, nên nền quanh thẻ có thể tối.</p>
+<div id="options"></div>
+
+<footer>
+  Mọi tỷ lệ tương phản trên trang này do trình duyệt <b>tự tính khi mở trang</b>, không phải số tôi gõ tay — nên anh thấy sao thì đúng vậy.
+  Ngưỡng đối chiếu là WCAG AA: <b>4,5:1</b> cho chữ thường, <b>3:1</b> cho chữ lớn (từ 18,66px đậm hoặc 24px thường).<br>
+  Chọn xong một hướng, tôi sẽ gỡ bốn hướng còn lại, chốt thành bộ token duy nhất của app và dựng tiếp các màn.
+</footer>
+
+</div>
+
+<script>
+const OPTS = [
+  {
+    n: 1, ten: 'Chàm chuẩn',
+    ly: 'Bộ chữ Việt hoá sẵn, cỡ tiêu đề vừa phải, nền xám ngả nhẹ về sắc chàm. Hướng an toàn nhất — dễ đọc, không gây mỏi khi ngồi lâu, nhận ra thương hiệu ngay.',
+    fonts: { display: "'Be Vietnam Pro'", body: "'Be Vietnam Pro'", data: "'IBM Plex Mono'" },
+    fontNames: ['Be Vietnam Pro', 'Be Vietnam Pro', 'IBM Plex Mono'],
+    c: { ground:'#F6F6FA', card:'#FFFFFF', sunk:'#EDEEF4', ink:'#16182E', dim:'#6B6E82', line:'#E2E2EC', accent:'#353E99', soft:'#E8E9F5', rail:'#2A3179', railInk:'#E6E7F2' },
+    t: {
+      h1: { px:28, w:600, lh:1.2, ls:'-0.022em' },
+      h2: { px:19, w:600, lh:1.3, ls:'-0.012em' },
+      h3: { px:15, w:600, lh:1.4, ls:'0' },
+      body:{ px:14, w:400, lh:1.55, ls:'0' },
+      lbl: { px:11, w:500, lh:1.4, ls:'0.02em' },
+      num: { px:21, w:500, lh:1.2, ls:'-0.02em' },
+    },
+  },
+  {
+    n: 2, ten: 'Báo cáo',
+    ly: 'Tiêu đề dùng chữ có chân, thân bài chữ không chân. Màn hình đọc như một bản báo cáo in ra — hợp khi số liệu này còn đi vào cuộc họp ban giám đốc. Nền giấy ấm đối lập với chàm lạnh.',
+    fonts: { display: 'Newsreader', body: "'Be Vietnam Pro'", data: "'IBM Plex Mono'" },
+    fontNames: ['Newsreader', 'Be Vietnam Pro', 'IBM Plex Mono'],
+    c: { ground:'#F8F7F4', card:'#FFFFFF', sunk:'#F1EFEA', ink:'#1A1A1F', dim:'#71706B', line:'#E5E2DB', accent:'#353E99', soft:'#E9EAF6', rail:'#14152F', railInk:'#DCDCE6' },
+    t: {
+      h1: { px:36, w:500, lh:1.08, ls:'-0.018em', serif:true },
+      h2: { px:23, w:500, lh:1.25, ls:'-0.01em', serif:true },
+      h3: { px:15, w:600, lh:1.4, ls:'0' },
+      body:{ px:14.5, w:400, lh:1.6, ls:'0' },
+      lbl: { px:11, w:500, lh:1.4, ls:'0.04em' },
+      num: { px:22, w:500, lh:1.2, ls:'-0.02em' },
+    },
+  },
+  {
+    n: 3, ten: 'Bảng điều khiển kỹ thuật',
+    ly: 'Chữ đơn cách dùng nhiều, tiêu đề nhỏ và chặt, nền trắng tinh viền mảnh. Ưu tiên nhét được nhiều dòng lên một màn và so cột số cho nhanh. Ít chất thương hiệu nhất, nhiều chất công cụ nhất.',
+    fonts: { display: "'IBM Plex Sans'", body: "'IBM Plex Sans'", data: "'IBM Plex Mono'" },
+    fontNames: ['IBM Plex Sans', 'IBM Plex Sans', 'IBM Plex Mono'],
+    c: { ground:'#FFFFFF', card:'#FFFFFF', sunk:'#F4F5F7', ink:'#101114', dim:'#6A6D75', line:'#E6E7EA', accent:'#353E99', soft:'#ECEEF8', rail:'#F4F5F7', railInk:'#101114' },
+    t: {
+      h1: { px:22, w:600, lh:1.25, ls:'-0.01em' },
+      h2: { px:16, w:600, lh:1.35, ls:'0' },
+      h3: { px:13, w:600, lh:1.4, ls:'0.02em' },
+      body:{ px:13, w:400, lh:1.5, ls:'0' },
+      lbl: { px:10.5, w:600, lh:1.4, ls:'0.08em', mono:true },
+      num: { px:19, w:500, lh:1.2, ls:'-0.01em' },
+    },
+  },
+  {
+    n: 4, ten: 'Đậm hiện đại',
+    ly: 'Tiêu đề rất đậm, cỡ lớn, khoảng chữ bó chặt; chàm dùng thành mảng lớn thay vì điểm xuyết. Con số nổi bật nhất trên màn. Hợp nếu app còn để trình chiếu cho người khác xem.',
+    fonts: { display: 'Inter', body: 'Inter', data: "'IBM Plex Mono'" },
+    fontNames: ['Inter', 'Inter', 'IBM Plex Mono'],
+    c: { ground:'#F5F6FA', card:'#FFFFFF', sunk:'#E9EBF3', ink:'#0E1020', dim:'#666B80', line:'#DFE2EC', accent:'#353E99', soft:'#DFE1F3', rail:'#353E99', railInk:'#FFFFFF' },
+    t: {
+      h1: { px:38, w:800, lh:1.02, ls:'-0.035em' },
+      h2: { px:22, w:700, lh:1.2, ls:'-0.02em' },
+      h3: { px:15, w:600, lh:1.35, ls:'-0.005em' },
+      body:{ px:14, w:400, lh:1.55, ls:'0' },
+      lbl: { px:11, w:600, lh:1.4, ls:'0.06em' },
+      num: { px:26, w:800, lh:1.1, ls:'-0.03em' },
+    },
+  },
+  {
+    n: 5, ten: 'Thoáng nhẹ',
+    ly: 'Nét chữ mảnh, dòng thưa, nhiều khoảng trắng, tiêu đề không đậm. Dịu mắt nhất trong năm hướng nhưng mỗi màn chứa được ít dòng hơn — đổi mật độ lấy sự dễ chịu.',
+    fonts: { display: "'Source Sans 3'", body: "'Source Sans 3'", data: "'IBM Plex Mono'" },
+    fontNames: ['Source Sans 3', 'Source Sans 3', 'IBM Plex Mono'],
+    c: { ground:'#FAFAFB', card:'#FFFFFF', sunk:'#F2F3F6', ink:'#242630', dim:'#787C89', line:'#E9EAEE', accent:'#353E99', soft:'#EDEEF7', rail:'#3B4270', railInk:'#EEEFF6' },
+    t: {
+      h1: { px:32, w:300, lh:1.15, ls:'-0.012em' },
+      h2: { px:20, w:400, lh:1.35, ls:'-0.005em' },
+      h3: { px:15, w:600, lh:1.45, ls:'0' },
+      body:{ px:15, w:400, lh:1.7, ls:'0' },
+      lbl: { px:11.5, w:400, lh:1.5, ls:'0.03em' },
+      num: { px:24, w:300, lh:1.2, ls:'-0.01em' },
+    },
+  },
+]
+
+/* ---- tính tương phản theo WCAG ---- */
+const lin = c => { c /= 255; return c <= 0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4) }
+const lum = h => { const x = h.replace('#',''); const [r,g,b] = [0,2,4].map(i => parseInt(x.slice(i,i+2),16)); return 0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b) }
+const ratio = (a,b) => { const l = [lum(a),lum(b)].sort((p,q)=>q-p); return (l[0]+0.05)/(l[1]+0.05) }
+const badge = (r, big=false) => {
+  const need = big ? 3 : 4.5
+  const cls = r >= 4.5 ? 'pass' : (r >= 3 ? 'big' : 'fail')
+  const txt = r >= 4.5 ? 'đạt AA' : (r >= 3 ? 'chỉ đủ cho chữ lớn' : 'không đạt')
+  return `<span class="ratio ${cls}">${r.toFixed(2)}:1 · ${txt}</span>`
+}
+
+const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))
+
+function typeRow(key, nhan, spec, o) {
+  const fam = spec.mono ? o.fonts.data : (spec.serif ? o.fonts.display : o.fonts.body)
+  const mau = { h1:'Master Data', h2:'Danh mục sản phẩm gốc', h3:'Nhà cung cấp AP WOOD',
+                body:'Mỗi dòng là một SKU bán được, đúng model, đúng kích thước, đúng màu.',
+                lbl:'Chưa có giá vốn', num:'2.198.033.230' }[key]
+  const style = `font-family:${fam};font-size:${spec.px}px;font-weight:${spec.w};line-height:${spec.lh};letter-spacing:${spec.ls};` +
+                (key === 'lbl' ? 'text-transform:uppercase;' : '') + `color:${key==='body'||key==='lbl' ? o.c.dim : o.c.ink};`
+  const famNgan = fam.replace(/"/g,'')
+  return `<div class="srow">
+    <div class="sspec">${nhan}<br>${spec.px}px · ${spec.w}<br>dòng ${spec.lh} · ${spec.ls}<br>${esc(famNgan)}</div>
+    <div class="sdemo" style="${style}">${key==='num' ? `<span style="font-family:${o.fonts.data}">${mau}</span>` : mau}</div>
+  </div>`
+}
+
+function sample(o) {
+  const F = ['Giá vốn','Giá bán','Lead time','MOQ','ABC','ID Shopee']
+  const rows = [
+    ['MAT004003','Nệm Power X Core 120 x 200 x 15 cm','Nệm','POWER X','1.527.869',[1,0,0,1,1,1]],
+    ['BLA001001','Chăn Lạnh 4.8 Xanh dương pastel 200 x 230','Chăn','TUFT & NEEDLE','451.000',[1,0,0,1,0,1]],
+    ['PIL001001','Gối T&N contour (Cứng) 30 x 50 x 8/10 cm','Gối','TUFT & NEEDLE','',[0,0,0,1,1,1]],
+  ]
+  const h1f = o.t.h1.serif ? o.fonts.display : o.fonts.body
+  const lblf = o.t.lbl.mono ? o.fonts.data : o.fonts.body
+  const cell = (v, mono) => `<td style="padding:9px 11px;border-bottom:1px solid ${o.c.line};white-space:nowrap;${mono?`font-family:${o.fonts.data};font-size:12.5px;`:''}">${v}</td>`
+  return `<div class="mini" style="background:${o.c.ground};font-family:${o.fonts.body};display:flex">
+    <div style="width:150px;flex-shrink:0;background:${o.c.rail};color:${o.c.railInk};padding:16px 14px">
+      <div style="font-family:${o.fonts.data};font-size:9.5px;letter-spacing:.16em;opacity:.62">SLEEP EXPERT</div>
+      <div style="font-size:14px;font-weight:600;margin-top:3px">Data App</div>
+      <div style="margin-top:18px;font-size:12px;line-height:2.1;opacity:.55">
+        <div style="opacity:1;font-weight:500">Master Data</div><div>Nhà cung cấp</div><div>Tổng quan</div><div>Tồn kho</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0;padding:18px 20px">
+      <div style="font-family:${lblf};font-size:${o.t.lbl.px}px;font-weight:${o.t.lbl.w};letter-spacing:${o.t.lbl.ls};text-transform:uppercase;color:${o.c.dim}">Dữ liệu nền</div>
+      <div style="font-family:${h1f};font-size:${o.t.h1.px}px;font-weight:${o.t.h1.w};line-height:${o.t.h1.lh};letter-spacing:${o.t.h1.ls};color:${o.c.ink};margin:5px 0 12px">Master Data</div>
+      <div style="display:flex;gap:26px;padding:12px 0;border-top:1px solid ${o.c.line};border-bottom:1px solid ${o.c.line};margin-bottom:14px">
+        ${[['143','SKU'],['2','Brand'],['60','Chưa có giá vốn']].map((s,i)=>`
+          <div><div style="font-family:${o.fonts.data};font-size:${o.t.num.px}px;font-weight:${o.t.num.w};letter-spacing:${o.t.num.ls};color:${i===2?o.c.accent:o.c.ink}">${s[0]}</div>
+          <div style="font-size:11px;color:${o.c.dim};margin-top:1px">${s[1]}</div></div>`).join('')}
+      </div>
+      <div style="background:${o.c.card};border:1px solid ${o.c.line};border-radius:7px;overflow:hidden">
+        <table style="width:100%;border-collapse:collapse;font-size:${o.t.body.px}px;color:${o.c.ink}">
+          <thead><tr style="background:${o.c.sunk}">
+            ${['SKU','Tên sản phẩm','Ngành','Brand','Giá vốn','Hoàn thiện'].map(h=>
+              `<th style="text-align:left;padding:8px 11px;font-family:${lblf};font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:${o.c.dim};border-bottom:1px solid ${o.c.line};white-space:nowrap">${h}</th>`).join('')}
+          </tr></thead>
+          <tbody>${rows.map(r=>`<tr>
+            ${cell(r[0],1)}${cell(r[1])}${cell(r[2])}
+            <td style="padding:9px 11px;border-bottom:1px solid ${o.c.line}"><span style="display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:99px;background:${r[3]==='POWER X'?o.c.soft:o.c.sunk};color:${r[3]==='POWER X'?o.c.accent:o.c.dim};white-space:nowrap">${r[3]}</span></td>
+            ${cell(r[4]||'<span style="opacity:.35">—</span>',1)}
+            <td style="padding:9px 11px;border-bottom:1px solid ${o.c.line}"><span style="display:inline-flex;gap:3px">${r[5].map((v,i)=>
+              `<i title="${F[i]}" style="width:8px;height:14px;border-radius:2px;display:block;border:1px solid ${v?o.c.accent:o.c.line};background:${v?o.c.accent:'transparent'}"></i>`).join('')}</span></td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>`
+}
+
+document.getElementById('options').innerHTML = OPTS.map(o => {
+  const pairs = [
+    ['Chữ chính trên nền',            o.c.ink,    o.c.ground, false],
+    ['Chữ phụ trên nền thẻ',          o.c.dim,    o.c.card,   false],
+    ['Chàm trên nền thẻ',             o.c.accent, o.c.card,   false],
+    ['Chữ trắng trên nền chàm',       '#FFFFFF',  o.c.accent, false],
+    ['Chàm trên nền chàm nhạt',       o.c.accent, o.c.soft,   false],
+    ['Chữ thanh trái trên nền thanh', o.c.railInk,o.c.rail,   false],
+    ['Tiêu đề lớn trên nền',          o.c.ink,    o.c.ground, true],
+  ]
+  return `<section class="opt" style="--o-card:${o.c.card};--o-ink:${o.c.ink};--o-dim:${o.c.dim};--o-line:${o.c.line};--o-sunk:${o.c.sunk};--o-accent:${o.c.accent}">
+    <div class="opt-head">
+      <div class="opt-num">${o.n}</div>
+      <div style="min-width:0">
+        <h3>${o.ten}</h3>
+        <p>${o.ly}</p>
+      </div>
+      <div class="opt-fonts">
+        Tiêu đề <b>${o.fontNames[0]}</b><br>
+        Thân bài <b>${o.fontNames[1]}</b><br>
+        Số liệu <b>${o.fontNames[2]}</b>
+      </div>
+    </div>
+    <div class="opt-body">
+      <div class="pane">
+        <h4>Thang cỡ chữ</h4>
+        <div class="scale">
+          ${typeRow('h1','Tiêu đề màn',o.t.h1,o)}
+          ${typeRow('h2','Tiêu đề khối',o.t.h2,o)}
+          ${typeRow('h3','Tiêu đề nhỏ',o.t.h3,o)}
+          ${typeRow('body','Thân bài',o.t.body,o)}
+          ${typeRow('lbl','Nhãn',o.t.lbl,o)}
+          ${typeRow('num','Số liệu',o.t.num,o)}
+        </div>
+      </div>
+      <div class="pane">
+        <h4>Bảng màu</h4>
+        <div class="sw">
+          ${[['Nền trang','ground'],['Nền thẻ','card'],['Nền chìm','sunk'],['Chữ chính','ink'],['Chữ phụ','dim'],['Đường kẻ','line'],['Chàm','accent'],['Chàm nhạt','soft'],['Thanh trái','rail']]
+            .map(([nm,k])=>`<div class="swi"><span class="box" style="background:${o.c[k]}"></span><span class="nm">${nm}</span><span class="hx">${o.c[k]}</span></div>`).join('')}
+        </div>
+        <h4>Chữ nổi trên màu — máy tự đo</h4>
+        <div class="ct">
+          ${pairs.map(([lbl,fg,bg,big])=>`
+            <div class="ctrow" style="background:${bg};color:${fg}${bg===o.c.card?`;border:1px solid ${o.c.line}`:''}">
+              <span class="lbl"${big?` style="font-size:17px;font-weight:700"`:''}>${lbl}</span>${badge(ratio(fg,bg),big)}
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="sample">
+      <div class="sample-hd">Màn Master Data theo hướng ${o.n}</div>
+      <div class="frame">${sample(o)}</div>
+    </div>
+  </section>`
+}).join('')
+</script>
