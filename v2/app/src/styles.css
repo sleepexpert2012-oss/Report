@@ -32,6 +32,7 @@
 
   /* --- màu biểu đồ, đã qua bộ kiểm tra 5 mục của skill dataviz --- */
   --c1: #5560cc; --c2: #12a08d; --c3: #c77a14; --c4: #c0435c; --c5: #8a5bd6;
+  --gold: #c77a14;  /* kỳ so sánh trên biểu đồ — 3,37:1 trên nền trắng, đạt mức 3:1 cho nét vẽ */
 
   /* --- khoảng cách --- */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
@@ -243,9 +244,52 @@ tbody tr:hover td:first-child { background: var(--row-hover); }
 }
 .presets button:hover { border-color: var(--muted); }
 .presets button.on { background: var(--accent); border-color: var(--accent); color: var(--rail-strong); }
-.ky-txt { font-size: 12.5px; color: var(--muted); align-self: center; margin-left: auto; }
-.ky-txt b { color: var(--ink); }
 .lech { color: var(--warn); }
+
+/* ---------- thanh kỳ phân tích (dùng chung mọi màn có trục thời gian) ---------- */
+.gbar {
+  border: 1px solid var(--line); border-radius: 9px;
+  background: var(--surface); margin: var(--sp-5) 0 var(--sp-4);
+}
+.gbar-hang {
+  display: flex; flex-wrap: wrap; gap: var(--sp-4);
+  align-items: flex-end; padding: var(--sp-4);
+}
+.gbar-hang .field select { min-width: 104px; }
+.gbar .presets button:disabled { opacity: .4; cursor: not-allowed; }
+.gbar .presets button:disabled:hover { border-color: var(--line); }
+.mtoggle { display: flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.mtoggle button {
+  font: inherit; font-size: 12.5px; font-weight: 500; padding: 6px 11px; cursor: pointer;
+  border: 0; border-left: 1px solid var(--line); background: var(--surface); color: var(--ink-soft);
+}
+.mtoggle button:first-child { border-left: 0; }
+.mtoggle button:hover { background: var(--row-hover); }
+.mtoggle button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.btn-reset.dat-lai { margin-left: auto; }
+.dai-ky {
+  display: flex; align-items: flex-end; gap: 2px; height: 42px;
+  padding: 0 var(--sp-4) var(--sp-3); border-top: 1px solid var(--line); padding-top: var(--sp-3);
+}
+.dai-cot { flex: 1; display: flex; align-items: flex-end; height: 100%; min-width: 3px; }
+.dai-cot i { display: block; width: 100%; border-radius: 2px 2px 0 0; background: var(--line); }
+.dai-cot.ss i { background: var(--gold); opacity: .55; }
+.dai-cot.nay i { background: var(--accent); }
+
+.gbar-txt {
+  display: flex; flex-wrap: wrap; gap: 0 6px; align-items: baseline;
+  font-size: 12.5px; color: var(--muted);
+  padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--line);
+  background: var(--surface-sunk); border-radius: 0 0 9px 9px;
+}
+.gbar-txt b { color: var(--ink); font-weight: 600; }
+.gbar-txt .cach { color: var(--line); }
+@media (max-width: 900px) {
+  .gbar-hang { gap: var(--sp-3); }
+  .gbar-hang .field, .gbar-hang .field select { min-width: 0; width: 100%; }
+  .presets, .mtoggle { flex-wrap: wrap; }
+  .btn-reset.dat-lai { margin-left: 0; width: 100%; }
+}
 .stat .delta { font-family: var(--mono); font-size: 11.5px; font-weight: 600; display: block; margin-top: 5px; }
 
 /* cầu nối doanh thu — phần tử chính, và là thứ DUY NHẤT có hoạt cảnh vào */

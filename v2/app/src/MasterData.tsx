@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { TRUONG_HOAN_THIEN, coGiaTri, demHoanThien, type Sku } from './types'
 import { so, tien } from './format'
 import { docLoDangDung, docSku, type LoNap } from './kho'
-import { Icon } from './icons'
 
 type Cot = {
   key: keyof Sku | 'hoan_thien'

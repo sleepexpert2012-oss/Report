@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { docBanHang, docSku, docVanDe, type BanHang, type Sku, type VanDe } from './kho'
+import { docBanHang, docSku, docVanDe, type BanHang, type VanDe } from './kho'
+import type { Sku } from './types'
 import { useDemLen } from './dem'
+import ThanhKy from './ThanhKy'
+import { CHI_SO, khoangSS, macDinh, nhanThang, type ChiSo, type TrangThaiKy } from './ky'
 
 /**
  * Màn Tổng quan.
@@ -11,6 +14,8 @@ import { useDemLen } from './dem'
  *
  * Mọi con số lấy từ v2_fact_sale, đã do revenue_rules.py quyết định. Màn này
  * chỉ cộng và chia — không định nghĩa lại bất cứ khái niệm nào.
+ *
+ * Kỳ phân tích do `ky.ts` + `ThanhKy.tsx` lo, dùng chung cho các màn sau.
  */
 
 const KENH: Record<string, string> = { shopee: 'TMĐT Shopee', dai_ly: 'Đại Lý', online: 'Online', b2b: 'B2B' }
@@ -20,12 +25,6 @@ const MAU_NGANH = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5
 const tr = (v: number) => (v / 1e6).toLocaleString('vi-VN', { maximumFractionDigits: 1 })
 const pc = (v: number) => (v * 100).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + '%'
 const nguyen = (v: number) => Math.round(v).toLocaleString('vi-VN')
-
-type Ky = { nhan: string; thang: number | null }
-const KY: Ky[] = [
-  { nhan: '3 tháng', thang: 3 }, { nhan: '6 tháng', thang: 6 },
-  { nhan: '12 tháng', thang: 12 }, { nhan: 'Toàn kỳ', thang: null },
-]
 
 type Tong = { gmv: number; huy: number; giam: number; hoan: number; dt: number; cogs: number; sl: number; don: number; ma: number }
 const rong = (): Tong => ({ gmv: 0, huy: 0, giam: 0, hoan: 0, dt: 0, cogs: 0, sl: 0, don: 0, ma: 0 })
@@ -46,12 +45,36 @@ function gop(rows: BanHang[]): Tong {
   return t
 }
 
+export type Diem = { k: string; dt: number; gmv: number; huy: number; sl: number; cogs: number }
+
+function theoThang(rows: BanHang[]): Diem[] {
+  const m = new Map<string, Diem>()
+  for (const r of rows) {
+    const k = (r.order_date ?? '').slice(0, 7)
+    if (!k) continue
+    const o = m.get(k) ?? { k, dt: 0, gmv: 0, huy: 0, sl: 0, cogs: 0 }
+    o.gmv += r.gmv
+    if (r.da_huy) o.huy += r.gmv
+    else { o.dt += r.doanh_thu; o.sl += r.qty_thuan; o.cogs += r.cogs }
+    m.set(k, o)
+  }
+  return [...m.values()].sort((a, b) => a.k.localeCompare(b.k))
+}
+
+/** Một điểm dữ liệu tháng quy về con số của chỉ số đang chọn. */
+export function giaTri(d: Diem, c: ChiSo): number {
+  if (c === 'sl') return d.sl
+  if (c === 'lg') return (d.dt - d.cogs) / 1e6
+  if (c === 'gm') return d.dt ? ((d.dt - d.cogs) / d.dt) * 100 : 0
+  return d.dt / 1e6
+}
+
 export default function TongQuan() {
   const [ban, setBan] = useState<BanHang[] | null>(null)
   const [sku, setSku] = useState<Sku[]>([])
   const [vd, setVd] = useState<VanDe[]>([])
   const [loi, setLoi] = useState<string | null>(null)
-  const [ky, setKy] = useState<number | null>(12)
+  const [k, setK] = useState<TrangThaiKy | null>(null)
 
   useEffect(() => {
     Promise.all([docBanHang(), docSku(), docVanDe()])
@@ -64,41 +87,35 @@ export default function TongQuan() {
     [ban],
   )
 
-  const { nay, truoc, nhanKy, nhanSS, soNay, soTruoc } = useMemo(() => {
-    if (!ban || !thang.length)
-      return { nay: [] as BanHang[], truoc: [] as BanHang[], nhanKy: '', nhanSS: '', soNay: 0, soTruoc: 0 }
-    const n = ky ?? thang.length
-    const tNay = thang.slice(-n)
-    const tTruoc = thang.slice(Math.max(0, thang.length - 2 * n), thang.length - n)
-    const trong = (r: BanHang, ds: string[]) => ds.includes((r.order_date ?? '').slice(0, 7))
-    const nh = (ds: string[]) => (ds.length ? `${ds[0].replace('-', '/')} – ${ds[ds.length - 1].replace('-', '/')}` : '—')
+  useEffect(() => { if (thang.length && !k) setK(macDinh(thang)) }, [thang, k])
+
+  const { nay, truoc, soNay, soTruoc } = useMemo(() => {
+    if (!ban || !thang.length || !k)
+      return { nay: [] as BanHang[], truoc: [] as BanHang[], soNay: 0, soTruoc: 0 }
+    const r = khoangSS(thang, k)
+    const tNay = new Set(thang.slice(k.m0, k.m1 + 1))
+    const tTruoc = new Set(r ? thang.slice(r[0], r[1] + 1) : [])
+    const th = (x: BanHang) => (x.order_date ?? '').slice(0, 7)
     return {
-      nay: ban.filter((r) => trong(r, tNay)),
-      truoc: ban.filter((r) => trong(r, tTruoc)),
-      nhanKy: nh(tNay), nhanSS: tTruoc.length ? nh(tTruoc) : 'không đủ dữ liệu',
-      soNay: tNay.length, soTruoc: tTruoc.length,
+      nay: ban.filter((x) => tNay.has(th(x))),
+      truoc: ban.filter((x) => tTruoc.has(th(x))),
+      soNay: tNay.size, soTruoc: tTruoc.size,
     }
-  }, [ban, thang, ky])
+  }, [ban, thang, k])
 
   const A = useMemo(() => gop(nay), [nay])
   const B = useMemo(() => gop(truoc), [truoc])
-  const lechDoDai = soTruoc > 0 && soNay !== soTruoc
   // Hai kỳ khác độ dài thì so thẳng là sai. Quy kỳ so sánh về cùng số tháng
   // trước khi tính tăng giảm — đúng bài học rút từ app đời trước.
   const heSo = soTruoc > 0 ? soNay / soTruoc : 1
 
-  const theoThang = useMemo(() => {
-    const m = new Map<string, { dt: number; gmv: number; huy: number }>()
-    for (const r of nay) {
-      const k = (r.order_date ?? '').slice(0, 7)
-      if (!k) continue
-      const o = m.get(k) ?? { dt: 0, gmv: 0, huy: 0 }
-      o.gmv += r.gmv
-      if (r.da_huy) o.huy += r.gmv; else o.dt += r.doanh_thu
-      m.set(k, o)
-    }
-    return [...m.entries()].sort().map(([k, v]) => ({ k, ...v }))
-  }, [nay])
+  const mNay = useMemo(() => theoThang(nay), [nay])
+  // Dải trong thanh kỳ vẽ TOÀN BỘ lịch sử, không chỉ kỳ đang chọn — nếu chỉ vẽ
+  // kỳ chọn thì dải luôn kín màu và chẳng nói lên điều gì.
+  const chuoi = useMemo(() => {
+    const m = new Map(theoThang(ban ?? []).map((d) => [d.k, d.dt]))
+    return thang.map((t) => m.get(t) ?? 0)
+  }, [ban, thang])
 
   const tenSku = useMemo(() => Object.fromEntries(sku.map((s) => [s.sku, s])), [sku])
 
@@ -151,13 +168,13 @@ export default function TongQuan() {
   const dtDem = useDemLen(A.dt, sanSang)
   const gmDem = useDemLen(A.dt ? (A.dt - A.cogs) / A.dt : 0, sanSang)
 
-  const delta = (a: number, b: number) => (b > 0 ? a / (b * heSo) - 1 : null)
+  const delta = (a: number, b: number) => (soTruoc > 0 && b > 0 ? a / (b * heSo) - 1 : null)
   const KPI = [
     { k: 'Doanh thu', v: tr(dtDem), u: 'triệu đồng', d: delta(A.dt, B.dt), tot: 1 },
     { k: 'Lãi gộp', v: tr(A.dt - A.cogs), u: 'triệu đồng', d: delta(A.dt - A.cogs, B.dt - B.cogs), tot: 1 },
-    { k: 'Biên lợi nhuận', v: pc(gmDem), u: B.dt ? `kỳ trước ${pc((B.dt - B.cogs) / B.dt)}` : '—', d: null, tot: 1 },
+    { k: 'Biên lợi nhuận', v: pc(gmDem), u: B.dt ? `kỳ SS ${pc((B.dt - B.cogs) / B.dt)}` : '—', d: null, tot: 1 },
     { k: 'Sản lượng', v: nguyen(A.sl), u: 'sản phẩm', d: delta(A.sl, B.sl), tot: 1 },
-    { k: 'Tỷ lệ huỷ', v: pc(A.gmv ? A.huy / A.gmv : 0), u: B.gmv ? `kỳ trước ${pc(B.huy / B.gmv)}` : '—', d: null, tot: 0 },
+    { k: 'Tỷ lệ huỷ', v: pc(A.gmv ? A.huy / A.gmv : 0), u: B.gmv ? `kỳ SS ${pc(B.huy / B.gmv)}` : '—', d: null, tot: 0 },
     { k: 'Mã có bán', v: nguyen(A.ma), u: `trên ${sku.length} mã danh mục`, d: null, tot: 1 },
   ]
 
@@ -182,28 +199,9 @@ export default function TongQuan() {
       {loi && <div className="state"><b>Không đọc được kho</b>{loi}</div>}
       {!ban && !loi && <div className="state">Đang đọc dữ liệu bán hàng…</div>}
 
-      {ban && (
+      {ban && k && (
         <>
-          <div className="filters" style={{ marginTop: 'var(--sp-5)' }}>
-            <div className="field">
-              <label>Kỳ phân tích</label>
-              <div className="presets">
-                {KY.map((k) => (
-                  <button key={k.nhan} className={ky === k.thang ? 'on' : ''} onClick={() => setKy(k.thang)}>
-                    {k.nhan}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="ky-txt">
-              Kỳ chọn <b>{nhanKy}</b> · so với <b>{nhanSS}</b>
-              {lechDoDai && (
-                <span className="lech">
-                  {' '}⚠ kỳ so sánh chỉ có {soTruoc} tháng, đã quy về bình quân {soNay} tháng để so cho công bằng
-                </span>
-              )}
-            </div>
-          </div>
+          <ThanhKy thang={thang} k={k} doi={setK} chuoi={chuoi} />
 
           <div className="stats">
             {KPI.map((x) => (
@@ -283,7 +281,7 @@ export default function TongQuan() {
             </div>
           </div>
 
-          <ThangChart data={theoThang} />
+          <ThangChart data={mNay} chiSo={k.chiSo} />
 
           <div className="tablecard" style={{ marginBottom: 'var(--sp-4)' }}>
             <div className="card-hd">
@@ -324,12 +322,12 @@ export default function TongQuan() {
             </div>
           </div>
 
-          <HuyChart data={theoThang} />
+          <HuyChart data={mNay} />
 
           <div className="tablecard">
             <div className="card-hd">
               <h2>Doanh thu theo ngành hàng</h2>
-              <p className="card-sub">So kỳ chọn với kỳ trước · triệu đồng</p>
+              <p className="card-sub">So kỳ chọn với kỳ so sánh · triệu đồng</p>
             </div>
             <div className="tscroll" style={{ maxHeight: 'none' }}>
               <table>
@@ -397,54 +395,74 @@ export default function TongQuan() {
 
 /* ---------- biểu đồ ---------- */
 
-function ThangChart({ data }: { data: { k: string; dt: number }[] }) {
-  const W = 900, H = 240, pl = { l: 46, r: 16, t: 18, b: 26 }
+/**
+ * Biểu đồ theo tháng của kỳ đang chọn, đổi theo công tắc chỉ số.
+ *
+ * Cố tình KHÔNG vẽ đè kỳ so sánh lên đây: hai kỳ khác độ dài mà dùng chung
+ * một trục tháng thì đường thứ hai đọc ra sai. Việc "đang cắt ở đoạn nào của
+ * lịch sử" đã do dải trong thanh kỳ lo.
+ */
+function ThangChart({ data, chiSo }: { data: Diem[]; chiSo: ChiSo }) {
+  const cs = CHI_SO.find((c) => c.id === chiSo)!
+  const a = data.map((d) => giaTri(d, chiSo))
+
+  const W = 900, H = 240, pl = { l: 48, r: 16, t: 18, b: 30 }
   const iw = W - pl.l - pl.r, ih = H - pl.t - pl.b
-  const max = Math.max(...data.map((d) => d.dt / 1e6), 1)
-  const buoc = Math.pow(10, Math.floor(Math.log10(max))) * (max / Math.pow(10, Math.floor(Math.log10(max))) > 5 ? 2 : 1)
-  const tran = Math.ceil(max / buoc) * buoc
-  const x = (i: number) => pl.l + (data.length < 2 ? iw / 2 : (i / (data.length - 1)) * iw)
-  const y = (v: number) => pl.t + ih - (v / tran) * ih
-  const line = data.map((d, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(d.dt / 1e6).toFixed(1)}`).join(' ')
-  const dinh = data.reduce((a, d, i) => (d.dt > data[a].dt ? i : a), 0)
+  const max = Math.max(...a, 1)
+  const bac = Math.pow(10, Math.floor(Math.log10(max)))
+  const tran = chiSo === 'gm' ? 100 : Math.ceil(max / (bac * (max / bac > 5 ? 2 : 1))) * bac * (max / bac > 5 ? 2 : 1)
+  const x = (i: number) => pl.l + (a.length < 2 ? iw / 2 : (i / (a.length - 1)) * iw)
+  const y = (v: number) => pl.t + ih - (Math.max(0, v) / tran) * ih
+  const line = a.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')
+  const so = (v: number) => v.toLocaleString('vi-VN', { maximumFractionDigits: chiSo === 'sl' ? 0 : 1 })
+  const dinh = a.length ? a.reduce((m, v, i) => (v > a[m] ? i : m), 0) : 0
+
   return (
     <div className="tablecard" style={{ marginBottom: 'var(--sp-4)' }}>
-      <div className="card-hd"><h2>Doanh thu theo tháng</h2><p className="card-sub">Triệu đồng · ghi số ở tháng cao nhất và tháng cuối</p></div>
+      <div className="card-hd">
+        <h2>{cs.nhan} theo tháng</h2>
+        <p className="card-sub">{cs.donVi} · ghi số ở tháng cao nhất và tháng cuối</p>
+      </div>
       <div style={{ padding: 'var(--sp-4)' }}>
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label="Doanh thu theo tháng">
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label={`${cs.nhan} theo tháng`}>
           {[0, tran / 2, tran].map((v) => (
             <g key={v}>
               <line x1={pl.l} y1={y(v)} x2={W - pl.r} y2={y(v)} stroke="var(--line)" />
-              <text x={pl.l - 8} y={y(v) + 3.5} textAnchor="end" fontSize="9.5" fill="var(--muted)" className="mono">{v}</text>
+              <text x={pl.l - 8} y={y(v) + 3.5} textAnchor="end" fontSize="9.5" fill="var(--muted)" className="mono">
+                {so(v)}
+              </text>
             </g>
           ))}
-          <path className="ve-vung" d={`${line} L${x(data.length - 1)},${y(0)} L${x(0)},${y(0)} Z`} fill="var(--accent)" opacity=".10" />
+          <path className="ve-vung" d={`${line} L${x(a.length - 1)},${y(0)} L${x(0)},${y(0)} Z`}
+                fill="var(--accent)" opacity=".10" />
           <path className="ve-duong" d={line} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinejoin="round" />
-          {data.map((d, i) => (
-            <g key={d.k}>
-              <circle cx={x(i)} cy={y(d.dt / 1e6)} r={i === dinh || i === data.length - 1 ? 4.5 : 3}
-                      fill={i === dinh || i === data.length - 1 ? 'var(--accent)' : 'var(--surface)'}
-                      stroke="var(--accent)" strokeWidth="2">
-                <title>{d.k} · {tr(d.dt)} triệu</title>
-              </circle>
-              {(i % 3 === 0 || i === data.length - 1) && (
-                <text x={x(i)} y={H - 8} textAnchor="middle" fontSize="9" fill="var(--muted)" className="mono">
-                  {d.k.slice(2).replace('-', '/')}
-                </text>
-              )}
-              {(i === dinh || i === data.length - 1) && (
-                <text x={x(i)} y={y(d.dt / 1e6) - 11} textAnchor={i === data.length - 1 ? 'end' : 'middle'}
-                      fontSize="10.5" fontWeight="600" fill="var(--ink)" className="mono">{tr(d.dt)}</text>
-              )}
-            </g>
-          ))}
+          {data.map((d, i) => {
+            const noi = i === dinh || i === data.length - 1
+            return (
+              <g key={d.k}>
+                <circle cx={x(i)} cy={y(a[i])} r={noi ? 4.5 : 3}
+                        fill={noi ? 'var(--accent)' : 'var(--surface)'} stroke="var(--accent)" strokeWidth="2">
+                  <title>{nhanThang(d.k)} · {so(a[i])} {cs.donVi}</title>
+                </circle>
+                {(i % 3 === 0 || i === data.length - 1) && (
+                  <text x={x(i)} y={H - 10} textAnchor="middle" fontSize="9" fill="var(--muted)" className="mono">
+                    {nhanThang(d.k)}
+                  </text>
+                )}
+                {noi && (
+                  <text x={x(i)} y={y(a[i]) - 11} textAnchor={i === data.length - 1 ? 'end' : 'middle'}
+                        fontSize="10.5" fontWeight="600" fill="var(--ink)" className="mono">{so(a[i])}</text>
+                )}
+              </g>
+            )
+          })}
         </svg>
       </div>
     </div>
   )
 }
 
-function HuyChart({ data }: { data: { k: string; gmv: number; huy: number }[] }) {
+function HuyChart({ data }: { data: Diem[] }) {
   const d = data.map((x) => ({ k: x.k, v: x.gmv ? (x.huy / x.gmv) * 100 : 0 }))
   const W = 900, H = 190, pl = { l: 40, r: 16, t: 16, b: 26 }
   const iw = W - pl.l - pl.r, ih = H - pl.t - pl.b
@@ -474,7 +492,7 @@ function HuyChart({ data }: { data: { k: string; gmv: number; huy: number }[] })
               </circle>
               {(i % 3 === 0 || i === d.length - 1) && (
                 <text x={x(i)} y={H - 8} textAnchor="middle" fontSize="9" fill="var(--muted)" className="mono">
-                  {p.k.slice(2).replace('-', '/')}
+                  {nhanThang(p.k)}
                 </text>
               )}
             </g>
