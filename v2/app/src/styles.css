@@ -179,3 +179,44 @@ tbody tr:hover td:first-child { background: var(--row-hover); }
   main { padding: var(--sp-4); }
   .field input { min-width: 100%; }
 }
+
+/* ---------- màn Cơ sở hạ tầng ---------- */
+.card-hd { padding: var(--sp-4) var(--sp-4) var(--sp-3); border-bottom: 1px solid var(--line); }
+.card-hd h2 { margin: 0 0 2px; }
+.card-sub { font-size: 12px; color: var(--muted); margin: 0; }
+
+.luong { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.buoc { display: flex; gap: var(--sp-3); padding: var(--sp-4); border-right: 1px solid var(--line-soft); }
+.buoc:last-child { border-right: 0; }
+.buoc-n {
+  font-family: var(--mono); font-size: 11px; font-weight: 600; flex-shrink: 0;
+  width: 22px; height: 22px; border-radius: 5px; display: grid; place-items: center;
+  background: var(--accent-soft); color: var(--accent);
+}
+.buoc-ten { font-weight: 600; font-size: 13.5px; margin-bottom: 3px; }
+.buoc-mo { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 0; }
+
+.ht-mo { white-space: normal; width: 300px; line-height: 1.45; }
+.ht-note { white-space: normal; width: 300px; font-size: 11.5px; color: var(--warn); margin-top: 3px; line-height: 1.45; }
+
+.keo { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.keo-ok  { background: color-mix(in srgb, var(--good) 12%, var(--surface)); color: var(--good); }
+.keo-han { background: var(--warn-soft); color: var(--warn); }
+.keo-no  { background: color-mix(in srgb, var(--crit) 11%, var(--surface)); color: var(--crit); }
+
+.hai-cot { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); align-items: start; }
+@media (max-width: 1100px) { .hai-cot { grid-template-columns: 1fr; } }
+
+.khoi { padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+.doi { display: flex; gap: var(--sp-4); align-items: baseline; }
+.doi-k { font-size: 12.5px; color: var(--muted); width: 180px; flex-shrink: 0; }
+.doi-v { font-size: 13px; min-width: 0; }
+.khoi-note { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin: 0; padding-top: var(--sp-2); border-top: 1px dashed var(--line); }
+.khoi-note b { color: var(--ink); }
+
+.lo { border: 1px solid var(--line); border-radius: 7px; padding: var(--sp-3); }
+.lo-on { border-color: var(--accent); background: var(--accent-soft); }
+.lo-top { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: 4px; }
+.lo-id { font-weight: 600; }
+.lo-time { font-size: 11.5px; margin-left: auto; }
+.lo-nguon { font-size: 12px; margin-bottom: 3px; overflow-wrap: anywhere; }

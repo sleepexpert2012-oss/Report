@@ -7,6 +7,7 @@ const P: Record<string, string> = {
   nganh: 'M12 3l9 4.8-9 4.8-9-4.8zM3 12.4l9 4.8 9-4.8',
   pl: 'M2.5 6h19v12h-19zM6 12h.6M17.4 12h.6',
   ton: 'M20.5 8L12 3.4 3.5 8v8L12 20.6 20.5 16zM3.5 8L12 12.6 20.5 8',
+  hatang: 'M4 5.5h16v4H4zM4 14.5h16v4H4zM7.5 7.5h.01M7.5 16.5h.01',
 }
 
 /** Vòng tròn phụ cho vài biểu tượng — path không vẽ được. */
