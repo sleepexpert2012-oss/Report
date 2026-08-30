@@ -56,3 +56,46 @@ export async function docSnapshot(): Promise<{ created_at: string; bytes: number
   const r = await doc<{ created_at: string; bytes: number }>('snapshot', 'created_at,bytes')
   return r[0] ?? null
 }
+
+export type Ncc = {
+  supplier_code: string
+  supplier_name: string
+  lead_time_nguon: string | null
+  lead_time_ngay: number | null
+  moq: number | null
+  payment_terms: number | null
+  giao_hang: string | null
+  dia_diem: string | null
+  so_sku: number
+}
+
+export type DongPo = {
+  stt: number
+  po: string
+  sku: string
+  mo_ta: string | null
+  supplier_code: string | null
+  supplier_name: string
+  don_vi: string | null
+  sl_dat: number | null
+  sl_xac_nhan: number | null
+  gia_mua: number | null
+  thanh_tien: number | null
+  thanh_tien_vat: number | null
+  ngay_dat: string | null
+  ngay_nhan: string | null
+  leadtime_nguon: number | null
+  thang: number | null
+  nam: number | null
+  trang_thai_nhan: string | null
+  ngay_hoa_don: string | null
+  han_tt_ngay: number | null
+  ngay_den_han: string | null
+  trang_thai_tt: string | null
+  so_ngay_qua_han: number | null
+  da_tra: number | null
+  con_no: number | null
+}
+
+export const docNcc = () => doc<Ncc>('v2_supplier_hien_hanh')
+export const docPo = () => doc<DongPo>('v2_po_hien_hanh')

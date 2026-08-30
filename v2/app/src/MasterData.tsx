@@ -272,7 +272,7 @@ export default function MasterData() {
       <div className="ribbon-legend">
         <span>Dải hoàn thiện, theo thứ tự:</span>
         {TRUONG_HOAN_THIEN.map((f) => (
-          <span className="item" key={f.key}><i /> {f.nhan}</span>
+          <span className="item" key={f.id}><i /> {f.nhan}</span>
         ))}
         <span className="item" style={{ marginLeft: 'auto' }}><i className="off" /> chưa có dữ liệu</span>
       </div>

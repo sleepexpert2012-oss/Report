@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Icon } from './icons'
 import MasterData from './MasterData'
 import HaTang from './HaTang'
+import NhaCungCap from './NhaCungCap'
+import MuaHang from './MuaHang'
 
 /** Khung ngoài: thanh điều hướng + màn đang mở. */
 
@@ -10,8 +12,8 @@ type Muc = { id: string; ic: string; ten: string; man?: () => React.ReactElement
 const MAN_HINH: { nhom: string; muc: Muc[] }[] = [
   { nhom: 'Dữ liệu', muc: [
     { id: 'master', ic: 'master', ten: 'Master Data', man: MasterData },
-    { id: 'ncc', ic: 'ncc', ten: 'Nhà cung cấp' },
-    { id: 'mua', ic: 'mua', ten: 'Mua hàng' },
+    { id: 'ncc', ic: 'ncc', ten: 'Nhà cung cấp', man: NhaCungCap },
+    { id: 'mua', ic: 'mua', ten: 'Mua hàng', man: MuaHang },
   ]},
   { nhom: 'Bán hàng', muc: [
     { id: 'tongquan', ic: 'tongquan', ten: 'Tổng quan' },
