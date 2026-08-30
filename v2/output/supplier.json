@@ -1,0 +1,68 @@
+[
+ {
+  "supplier_code": "SUVN0001",
+  "supplier_name": "HUY HOÀNG NAM",
+  "lead_time_nguon": null,
+  "moq": null,
+  "payment_terms": null,
+  "giao_hang": "Nội địa",
+  "dia_diem": null,
+  "uu_diem": null,
+  "diem_ncc": null
+ },
+ {
+  "supplier_code": "SUVN0002",
+  "supplier_name": "HAPPYTOWN SLEEPTECH",
+  "lead_time_nguon": "15-20",
+  "moq": null,
+  "payment_terms": 30,
+  "giao_hang": "Nội địa",
+  "dia_diem": null,
+  "uu_diem": null,
+  "diem_ncc": null
+ },
+ {
+  "supplier_code": "SUVN0003",
+  "supplier_name": "EVERHOME",
+  "lead_time_nguon": null,
+  "moq": null,
+  "payment_terms": 60,
+  "giao_hang": "Nội địa",
+  "dia_diem": null,
+  "uu_diem": null,
+  "diem_ncc": null
+ },
+ {
+  "supplier_code": "SUVN0004",
+  "supplier_name": "TEXNAM",
+  "lead_time_nguon": null,
+  "moq": null,
+  "payment_terms": 60,
+  "giao_hang": "Nội địa",
+  "dia_diem": null,
+  "uu_diem": null,
+  "diem_ncc": null
+ },
+ {
+  "supplier_code": "SUVN0005",
+  "supplier_name": "AP WOOD",
+  "lead_time_nguon": null,
+  "moq": null,
+  "payment_terms": 60,
+  "giao_hang": "Nội địa",
+  "dia_diem": null,
+  "uu_diem": null,
+  "diem_ncc": null
+ },
+ {
+  "supplier_code": "SUCN0001",
+  "supplier_name": "POWER X",
+  "lead_time_nguon": null,
+  "moq": null,
+  "payment_terms": 180,
+  "giao_hang": "Quốc tế",
+  "dia_diem": null,
+  "uu_diem": null,
+  "diem_ncc": null
+ }
+]

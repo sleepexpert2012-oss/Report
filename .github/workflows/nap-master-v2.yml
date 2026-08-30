@@ -1,0 +1,71 @@
+name: Nạp master data (v2)
+
+# Chạy tay từ tab Actions. KHÔNG chạy theo lịch, không chạy khi push —
+# nạp master là việc có chủ đích, phải do người bấm.
+#
+# Khoá service role lấy từ secrets của repo nên không ai phải cầm khoá trên máy.
+#
+# Điều kiện: đã chạy v2/supabase/migrations/20260830_v2_master.sql
+# trong Supabase SQL Editor. Chưa chạy thì bước nạp sẽ báo lỗi bảng không tồn tại.
+
+on:
+  workflow_dispatch:
+    inputs:
+      file:
+        description: "File Excel trong data-goc/upload-erp/"
+        required: true
+        default: "Master Data (them cot Brand).xlsx"
+      xem_truoc:
+        description: "Chỉ xem trước, không ghi gì (khuyến nghị chạy lần đầu)"
+        type: boolean
+        default: true
+      kich_hoat:
+        description: "Cho app dùng lô này ngay sau khi ghi"
+        type: boolean
+        default: false
+      nguoi_nap:
+        description: "Ai nạp"
+        required: true
+        default: "Louis"
+
+concurrency:
+  group: nap-master-v2      # không cho hai lần nạp chồng nhau
+  cancel-in-progress: false
+
+jobs:
+  nap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: v2/requirements.txt
+
+      - run: pip install -r v2/requirements.txt
+
+      - name: Chạy test của lớp nạp
+        working-directory: v2
+        run: python -m tests.test_validate
+
+      - name: Kiểm tra và nạp
+        working-directory: v2
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          ARGS=(--file "../data-goc/upload-erp/${{ inputs.file }}" --nguoi-nap "${{ inputs.nguoi_nap }}")
+          if [ "${{ inputs.xem_truoc }}" = "true" ]; then ARGS+=(--dry-run); fi
+          if [ "${{ inputs.kich_hoat }}" = "true" ]; then ARGS+=(--kich-hoat); fi
+          python -m ingest.load "${ARGS[@]}" | tee bao-cao-nap.txt
+
+      - name: Lưu báo cáo nạp
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bao-cao-nap
+          path: v2/bao-cao-nap.txt
+          retention-days: 90
