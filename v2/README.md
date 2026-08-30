@@ -1,6 +1,22 @@
-# v2 — app mới
+# v2 — tầng dữ liệu của app mới
 
 Dựng từng phần. App cũ (`../index.html`) vẫn chạy production, không bị đụng tới.
+
+## ⚠ Giao diện đã dọn sang repo riêng
+
+Thư mục `v2/app/` **không còn ở đây**. Từ 30/8/2026 nó là repo riêng:
+
+- Mã nguồn: https://github.com/sleepexpert2012-oss/se-data-app
+- Link chạy thật: https://sleepexpert2012-oss.github.io/se-data-app/
+- Ở máy: `16. AI/SE Data App/`
+
+Lịch sử 7 commit được mang sang nguyên vẹn bằng `git subtree split`, và lịch sử
+cũ vẫn còn trong repo này — không mất gì.
+
+**Vì sao chỉ tách giao diện, không tách cả `ingest/`:** tầng nạp `import`
+`../scripts/revenue_rules.py` — nguồn sự thật duy nhất về doanh thu và giá vốn,
+dùng chung với app cũ. Sao chép module đó sang repo khác là mở đường cho hai bản
+trôi lệch nhau, nên nó ở lại đây cạnh `scripts/`.
 
 ## Đã có
 

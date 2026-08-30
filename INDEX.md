@@ -14,7 +14,8 @@
   - `contracts/` — hợp đồng dữ liệu dạng YAML: file Excel phải trông thế nào mới được nạp
   - `ingest/` — lớp nạp: đọc Excel → 3 lớp kiểm tra → báo cáo → bản ghi sạch
   - `tests/` — test khoá hành vi của lớp nạp
-  - `app/` — giao diện Vite + React + TypeScript (`npm run dev --prefix v2/app`)
+  - giao diện đã tách sang repo riêng `se-data-app` (ở máy: `16. AI/SE Data App/`) —
+    link chạy: https://sleepexpert2012-oss.github.io/se-data-app/
   - `design/` — `DESIGN-SYSTEM.md` (quy chuẩn đã chốt) + 2 trang HTML dùng để chọn hướng
 - `data-goc/` — **file GỐC từ nguồn ngoài, CHỈ ĐỌC** (xem `data-goc/_README.md`)
   - `upload-erp/` — `Sleep Expert — Data Model (Star Schema).xlsx`, `Sleep Expert — Ads Import.xlsx`
