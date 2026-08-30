@@ -1,6 +1,6 @@
 # Bàn giao dự án — Sleep Expert Dashboard
 
-> File này tóm tắt toàn bộ công việc đã làm trong phiên làm việc với Claude Code, để bạn (hoặc Claude ở máy/phiên khác) nắm được bối cảnh mà không cần đọc lại lịch sử chat. Cập nhật lần cuối: 2026-07-18.
+> File này tóm tắt toàn bộ công việc đã làm trong phiên làm việc với Claude Code, để bạn (hoặc Claude ở máy/phiên khác) nắm được bối cảnh mà không cần đọc lại lịch sử chat. Cập nhật lần cuối: 2026-07-23.
 
 ## 1. Dự án này là gì
 
@@ -16,9 +16,14 @@ Dashboard nội bộ 1 file HTML (`index.html`, ~2.8MB) cho Sleep Expert — ph�
 | Trang web live | **https://sleepexpert2012-oss.github.io/Report/** (GitHub Pages, serve `index.html`) |
 | Dữ liệu + Edge Functions thật đang chạy | Supabase project ref **`jkrczsrhonmqxwzzdgen`** (region Seoul) |
 
-**Quy ước đã thống nhất với bạn**: mọi sửa `index.html` xong sẽ tự động commit + push GitHub, không hỏi lại. Xác nhận trước khi làm việc phá hoại (force-push, xoá branch...).
+**Quy ước làm việc (ĐÃ ĐỔI ngày 2026-07-23 — quan trọng, đọc kỹ)**: quy ước cũ "sửa `index.html` xong tự động commit + push, không hỏi" **KHÔNG còn áp dụng**. Quy ước mới: sửa xong → chạy/refresh local preview để bạn xem trực tiếp → **DỪNG LẠI chờ bạn duyệt** ("duyệt"/"ok") → chỉ commit + push sau khi có xác nhận. Luôn xác nhận trước khi làm việc phá hoại (force-push, xoá branch...).
 
-**Máy đang dùng không có** Node/npm/npx/brew/psql/Supabase CLI/gh CLI — chỉ có `curl` + `python3`. Mọi thao tác với Supabase (deploy function, chạy SQL, đặt cron) đều làm qua **Supabase Management API** (`https://api.supabase.com/v1/projects/{ref}/...`), cần một **Personal Access Token** (quyền toàn tài khoản) do bạn cấp mỗi lần cần — nên thu hồi ngay sau khi dùng xong tại [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens).
+**Máy đang dùng** (cập nhật 2026-07-23): đã cài thêm **GitHub CLI (`gh`)** và **Supabase CLI (`supabase`)** — không có sẵn qua brew/npm (máy không có 2 cái này) nên cài bằng cách tải thẳng binary release từ GitHub:
+- `gh`: tải về `~/.local/bin/gh`, đã `gh auth login` xong (đăng nhập `sleepexpert2012-oss`, giao thức SSH).
+- `supabase`: CLI này gồm 2 file cần nằm CHUNG thư mục (`supabase` = shim, `supabase-go` = binary thật) — đã giải nén cả 2 vào `~/.local/share/supabase/`. Đã `supabase login` (đăng nhập qua trình duyệt) và `supabase link --project-ref jkrczsrhonmqxwzzdgen` xong — CLI giờ dùng trực tiếp được (`supabase functions deploy`, `supabase db push`...) mà không cần Management API + PAT tạm thời như trước.
+- Cả 2 đường dẫn đã thêm vào `~/.zshrc` (`export PATH=...`) nên terminal mới tự nhận, không cần export tay.
+- Cách cũ (Management API + Personal Access Token cấp tạm/thu hồi ngay) **vẫn có thể dùng** nếu muốn tránh CLI lưu phiên đăng nhập lâu dài trên máy — nhưng mặc định giờ ưu tiên CLI vì đã login sẵn.
+- **Lưu ý bảo mật khi thao tác CLI này**: Claude không tự nhập/xử lý password hay access token thay bạn trong bất kỳ trường hợp nào (kể cả được yêu cầu trực tiếp) — các bước `login` cần bạn tự chạy trong Terminal thật hoặc tự xác nhận qua trình duyệt.
 
 ## 3. Supabase Edge Functions — LƯU Ý QUAN TRỌNG
 
@@ -66,7 +71,7 @@ Trước phiên này **chỉ có** cron đơn hàng — Ads hoàn toàn chạy t
 - Bảng "Hiệu suất theo sản phẩm": cột NMV → **"DT thực"**; cờ cảnh báo mới **"Chi, DT thực=0"** (đã chi tiền quảng cáo nhưng SP không có đơn hoàn thành thật nào) thay cho cờ "Chi mà GMV=0" cũ; cờ "ROAS thấp" đổi thành **"ROAS thực thấp"** dùng ROAS thực.
 - Các chỉ số tracking gốc của Ads (GMV ads, ROAS gộp, CTR, lượt hiển thị/click...) **giữ nguyên**, không đổi — theo đúng yêu cầu tách bạch "số Shopee tự đo" và "kết quả tài chính thật".
 
-## 5. Các sửa giao diện khác trong phiên này
+## 5. Các sửa giao diện — phiên 2026-07-18
 
 - **Bảng "Phân bổ kế hoạch theo ngày"** (tab S&OP): thống nhất cỡ chữ (trước lộn xộn 9–10.5px), làm nổi bật rõ 2 dòng Tổng tuần/Tổng tháng (viền + nền navy đậm).
 - **Nút "Lưu kế hoạch"**: chuyển từ cuối trang lên đầu màn "Lập kế hoạch Ads", làm rõ nó lưu TOÀN BỘ màn hình (ngân sách Ngành/Class + phân bổ theo ngày), không chỉ phần ngày.
@@ -76,15 +81,44 @@ Trước phiên này **chỉ có** cron đơn hàng — Ads hoàn toàn chạy t
   - Sửa **màu bị trùng khó phân biệt** giữa các chỉ số (trước đó 8 màu đều là các sắc thái navy/tím gần giống nhau). Giờ mỗi chỉ số có 1 màu cố định, phân biệt rõ (đã kiểm tra bằng script mô phỏng mù màu đỏ-lục, không chỉ nhìn bằng mắt) — cùng 1 chỉ số thì cùng màu ở cả 2 biểu đồ.
   - Giảm rối mắt: nhãn số trên đường/cột giờ chỉ hiện ở điểm đỉnh + đảm bảo khoảng cách tối thiểu, không hiện dày đặc mọi điểm dữ liệu.
 
-## 6. Việc còn để ngỏ / có thể làm tiếp
+## 6. Phiên làm việc 2026-07-23
 
-- 2 file `shopee-connector/HUONG-DAN.md` và `HUONG-DAN-CHI-TIET.md` **đã lạc hậu** — còn ghi tên function cũ (shopee-auth/shopee-sync) và biến môi trường không còn dùng. Chưa cập nhật lại (cân nhắc việc này nếu cần dùng để hướng dẫn người khác).
-- Local preview server (`python3 -m http.server 8420`) dùng để xem thử trước khi push — nếu tắt VS Code/máy thì cần khởi động lại (`cd` vào thư mục dự án rồi chạy lại lệnh trên).
+### 6.1 Đổi quy ước làm việc (xem chi tiết mục 2 ở trên)
+Từ nay: sửa xong → xem local trước → chờ duyệt → mới commit/push. Đã lưu vào memory Claude (`sleep-expert-review-before-push.md`) để các phiên sau tự nhớ, không cần đọc lại file này.
+
+### 6.2 Cài & kết nối GitHub CLI + Supabase CLI
+Xem chi tiết mục 2. Tóm tắt: cả 2 đã cài, đăng nhập, và Supabase đã `link` vào đúng project — dùng CLI trực tiếp được từ hôm nay.
+
+### 6.3 ĐANG LÀM DỞ — Fix hiển thị biểu đồ màn "Phân tích Ads" cho khoảng thời gian dài
+Xuất phát từ 1 file prompt giao việc (`prompt/2026-07-18-fix-bieu-do-phan-tich-ads.md` — file này sau đó đã bị xoá khỏi máy, không còn trong repo, nhưng công việc đã làm xong và mô tả đầy đủ dưới đây):
+
+**Đã làm** (trong `index.html`, hàm khu vực `/* ===== ADS UI ===== */` quanh dòng 3630–3930):
+- 2 biểu đồ theo thời gian (`adsCombo` = Chi phí·GMV·ROAS, `adsMetricC` = Xu hướng chỉ số) — thêm mức **"Tuần"** vào toggle, giờ là **Ngày / Tuần / Tháng** (trước chỉ có Ngày/Tháng).
+- Hàm mới `_adWeekAgg()`: gom dữ liệu ngày → tuần (tuần bắt đầu Thứ 2), CHỈ cộng dồn dữ liệu ngày thật đang có trong `RAW.ads.days` — không nội suy, không bịa. Đã kiểm chứng tổng tuần = tổng ngày tuyệt đối khớp trên dữ liệu thật lấy từ Supabase (chi phí/GMV/click).
+- Hàm mới `_adAutoGran()`: tự chọn mức hiển thị mặc định theo độ dài kỳ đang xem — ≤1 tháng → Ngày, 2–4 tháng → Tuần, ≥5 tháng → Tháng. Gọi tại `_adPreset()` (bấm nút 3T/6T/12T...) và `_adSetRange()` (đổi khoảng thời gian tay). Người dùng vẫn bấm đổi tay được sau đó, không bị khoá.
+- Trục ngày/tuần giờ xoay 45° + giới hạn ~14 nhãn (trước là 12–14 không xoay) để đỡ chồng chữ khi nhiều điểm.
+- Heatmap "ROAS · Ngành × Tháng" (`adsHeat`): cột đầu (tên ngành) giờ `position:sticky` — cuộn ngang khi có nhiều tháng vẫn thấy tên ngành.
+- Đã rà toàn bộ các biểu đồ/bảng khác trong màn Ads (bubble ROAS×Chi phí, phân bổ theo ngành, bảng hiệu suất SP, khối GMV-Max, top từ khóa) — không theo trục thời gian nên không cần sửa.
+
+**Trạng thái**: đã test kỹ bằng dữ liệu thật (console kiểm chứng bảo toàn số liệu, screenshot xác nhận cả 3 mức Ngày/Tuần/Tháng và auto-default khi bấm preset) — **CHƯA commit, CHƯA push**, đúng theo quy ước mới ở mục 6.1. Đang chờ Louis mở `http://localhost:8420` xem trực tiếp rồi báo "duyệt".
+
+**Việc cần làm tiếp khi mở lại phiên này**:
+1. Kiểm tra `git status` / `git diff index.html` — nếu vẫn còn thay đổi chưa commit đúng như mô tả trên → đó là phần đang chờ duyệt.
+2. Nếu Louis đã xem và duyệt (qua chat trước đó, hoặc nói lại) → `git add index.html && git commit -m "..." && git push`.
+3. Nếu Louis yêu cầu sửa thêm → sửa tiếp, KHÔNG tự commit/push cho tới khi có xác nhận rõ ràng.
+
+## 7. Việc còn để ngỏ / có thể làm tiếp
+
+- 2 file `HUONG-DAN.md` và `HUONG-DAN-CHI-TIET.md` **đã lạc hậu** — còn ghi tên function cũ (shopee-auth/shopee-sync) và biến môi trường không còn dùng. Ngày 30/08/2026 đã chuyển vào `obsolete/2026-08/huong-dan-lac-hau/`; nếu cần hướng dẫn người khác thì viết mới, đừng dùng lại bản cũ.
+- Local preview server (`python3 -m http.server 8420`) dùng để xem thử trước khi push — nếu tắt máy thì cần khởi động lại (`cd` vào thư mục dự án rồi chạy lại lệnh trên).
 - CodeGraph (MCP) đã cài cho Claude Code trên máy này, nhưng **không đọc được `index.html`** (chỉ index code `.ts`) — không giúp được nhiều cho việc sửa dashboard.
+- Mục 6.3 ở trên (fix biểu đồ Ads) đang chờ duyệt — xem lại trước khi làm việc mới trên cùng khu vực code.
 
-## 7. Ghi nhớ đã lưu cho Claude (memory)
+## 8. Ghi nhớ đã lưu cho Claude (memory)
 
-Nếu tiếp tục làm việc bằng Claude Code **trên đúng máy này**, các ghi nhớ sau đã có sẵn (không cần đọc lại file này để khôi phục context — Claude tự đọc):
-`github_repo_setup.md`, `auto_push_preference.md`, `dev_environment.md`, `supabase_shopee_sync.md`, `interface_preference.md`.
+Nếu tiếp tục làm việc bằng Claude Code **trên đúng máy này**, ghi nhớ sau đã có sẵn (không cần đọc lại file này để khôi phục context — Claude tự đọc):
+`sleep-expert-review-before-push.md` (quy ước review-before-push ở mục 6.1 — ghi rõ lý do và cách áp dụng).
 
-Nếu chuyển sang **máy khác / môi trường Claude Code khác**, các file ghi nhớ đó KHÔNG tự đi theo — file `BAN-GIAO.md` này (nằm trong repo, tự động có mặt khi clone) chính là thứ thay thế để Claude ở môi trường mới đọc và nắm bối cảnh nhanh.
+*(Lưu ý: danh sách ghi nhớ liệt kê ở bản trước của file này — `github_repo_setup.md`, `auto_push_preference.md`, `dev_environment.md`, `supabase_shopee_sync.md`, `interface_preference.md` — hiện KHÔNG tồn tại trong hệ thống memory hiện tại, có thể do đổi máy/phiên hoặc memory bị reset. Đừng giả định chúng còn tồn tại; nếu cần, kiểm tra lại thư mục memory trước khi dựa vào.)*
+
+Nếu chuyển sang **máy khác / môi trường Claude Code khác**, file memory KHÔNG tự đi theo — file `BAN-GIAO.md` này (nằm trong repo, tự động có mặt khi clone) chính là thứ thay thế để Claude ở môi trường mới đọc và nắm bối cảnh nhanh.
