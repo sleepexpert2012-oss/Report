@@ -234,3 +234,57 @@ tbody tr:hover td:first-child { background: var(--row-hover); }
   border: 1px solid var(--line); border-radius: 5px; background: var(--surface); cursor: pointer; user-select: none; }
 .toggle.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 500; }
 .toggle input { accent-color: var(--accent); }
+
+/* ---------- màn Tổng quan ---------- */
+.presets { display: flex; gap: 4px; }
+.presets button {
+  font: inherit; font-size: 12.5px; font-weight: 500; padding: 6px 11px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 5px;
+}
+.presets button:hover { border-color: var(--muted); }
+.presets button.on { background: var(--accent); border-color: var(--accent); color: var(--rail-strong); }
+.ky-txt { font-size: 12.5px; color: var(--muted); align-self: center; margin-left: auto; }
+.ky-txt b { color: var(--ink); }
+.lech { color: var(--warn); }
+.stat .delta { font-family: var(--mono); font-size: 11.5px; font-weight: 600; display: block; margin-top: 5px; }
+
+/* cầu nối doanh thu — phần tử chính, và là thứ DUY NHẤT có hoạt cảnh vào */
+.hero { border-top: 3px solid var(--accent); }
+.cau { padding: var(--sp-4) var(--sp-4) var(--sp-5); display: flex; flex-direction: column; gap: 11px; }
+.cau-dong { display: grid; grid-template-columns: 92px 1fr 96px 150px; gap: var(--sp-3); align-items: center; }
+.cau-ten { font-size: 13px; font-weight: 500; }
+.cau-thanh { height: 20px; background: var(--surface-sunk); border-radius: 4px; overflow: hidden; }
+.cau-thanh i { display: block; height: 100%; border-radius: 4px; transform-origin: left center; }
+.cau-so { text-align: right; font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.cau-ghi { font-size: 11.5px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) {
+  .cau-thanh i { animation: moc .5s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i) * 60ms); }
+  .ve-duong { stroke-dasharray: 3000; stroke-dashoffset: 3000; animation: ve 1s ease-out .2s forwards; }
+  .ve-vung { opacity: 0; animation: hienra .6s ease-out .5s forwards; }
+  .t10 i { animation: moc .45s cubic-bezier(.22,1,.36,1) backwards; animation-delay: calc(var(--i) * 40ms); }
+}
+@keyframes moc { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes ve { to { stroke-dashoffset: 0; } }
+@keyframes hienra { to { opacity: .10; } }
+
+/* dải kênh bán và cơ cấu ngành */
+.dai { display: inline-block; width: 120px; height: 9px; background: var(--surface-sunk); border-radius: 5px; overflow: hidden; vertical-align: middle; margin-right: 8px; }
+.dai i { display: block; height: 100%; background: var(--accent); border-radius: 5px; }
+.xepchong { display: flex; height: 22px; border-radius: 5px; overflow: hidden; gap: 2px; }
+.xepchong i { display: block; height: 100%; }
+.chugiai { display: flex; flex-wrap: wrap; gap: var(--sp-3); font-size: 12px; color: var(--muted); margin-top: var(--sp-2); }
+.chugiai span { display: inline-flex; align-items: center; gap: 5px; }
+.chugiai i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.chugiai b { color: var(--ink); font-family: var(--mono); font-weight: 500; }
+
+/* top 10 */
+.top10 { padding: var(--sp-4); display: flex; flex-direction: column; gap: 9px; }
+.t10 { display: grid; grid-template-columns: 20px minmax(0,290px) 1fr 72px 74px 82px; gap: var(--sp-3); align-items: center; font-size: 12.5px; }
+.t10-h { color: var(--muted); font-size: 11px; text-align: right; }
+.t10-ten { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t10-thanh { height: 16px; background: var(--surface-sunk); border-radius: 4px; overflow: hidden; }
+.t10-thanh i { display: block; height: 100%; border-radius: 4px; transform-origin: left center; }
+.t10-so, .t10-sl, .t10-gm { text-align: right; font-variant-numeric: tabular-nums; }
+.t10-so { font-weight: 500; }
+.t10-sl, .t10-gm { font-size: 11.5px; }
+@media (max-width: 1200px) { .t10 { grid-template-columns: 20px minmax(0,180px) 1fr 68px 70px 78px; } }

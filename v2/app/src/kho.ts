@@ -11,11 +11,29 @@ const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 async function doc<T>(khungNhin: string, cot = '*'): Promise<T[]> {
   if (!URL || !KEY) throw new Error('Thiếu VITE_SUPABASE_URL hoặc VITE_SUPABASE_ANON_KEY trong .env')
-  const r = await fetch(`${URL}/rest/v1/${khungNhin}?select=${cot}&limit=5000`, {
-    headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
-  })
-  if (!r.ok) throw new Error(`Kho trả về ${r.status} khi đọc ${khungNhin}`)
-  return r.json()
+  // PostgREST chặn cứng ở 1.000 dòng mỗi lần trả và KHÔNG báo lỗi khi cắt bớt —
+  // cứ thế mà tin thì mọi con số phía sau đều sai. Vì vậy luôn phân trang, và
+  // đối chiếu tổng số dòng máy chủ khai báo với số dòng thực nhận.
+  const BUOC = 1000
+  const ra: T[] = []
+  for (let tu = 0; ; tu += BUOC) {
+    const r = await fetch(`${URL}/rest/v1/${khungNhin}?select=${cot}`, {
+      headers: {
+        apikey: KEY, Authorization: `Bearer ${KEY}`,
+        Range: `${tu}-${tu + BUOC - 1}`, 'Range-Unit': 'items', Prefer: 'count=exact',
+      },
+    })
+    if (!r.ok && r.status !== 206) throw new Error(`Kho trả về ${r.status} khi đọc ${khungNhin}`)
+    const trang = (await r.json()) as T[]
+    ra.push(...trang)
+    const tong = Number((r.headers.get('content-range') ?? '').split('/')[1])
+    if (trang.length < BUOC) {
+      if (Number.isFinite(tong) && tong !== ra.length) {
+        throw new Error(`Đọc thiếu ${khungNhin}: máy chủ báo ${tong} dòng, nhận được ${ra.length}`)
+      }
+      return ra
+    }
+  }
 }
 
 export type LoNap = {
@@ -99,3 +117,23 @@ export type DongPo = {
 
 export const docNcc = () => doc<Ncc>('v2_supplier_hien_hanh')
 export const docPo = () => doc<DongPo>('v2_po_hien_hanh')
+
+export type BanHang = {
+  channel: string
+  order_id: string
+  order_date: string | null
+  sku: string | null
+  da_huy: boolean
+  qty_thuan: number
+  gmv: number
+  giam_gia: number
+  gia_tri_hoan: number
+  doanh_thu: number
+  cogs: number
+}
+
+export type VanDe = { loai: string; khoa: string; mo_ta: string; gmv_treo: number | null; trang_thai: string }
+
+export const docBanHang = () =>
+  doc<BanHang>('v2_fact_sale', 'channel,order_id,order_date,sku,da_huy,qty_thuan,gmv,giam_gia,gia_tri_hoan,doanh_thu,cogs')
+export const docVanDe = () => doc<VanDe>('v2_dq_van_de')

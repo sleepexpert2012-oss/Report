@@ -4,6 +4,7 @@ import MasterData from './MasterData'
 import HaTang from './HaTang'
 import NhaCungCap from './NhaCungCap'
 import MuaHang from './MuaHang'
+import TongQuan from './TongQuan'
 
 /** Khung ngoài: thanh điều hướng + màn đang mở. */
 
@@ -16,7 +17,7 @@ const MAN_HINH: { nhom: string; muc: Muc[] }[] = [
     { id: 'mua', ic: 'mua', ten: 'Mua hàng', man: MuaHang },
   ]},
   { nhom: 'Bán hàng', muc: [
-    { id: 'tongquan', ic: 'tongquan', ten: 'Tổng quan' },
+    { id: 'tongquan', ic: 'tongquan', ten: 'Tổng quan', man: TongQuan },
     { id: 'nganh', ic: 'nganh', ten: 'Ngành & Brand' },
     { id: 'pl', ic: 'pl', ten: 'Tài chính P&L' },
   ]},
