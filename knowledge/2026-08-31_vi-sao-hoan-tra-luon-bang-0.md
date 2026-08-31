@@ -207,3 +207,72 @@ có, thì nguồn duy nhất biết về đơn hoàn này là file Excel — và
 Đúng 1 đơn, 726.750 đ trên tổng doanh thu 1.938,7 triệu — khoảng **0,04%**. Nhỏ.
 Nhưng đây là lỗi **hệ thống, không phải lỗi số liệu**: hàng hoàn tăng bao nhiêu
 thì app cũng vẫn báo 0. Phải sửa trước khi tỷ lệ hoàn tăng lên.
+
+---
+
+# VÒNG 4 — Tìm ra nguyên nhân thật: `page_no` đánh số từ 0
+
+Anh Louis gửi ảnh Seller Center một đơn hoàn thật. Đây là mảnh ghép cuối.
+
+## Đơn đối chứng
+
+Đơn `260807NEUMCNE3` · yêu cầu trả `26081104HVP2T4M` · tạo 11/08/2026
+4 × Chăn Lạnh ExtraCool · **Đã hoàn tiền cho Người mua: 280.560 đ** · lý do *Đổi ý*
+
+| | Seller Center | `sales_fact` | App v2 tính |
+|---|---|---|---|
+| Trạng thái | Trả hàng & Hoàn tiền, **đã hoàn tiền** | `Hoàn thành` | không huỷ |
+| Trạng thái trả/hoàn | có mã yêu cầu trả | **`None`** | — |
+| Số lượng hoàn | 4 sản phẩm | **`'0'`** cả 4 dòng | — |
+| Tiền hoàn | **280.560 đ** | không có cột nào giữ | **hoàn = 0** |
+| Ký quỹ | — | **−20.880** (âm) | — |
+| Doanh thu ghi nhận | thực tế ≈ 0 | — | **309.259 đ** |
+
+## Nguyên nhân: lệch một chỉ số trang
+
+`ops-sync/index.ts`, vòng lặp returns:
+
+```js
+let page = 1, more = true;              // ← SAI
+while (more && !outOfTime()) {
+  const j = await get("/api/v2/returns/get_return_list", shopId, token, {
+    page_no: page, page_size: 50, create_time_from: from, create_time_to: to,
+  });
+```
+
+**Returns API của Shopee đánh số trang từ 0.** Bắt đầu ở `page = 1` nghĩa là lời
+gọi ĐẦU TIÊN đã hỏi **trang thứ hai**. Shop có dưới 50 đơn trả trong mỗi cửa sổ
+14 ngày, nên trang thứ hai luôn rỗng, `more` về `false`, vòng lặp thoát ngay.
+
+Khớp trọn mọi quan sát trước đó, không còn chỗ nào hở:
+
+| Quan sát | Giải thích |
+|---|---|
+| quyền `ok: true` | quyền thật sự có |
+| `{"more": false, "return": []}` | đúng hình dạng của một trang vượt quá cuối |
+| `returns_found: 0` cả 600 ngày | mọi cửa sổ đều hỏi trang 2 |
+| `returns` vắng ở `shopee_api_fact` | `safeRaw` nằm trong vòng lặp, không bao giờ chạy tới |
+| Excel có trạng thái, API không | Excel là nguồn duy nhất từng biết về đơn trả |
+
+Lỗi tương tự ở chế độ `probe`, dòng 409: `page_no: 1`.
+
+**Đã vá cả hai chỗ về `0`. CHƯA TRIỂN KHAI** — cần anh Louis duyệt vì là đẩy code
+lên Edge Function production.
+
+## Cách dò tạm không cần Returns API
+
+Đơn `260807NEUMCNE3` **nằm trong danh sách 86 đơn ký quỹ âm** đã lập ở
+`output/hoan-tra-tu-api.xlsx` sheet 4. Tức là **cột `tien_ky_quy` âm đã bắt được
+đơn hoàn thật mà không cần Returns API** — tín hiệu này có sẵn trong database từ
+trước. Đây là cách dò dùng được ngay, trong lúc chờ vá.
+
+## Thứ tự sửa sau khi có kết luận này
+
+1. Triển khai bản vá `page_no` → `returns_found` sẽ ra số thật.
+2. Triển khai bản vá `item.amount` + cột `so_tien_hoan` (đã viết ở vòng 2) —
+   không có nó thì dù tìm được đơn trả, số lượng vẫn ghi 0.
+3. Chạy `sync` lùi 600 ngày, đối chiếu đơn `260807NEUMCNE3` phải ra 4 sản phẩm
+   hoàn và 280.560 đ.
+4. Bàn với anh Louis về `revenue_rules.py`: dùng gì để trừ hoàn trả — số lượng
+   hoàn, `seller_return_refund`, hay ký quỹ âm. Đây là quyết định kế toán, và
+   sửa là doanh thu CẢ HAI app cùng giảm.

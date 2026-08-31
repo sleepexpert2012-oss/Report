@@ -331,7 +331,11 @@ Deno.serve(async (req) => {
       let to = now;
       while (to > cutoff && !outOfTime()) {
         const from = Math.max(cutoff, to - 14 * 86400);
-        let page = 1, more = true;
+        // page_no của Returns API đánh số TỪ 0. Bản cũ bắt đầu ở 1, tức lời gọi
+        // đầu tiên đã hỏi TRANG THỨ HAI — với dưới 50 đơn trả trong cửa sổ 14
+        // ngày thì trang đó luôn rỗng, `more` về false, vòng lặp thoát ngay.
+        // Đây là lý do returns_found luôn bằng 0 dù shop có đơn trả thật.
+        let page = 0, more = true;
         while (more && !outOfTime()) {
           const j = await get("/api/v2/returns/get_return_list", shopId, token, {
             page_no: page, page_size: 50, create_time_from: from, create_time_to: to,
@@ -406,7 +410,7 @@ Deno.serve(async (req) => {
       get("/api/v2/payment/get_escrow_detail", shopId, token, { order_sn: orderSn }),
       get("/api/v2/logistics/get_tracking_info", shopId, token, { order_sn: orderSn }),
       get("/api/v2/returns/get_return_list", shopId, token, {
-        page_no: 1, page_size: 20, create_time_from: now - 14 * 86400, create_time_to: now,
+        page_no: 0, page_size: 20, create_time_from: now - 14 * 86400, create_time_to: now,
       }),
     ]);
     return new Response(JSON.stringify({
