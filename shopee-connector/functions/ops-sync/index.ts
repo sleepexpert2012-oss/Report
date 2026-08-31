@@ -353,12 +353,33 @@ Deno.serve(async (req) => {
           await safeRaw("returns", "/api/v2/returns/get_return_detail", returnSn, shopId, token, { return_sn: returnSn });
           await safeRaw("returns", "/api/v2/returns/get_reverse_tracking_info", returnSn, shopId, token, { return_sn: returnSn });
         }
-        const qty = (ret.item || ret.item_list || []).reduce((s: number, x: Record<string, unknown>) =>
-          s + Number(x.refund_quantity || x.quantity || x.model_quantity_purchased || 0), 0);
+        // Số lượng hoàn: Shopee để ở `amount` trong mỗi phần tử `item`.
+        // Bản cũ chỉ dò refund_quantity / quantity / model_quantity_purchased —
+        // KHÔNG tên nào có thật, nên luôn ra 0 và hoàn trả không bao giờ được
+        // trừ khỏi doanh thu. Dò rộng và lấy giá trị dương ĐẦU TIÊN thay vì
+        // dùng `||` chuỗi dài, để số 0 hợp lệ không bị nhảy sang tên khác.
+        const soDau = (o: Record<string, unknown>, ten: string[]) => {
+          for (const t of ten) {
+            const v = Number(o?.[t]);
+            if (Number.isFinite(v) && v > 0) return v;
+          }
+          return 0;
+        };
+        const items = (ret.item || ret.item_list || []) as Record<string, unknown>[];
+        const qty = items.reduce((s: number, x) =>
+          s + soDau(x, ["amount", "refund_quantity", "quantity", "model_quantity_purchased"]), 0);
+
+        // Số TIỀN hoàn nằm ở `refund_amount` của bản ghi trả hàng. Bản cũ không
+        // hề đọc trường này; nó lấy return_shipping_fee/amount rồi nhét vào
+        // `phi_tra_hang` — cột dành cho PHÍ trả hàng, khác hẳn TIỀN hoàn.
+        const tienHoan = soDau(ret, ["refund_amount", "refund_total_amount", "total_refund_amount"]);
+        const phiTra = soDau(ret, ["return_shipping_fee", "shipping_fee", "return_ship_fee"]);
+
         await sb.from("sales_fact").update({
           trang_thai_tra_hang_hoan_tien: String(ret.status || ret.return_status || "Có yêu cầu trả/hoàn"),
           so_luong_san_pham_duoc_hoan_tra: String(qty),
-          phi_tra_hang: String(ret.return_shipping_fee || ret.amount || 0),
+          so_tien_hoan: String(tienHoan),
+          phi_tra_hang: String(phiTra),
         }).eq("ma_don_hang", sn);
       }
       return new Response(JSON.stringify({
