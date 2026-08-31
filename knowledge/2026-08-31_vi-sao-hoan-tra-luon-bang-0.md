@@ -83,48 +83,74 @@ Hai lỗi trong đoạn này:
   cho *phí* trả hàng, không phải *tiền* hoàn. Hai khái niệm khác nhau bị dồn vào
   một cột, mà rồi cũng không ai đọc.
 
-## Chỗ tôi CHƯA kiểm được
+## ĐÍNH CHÍNH sau khi kiểm được (31/8/2026, chạy trong SQL Editor + probe)
 
-Hai bảng lưu nguyên văn phản hồi API đều chặn khoá anon (401):
+Phần trên viết khi chưa đọc được bảng thô. Đã kiểm xong, và **nguyên nhân trực
+tiếp KHÁC với chẩn đoán ban đầu**. Giữ nguyên phần trên để thấy chỗ tôi suy sai.
 
-- `shopee_api_fact` — nơi `saveRaw()` lưu JSON gốc Shopee trả về
-- `shopee_sync_checkpoint` — nơi ghi endpoint nào bị `blocked` vì thiếu quyền
+**1. Quyền API KHÔNG bị chặn.** Gọi `ops-sync` chế độ `probe` (chỉ đọc):
 
-Vì vậy **chưa xác nhận được** hai điều, cần khoá service role hoặc SQL Editor:
-
-1. Nhánh returns có chạy thật không, hay bị chặn quyền ngay từ đầu. Đáng ngờ:
-   giá trị `"Đã Chấp Thuận Yêu Cầu"` là nhãn **tiếng Việt của Seller Center**,
-   tức đến từ file Excel xuất tay; API trả mã tiếng Anh (`ACCEPTED`…). Nếu nhánh
-   API có chạy thì đã ghi đè bằng mã tiếng Anh rồi.
-2. Tên trường chính xác trong phản hồi thật. Tôi suy ra `amount` và
-   `refund_amount` từ tài liệu Shopee Open API v2 và từ chính đoạn mã, **chưa
-   đối chiếu với JSON thật**.
-
-```sql
--- chạy trong Supabase SQL Editor để chốt hai điều trên
-select module, endpoint, status, rows_synced, last_attempt_at
-from public.shopee_sync_checkpoint where module = 'returns';
-
-select endpoint, scope_key, payload
-from public.shopee_api_fact where module = 'returns'
-order by fact_date desc limit 5;
 ```
+payment   → ok: true
+logistics → ok: true
+returns   → ok: true,  response: {"more": false, "return": []}
+```
+
+**2. Nhưng Shopee trả về danh sách trả hàng RỖNG** cho cửa sổ 14 ngày gần nhất.
+
+**3. Nhánh returns chưa từng chạy tới thân vòng lặp.** Cả hai bảng đều không có
+module `returns`:
+
+| bảng | các module có mặt |
+|---|---|
+| `shopee_sync_checkpoint` | ads *(blocked)* · affiliate · logistics · order · payment · product · shop · video |
+| `shopee_api_fact` | ads · affiliate · logistics · order · payment · product · shop · video |
+
+`safeRaw("returns", …)` nằm **bên trong** `for (const ret of returnRows)`. Danh
+sách rỗng thì vòng lặp không chạy, nên không có bản ghi nào — đúng như quan sát.
+
+**4. Vậy giá trị đang nằm trong `sales_fact` đến từ file Excel, không từ API.**
+Củng cố thêm: `"Đã Chấp Thuận Yêu Cầu"` là nhãn **tiếng Việt của Seller Center**;
+API trả mã tiếng Anh. Nếu nhánh API từng chạy thì đã ghi đè bằng mã tiếng Anh.
+
+### Nghĩa là
+
+Lỗi tên trường tôi tìm ra ở phần trên **là lỗi thật, nhưng chưa từng gây hại** —
+nó chưa bao giờ được chạy tới. Nó là **mìn chờ**: ngày nào Shopee trả về một đơn
+hoàn, số lượng sẽ vẫn ra 0 và tiền hoàn vẫn không được lưu. Vá là đúng, nhưng vá
+xong **cũng chưa làm hoàn trả hiện lên**.
+
+### Câu hỏi còn lại
+
+Vì sao Shopee không liệt kê đơn `260826D5UYEMQ8` trong Returns API, trong khi
+Seller Center ghi *"Đã Chấp Thuận Yêu Cầu"*? Ba khả năng, chưa phân định được:
+
+1. `probe` chỉ hỏi **14 ngày gần nhất**; yêu cầu trả có thể tạo sớm hơn.
+2. Đây là **hoàn tiền không trả hàng** — Shopee xếp loại khác, có thể không nằm
+   trong `get_return_list`.
+3. Trạng thái trong file Excel đã cũ hoặc mang nghĩa khác với API.
+
+Muốn phân định phải quét cửa sổ dài hơn, tức chạy `ops-sync` chế độ `sync` —
+**ghi vào `sales_fact` production**, nên chờ anh Louis duyệt.
 
 ## Đề xuất sửa — theo thứ tự
 
-**Bước 1 — xác minh** (bắt buộc trước khi sửa code): chạy hai câu SQL trên. Nếu
-`status = 'blocked'` thì gốc rễ là **thiếu quyền API**, sửa tên trường vô ích.
+**Bước 1 — ĐÃ XONG.** Quyền không bị chặn; danh sách trả hàng rỗng. Xem phần
+đính chính ở trên.
 
-**Bước 2 — sửa hàm đồng bộ**: đọc `x.amount` cho số lượng, và thêm cột
-`so_tien_hoan` lưu `ret.refund_amount`. Không dồn tiền hoàn vào `phi_tra_hang`.
+**Bước 2 — ĐÃ VÁ, CHƯA TRIỂN KHAI.** Đọc `x.amount` cho số lượng, thêm cột
+`so_tien_hoan` lưu `ret.refund_amount`. Đây là gỡ mìn chờ, không phải cách làm
+hoàn trả hiện lên ngay.
 
 **Bước 3 — sửa công thức doanh thu**: đây là chỗ **phải cân nhắc kỹ**.
 `revenue_rules.py` dùng chung với app cũ đang chạy production, sửa là **cả hai
 app đổi số cùng lúc**. Đổi cách trừ hoàn trả sẽ làm doanh thu mọi kỳ giảm đi.
 Việc này cần anh duyệt, không phải quyết định kỹ thuật.
 
-**Bước 4 — nạp lại** và đối chiếu: đơn `260826D5UYEMQ8` phải hiện hoàn trả
-726.750 đ (hoặc số Shopee thật sự hoàn), không còn tính đủ doanh thu.
+**Bước 4 — quét cửa sổ dài** (`mode: "sync"`, ghi vào production, cần duyệt) để
+biết Shopee có bản ghi trả hàng cho đơn `260826D5UYEMQ8` hay không. Nếu KHÔNG
+có, thì nguồn duy nhất biết về đơn hoàn này là file Excel — và tầng nạp phải đọc
+`trang_thai_tra_hang_hoan_tien` từ Excel, chứ không thể trông vào API.
 
 ## Mức ảnh hưởng hiện tại
 
