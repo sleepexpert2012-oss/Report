@@ -140,8 +140,17 @@ mode: sync · period_days: 600 · stopped_by_budget: false
 returns_found: 0
 ```
 
-**Shopee Returns API không có một bản ghi trả hàng nào cho shop này, suốt 600
-ngày.** Quét trọn, không bị cắt vì hết giờ. Quyền vẫn `ok: true`.
+> ⚠️ **CÂU DƯỚI ĐÂY LÀ KẾT LUẬN SAI. Giữ lại để thấy chỗ chệch.**
+> *"Shopee Returns API không có một bản ghi trả hàng nào cho shop này, suốt 600
+> ngày."*
+>
+> Sai ở chỗ biến **"gọi mà không nhận được gì"** thành **"bên đó không có gì"**.
+> Bằng chứng chỉ chứng minh được điều thứ nhất. Xem VÒNG 4 ở cuối file: Louis
+> gửi ảnh Seller Center một đơn hoàn thật, và cửa sổ phủ đúng ngày đó ĐÃ được
+> gọi mà vẫn trả rỗng — tức API có dữ liệu, tầng nạp hỏi sai cách.
+
+10 lời gọi `get_return_list` đều trả về rỗng. Quét trọn, không bị cắt vì hết
+giờ. Quyền vẫn `ok: true`.
 
 Sau khi chạy, dòng `260826D5UYEMQ8` **không đổi một chữ** — đúng như dự đoán, vì
 `returns_found = 0` thì nhánh ghi không chạy. Bằng chứng còn nguyên.
