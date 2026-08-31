@@ -285,3 +285,53 @@ trước. Đây là cách dò dùng được ngay, trong lúc chờ vá.
 4. Bàn với anh Louis về `revenue_rules.py`: dùng gì để trừ hoàn trả — số lượng
    hoàn, `seller_return_refund`, hay ký quỹ âm. Đây là quyết định kế toán, và
    sửa là doanh thu CẢ HAI app cùng giảm.
+
+---
+
+# VÒNG 5 — Louis chốt luật nguồn dữ liệu, tôi rút lại cách dò bằng ký quỹ
+
+## Luật
+
+> **Dữ liệu nào thì lấy đúng từ API của mục đó, không tự suy từ API khác qua.
+> Dữ liệu kéo về phải chắc và có kiểm chứng, không đoán.**
+
+## Cái tôi làm sai
+
+Tôi dùng `tien_ky_quy` (= `payment.get_escrow_detail` → `escrow_amount_after_adjustment`)
+âm để suy ra "đơn này bị hoàn hàng", rồi lập danh sách 86 đơn toàn kỳ và 4 đơn
+tháng 8, đưa vào `output/hoan-tra-tu-api.xlsx` sheet 4.
+
+**Sai về phương pháp.** Escrow trả lời *"Shopee trả mình bao nhiêu tiền"*. Nó
+KHÔNG trả lời *"đơn nào bị trả hàng"*. Ký quỹ âm có thể do hoàn hàng, mà cũng có
+thể do phí vượt doanh thu, do điều chỉnh, do bồi thường — tôi không phân biệt
+được, và đã gắn nhãn "nghi hoàn tiền" cho cả nhóm.
+
+Bằng chứng cho thấy đúng là không suy được: trong tháng 8, đơn DUY NHẤT có
+trạng thái trả/hoàn (`260826D5UYEMQ8`) lại có ký quỹ **+501.572** — tiền vào
+bình thường. Còn 4 đơn ký quỹ âm thì không đơn nào có trạng thái trả/hoàn. Hai
+tín hiệu không trùng nhau.
+
+## Ranh giới đúng, ghi lại để không lặp
+
+| Câu hỏi | Endpoint đúng | Trường |
+|---|---|---|
+| Đơn nào bị trả hàng, trả mấy cái | `returns.get_return_list` / `get_return_detail` | `return_sn`, `status`, `item[].amount` |
+| Hoàn cho khách bao nhiêu tiền | `returns.get_return_list` | `refund_amount` |
+| Shopee trả người bán bao nhiêu | `payment.get_escrow_detail` | `escrow_amount_after_adjustment` |
+| Trong khoản Shopee trả, phần trừ do hoàn là bao nhiêu | `payment.get_escrow_detail` | `seller_return_refund` |
+
+Hai dòng cuối là dữ liệu TIỀN, dùng để đối soát dòng tiền. Chúng KHÔNG được dùng
+để suy ra sự kiện trả hàng. Sự kiện trả hàng chỉ lấy từ module Returns.
+
+## Còn vướng gì
+
+Muốn lấy hoàn trả từ đúng module Returns thì phải gọi được
+`returns/get_return_list` với `page_no: 0`. Hiện chưa gọi được:
+
+- API Test Tool của Shopee **chỉ cho partner sandbox** (12xxxxx), không có live
+  `2039280` → không thấy dữ liệu shop thật.
+- Gọi trực tiếp cần ký `partner_key`. Tôi không nhận và không nhập khoá đó.
+- Hàm `ops-sync` đang chạy hardcode `page_no: 1` ở cả `sync` và `probe`.
+
+Nên chưa có đường nào lấy dữ liệu Returns thật mà không đụng vào code đang chạy.
+Chờ Louis quyết cách làm.
