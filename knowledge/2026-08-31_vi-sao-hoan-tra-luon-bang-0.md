@@ -133,6 +133,56 @@ Seller Center ghi *"Đã Chấp Thuận Yêu Cầu"*? Ba khả năng, chưa phâ
 Muốn phân định phải quét cửa sổ dài hơn, tức chạy `ops-sync` chế độ `sync` —
 **ghi vào `sales_fact` production**, nên chờ anh Louis duyệt.
 
+## KẾT LUẬN CUỐI (sau khi chạy sync 600 ngày, anh Louis duyệt)
+
+```
+mode: sync · period_days: 600 · stopped_by_budget: false
+returns_found: 0
+```
+
+**Shopee Returns API không có một bản ghi trả hàng nào cho shop này, suốt 600
+ngày.** Quét trọn, không bị cắt vì hết giờ. Quyền vẫn `ok: true`.
+
+Sau khi chạy, dòng `260826D5UYEMQ8` **không đổi một chữ** — đúng như dự đoán, vì
+`returns_found = 0` thì nhánh ghi không chạy. Bằng chứng còn nguyên.
+
+### Đối chiếu bằng tiền ký quỹ
+
+Nếu 726.750 đ đã thật sự được hoàn thì tiền ký quỹ phải về gần 0. Thực tế:
+
+| | |
+|---|---|
+| Giá bán | 726.750 đ |
+| Tiền ký quỹ Shopee đã trả | **501.572 đ** |
+| Tỷ lệ ký quỹ / giá bán | **0,690** |
+| Trung vị 1.646 đơn hoàn thành | 0,755 |
+
+Thấp hơn trung vị một chút nhưng **nằm trong khoảng bình thường** (dải từ −0,197
+đến 13,539). Tiền đã được chi trả — **không có dấu hiệu hoàn toàn bộ**.
+
+### Vậy con số 0 là ĐÚNG hay SAI?
+
+**Đúng theo API, nhưng thiếu.** Không app nào sai số liệu: Shopee không báo có
+hàng hoàn thì cả hai app đều ra 0, và tiền cũng đã về. Nhưng Seller Center có
+ghi một yêu cầu trả **đã chấp thuận** mà Returns API không liệt kê. Hai nguồn
+của chính Shopee không khớp nhau.
+
+Ba khả năng còn lại, **chỉ người có tài khoản Seller Center kiểm được**:
+
+1. Yêu cầu đã duyệt nhưng khách **chưa gửi hàng về** — chưa phát sinh bản ghi trả.
+2. Là **hoàn tiền một phần**, Shopee xếp ngoài `get_return_list`.
+3. Trạng thái trong file Excel đã cũ, yêu cầu về sau bị huỷ.
+
+→ **Việc cần làm: mở đơn `260826D5UYEMQ8` trong Seller Center xem trạng thái
+thật.** Không có đường nào khác để phân định từ phía dữ liệu.
+
+### Mức ảnh hưởng
+
+Tối đa 726.750 đ trên 1.938,7 triệu doanh thu — **0,04%**, và nhiều khả năng
+bằng 0 vì tiền đã về đủ. Không phải vấn đề số liệu. Vấn đề là **hệ thống chỉ
+biết hàng hoàn qua một cột mà API chưa từng điền**, cộng với lỗi tên trường đang
+chờ sẵn. Ngày nào tỷ lệ hoàn tăng, cả hai chỗ này cùng bung.
+
 ## Đề xuất sửa — theo thứ tự
 
 **Bước 1 — ĐÃ XONG.** Quyền không bị chặn; danh sách trả hàng rỗng. Xem phần
