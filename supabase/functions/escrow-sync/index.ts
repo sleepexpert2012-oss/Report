@@ -66,8 +66,13 @@ async function goi(path: string, shopId: number, tok: string, p: Record<string, 
   const q = new URLSearchParams({
     partner_id: String(PARTNER_ID), timestamp: String(ts), access_token: tok,
     shop_id: String(shopId), sign: await hmac(`${PARTNER_ID}${path}${ts}${tok}${shopId}`),
-    ...Object.fromEntries(Object.entries(p).map(([k, v]) => [k, String(v)])),
   });
+  // Tham số kiểu mảng phải LẶP LẠI khoá, không phải nối bằng dấu phẩy. Nối phẩy
+  // thì get_escrow_detail_batch trả về error_param — đã thử.
+  for (const [k, v] of Object.entries(p)) {
+    if (Array.isArray(v)) for (const x of v) q.append(k, String(x));
+    else q.append(k, String(v));
+  }
   const r = await fetch(`${HOST}${path}?${q}`);
   return await r.json();
 }
@@ -85,7 +90,7 @@ async function motLo(shopId: number, tok: string, dons: string[]) {
   const ra: Ket[] = [];
   const nk: Record<string, unknown> = { so_don: dons.length };
   const j = await goi("/api/v2/payment/get_escrow_detail_batch", shopId, tok,
-    { order_sn_list: dons.join(",") });
+    { order_sn_list: dons });
   const ds = j?.response;
   if (!j?.error && Array.isArray(ds) && ds.length) {
     nk.cach = "batch";
