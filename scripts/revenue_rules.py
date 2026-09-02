@@ -49,13 +49,37 @@ def canonical_unit_cost(row: dict) -> float:
     return cost_with_vat / OUTPUT_VAT_FACTOR if cost_with_vat > 0 else 0.0
 
 
-def canonicalize_sales_rows(rows: list[dict]) -> tuple[list[dict], list[dict]]:
+def canonicalize_sales_rows(
+    rows: list[dict],
+    returns: dict[str, dict] | None = None,
+) -> tuple[list[dict], list[dict]]:
     """Return engine-ready rows and compact canonical line metrics.
 
     Seller-funded discount is an order-level field repeated on every API line.
     It is read once per order, clamped to order GMV, then allocated to lines by
     their share of order GMV. This guarantees that SKU totals reconcile exactly
     to the order total without double counting the discount.
+
+    ``returns`` injects settled returns fetched from Shopee's Returns API
+    (``returns.get_return_list``), keyed by order id::
+
+        {order_sn: {"refund": <VAT-inclusive money>, "qty": {variation_sku: n}}}
+
+    Omit it and behaviour is byte-identical to before: returns are then read
+    from the ``so_luong_san_pham_duoc_hoan_tra`` column, which Shopee's order
+    export leaves at 0, so nothing is deducted. That keeps the legacy dashboard
+    unchanged while the v2 pipeline feeds real return data in.
+
+    When supplied, the two sides of a return are deducted on different bases,
+    because they answer different questions:
+
+    * revenue falls by ``refund`` — the money Shopee actually clawed back,
+      allocated across lines by GMV share so SKU totals still reconcile;
+    * quantity and therefore COGS fall by the returned ``qty``, because those
+      units physically came back and must stop carrying cost.
+
+    Mixing the two — scaling revenue by a quantity ratio, or reversing COGS by
+    a money ratio — is what makes gross margin drift.
     """
 
     orders: dict[str, dict] = {}
@@ -88,6 +112,16 @@ def canonicalize_sales_rows(rows: list[dict]) -> tuple[list[dict], list[dict]]:
         allocated = 0.0
         line_count = len(order["rows"])
 
+        # Settled return for this order, if the caller supplied one. Refund is an
+        # order-level amount, so it is allocated by GMV share exactly like the
+        # seller discount. Returned quantity is per SKU and is consumed line by
+        # line, so an order carrying the same SKU on two lines cannot reverse the
+        # same unit twice.
+        settled = (returns or {}).get(order_id)
+        refund_total = min(order_gmv, max(0.0, number(settled.get("refund")))) if settled else 0.0
+        refund_allocated = 0.0
+        qty_left = {k: max(0.0, number(v)) for k, v in (settled or {}).get("qty", {}).items()}
+
         for position, (index, row, line_gmv) in enumerate(order["rows"]):
             if position == line_count - 1:
                 line_discount = seller_discount - allocated
@@ -96,12 +130,31 @@ def canonicalize_sales_rows(rows: list[dict]) -> tuple[list[dict], list[dict]]:
                 allocated += line_discount
 
             qty = max(0.0, number(row.get("so_luong")))
-            returned_qty = min(qty, max(0.0, number(row.get("so_luong_san_pham_duoc_hoan_tra"))))
+            if settled is None:
+                returned_qty = min(qty, max(0.0, number(row.get("so_luong_san_pham_duoc_hoan_tra"))))
+            else:
+                sku = str(row.get("sku_phan_loai_hang") or "").strip()
+                take = min(qty, qty_left.get(sku, 0.0))
+                returned_qty = take
+                if take:
+                    qty_left[sku] -= take
             net_qty = max(0.0, qty - returned_qty)
             keep_ratio = net_qty / qty if qty else 0.0
             before_return = max(0.0, line_gmv - line_discount)
-            revenue_after_tax = 0.0 if order["cancelled"] else before_return * keep_ratio
-            return_after_tax = 0.0 if order["cancelled"] else before_return - revenue_after_tax
+
+            if settled is None:
+                # Legacy basis: revenue scales with the share of units kept.
+                revenue_after_tax = 0.0 if order["cancelled"] else before_return * keep_ratio
+                return_after_tax = 0.0 if order["cancelled"] else before_return - revenue_after_tax
+            else:
+                if position == line_count - 1:
+                    line_refund = refund_total - refund_allocated
+                else:
+                    line_refund = refund_total * line_gmv / order_gmv if order_gmv else 0.0
+                    refund_allocated += line_refund
+                line_refund = min(before_return, max(0.0, line_refund))
+                revenue_after_tax = 0.0 if order["cancelled"] else before_return - line_refund
+                return_after_tax = 0.0 if order["cancelled"] else line_refund
 
             # One accounting basis across Overview, P&L and drill-downs.
             line_gmv_accounting = line_gmv / OUTPUT_VAT_FACTOR

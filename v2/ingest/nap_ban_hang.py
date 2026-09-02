@@ -62,6 +62,47 @@ def doc_bang(bang: str, chon: str = "*") -> List[Dict[str, Any]]:
         offset += 1000
 
 
+TRANG_THAI_TRU = ("ACCEPTED",)
+"""Trạng thái yêu cầu trả được tính vào doanh thu. Louis chốt 2/9/2026: chỉ ACCEPTED.
+
+Ba trạng thái còn lại cố ý KHÔNG tính:
+  CANCELLED  — yêu cầu BỊ THAY THẾ bởi yêu cầu mới cùng số tiền. Cộng vào là đếm
+               trùng: 5/6 đơn có nhiều yêu cầu đều theo mẫu này, cộng thừa 22,6 tr.
+  CLOSED     — chưa xác định được nghĩa, chờ đối chiếu.
+  PROCESSING — Shopee đã ghi số tiền hoàn nhưng hàng chưa về kho.
+"""
+
+
+def doc_hoan_tra() -> Dict[str, Dict[str, Any]]:
+    """Đọc yêu cầu trả hàng đã chốt, dựng bản đồ cho revenue_rules.
+
+    Nguồn DUY NHẤT là hai bảng v2_fact_return(_item), do `returns-sync` kéo từ
+    `returns.get_return_list`. KHÔNG suy từ escrow, KHÔNG lấy từ cột Excel
+    `so_luong_san_pham_duoc_hoan_tra` — cột đó Shopee xuất ra luôn bằng 0.
+
+    Trả về {order_sn: {"refund": tiền đã VAT, "qty": {sku_phan_loai: số lượng}}}.
+    """
+    dau = [r for r in doc_bang("v2_fact_return", "return_sn,order_sn,status,refund_amount")
+           if r.get("status") in TRANG_THAI_TRU]
+    mon = doc_bang("v2_fact_return_item", "return_sn,variation_sku,so_luong")
+    theo_sn: Dict[str, list] = {}
+    for m in mon:
+        theo_sn.setdefault(m["return_sn"], []).append(m)
+
+    ra: Dict[str, Dict[str, Any]] = {}
+    for r in dau:
+        don = str(r["order_sn"] or "").strip()
+        if not don:
+            continue
+        o = ra.setdefault(don, {"refund": 0.0, "qty": {}})
+        o["refund"] += float(r["refund_amount"] or 0)
+        for m in theo_sn.get(r["return_sn"], []):
+            sku = str(m.get("variation_sku") or "").strip()
+            if sku:
+                o["qty"][sku] = o["qty"].get(sku, 0.0) + float(m.get("so_luong") or 0)
+    return ra
+
+
 def lit(v: Any, kieu: str) -> str:
     if v is None or v == "":
         return f"null::{kieu}"
@@ -123,8 +164,14 @@ def main() -> int:
     }
     print(f"  {len(gia_von)} SKU · {sum(1 for v in gia_von.values() if v > 0)} mã có giá vốn")
 
+    print("Đọc yêu cầu trả hàng đã chốt…", flush=True)
+    hoan = doc_hoan_tra()
+    sl_hoan = sum(sum(o["qty"].values()) for o in hoan.values())
+    print(f"  {len(hoan)} đơn có hoàn trả · {sl_hoan:,.0f} sản phẩm · "
+          f"{sum(o['refund'] for o in hoan.values())/1e6:,.1f} triệu (đã VAT)")
+
     print("Chạy revenue_rules.py…", flush=True)
-    _, canon = canonicalize_sales_rows(tho)
+    _, canon = canonicalize_sales_rows(tho, returns=hoan)
 
     thieu_gia = set()
     rows = []
@@ -143,7 +190,9 @@ def main() -> int:
 
     dt = sum(r["doanh_thu"] for r in rows)
     cogs = sum(r["cogs"] for r in rows)
+    hoan_tt = sum(r["gia_tri_hoan"] for r in rows)
     print(f"\n  GMV        {sum(r['gmv'] for r in rows)/1e6:>12,.1f} triệu")
+    print(f"  Hoàn trả   {hoan_tt/1e6:>12,.1f} triệu  (đã trừ khỏi doanh thu)")
     print(f"  Doanh thu  {dt/1e6:>12,.1f} triệu")
     print(f"  Giá vốn    {cogs/1e6:>12,.1f} triệu")
     print(f"  GM         {(dt-cogs)/dt*100:>12,.1f} %")
