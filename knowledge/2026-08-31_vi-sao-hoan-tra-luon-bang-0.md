@@ -335,3 +335,64 @@ Muốn lấy hoàn trả từ đúng module Returns thì phải gọi được
 
 Nên chưa có đường nào lấy dữ liệu Returns thật mà không đụng vào code đang chạy.
 Chờ Louis quyết cách làm.
+
+---
+
+# VÒNG 6 — Kéo xong, đối chiếu xong với Seller Center
+
+## Nguyên nhân đã CHỨNG MINH, hết suy đoán
+
+Triển khai Edge Function `returns-sync` (hàm mới, không đụng `ops-sync`), chạy
+chế độ `doi_chieu` — cùng một cửa sổ, chỉ khác một con số:
+
+```
+page_no: 0  →  3 bản ghi
+page_no: 1  →  0 bản ghi
+```
+
+`page_no` là **vị trí bản ghi bắt đầu**, mặc định 0. `ops-sync` gửi 1 nên bỏ qua
+bản ghi ĐẦU của mọi cửa sổ. Shop này mỗi cửa sổ 14 ngày chỉ có 0–3 yêu cầu trả,
+nên bỏ bản ghi đầu là mất gần hết.
+
+## Đối chiếu với Seller Center — khớp 4/4 tháng 8
+
+| Đơn | Mã yêu cầu trả | Seller Center | API kéo về |
+|---|---|---|---|
+| 260826D5UYEMQ8 | 2608280HRPA5PK8 | 428.045 | 428.045 |
+| 260807NEUMCNE3 | 26081104HVP2T4M | 280.560 | 280.560 |
+| 260805JHQ599GY | 2608080T6J4ECA2 | 362.208 | 362.208 |
+| 260805JHQW5YRB | 2608080T6G7BG4A | 415.800 | 415.800 |
+
+**Bẫy đã tránh được:** trang Seller Center hiện "861 Yêu cầu", trông như thiếu
+rất nhiều. Nhưng trang đó **gộp cả ĐƠN HỦY được hoàn tiền**. Trong 40 yêu cầu ở
+trang đầu chỉ có 4 yêu cầu mang `Mã yêu cầu trả hàng` — đúng 4 cái API trả về.
+34 đơn còn lại đã kiểm: **34/34 là `Đã hủy` trong sales_fact**, và 61/61 dòng
+trong `v2_fact_sale` có `da_huy = true`, doanh thu 0. Tầng nạp xử lý đúng rồi.
+
+## Toàn kỳ 01/2025 → nay
+
+110 yêu cầu trả · 126 dòng sản phẩm · 128 cái · 92.410.911 đ (chưa lọc)
+
+| Trạng thái | Yêu cầu | Tiền hoàn | Nghĩa |
+|---|---|---|---|
+| ACCEPTED | 78 | 56.968.706 | đã chấp thuận |
+| CANCELLED | 17 | 22.648.080 | **yêu cầu bị thay thế — KHÔNG trừ** |
+| CLOSED | 14 | 12.366.080 | đã đóng |
+| PROCESSING | 1 | 428.045 | đang xử lý, hàng chưa về |
+
+**`CANCELLED` là yêu cầu bị thay thế, không phải hoàn bị huỷ.** 6 đơn có nhiều
+yêu cầu; 5 trong số đó có một yêu cầu CANCELLED rồi lập lại yêu cầu mới **cùng
+số tiền**. Cộng cả 110 yêu cầu là **cộng thừa 22.648.080 đ**.
+
+Quy tắc lọc đúng: **mỗi đơn lấy yêu cầu mới nhất KHÔNG phải CANCELLED**
+→ 69.762.831 đ, khớp đúng tổng của ACCEPTED + PROCESSING + CLOSED.
+
+## Ba lựa chọn còn chờ anh Louis quyết (con số trên doanh thu 1.938,7 tr)
+
+| | trừ theo `refund_amount` | trừ theo số lượng × giá |
+|---|---|---|
+| chỉ ACCEPTED | 56,97 tr · **2,94%** | 81,84 tr · 4,22% |
+| + PROCESSING | 57,40 tr · **2,96%** | 82,56 tr · 4,26% |
+| + CLOSED | 69,76 tr · **3,60%** | — |
+
+Chênh giữa hai cách tính: **24,9 triệu**, tức 1,4 lần.
