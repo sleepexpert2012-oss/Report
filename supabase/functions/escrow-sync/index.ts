@@ -61,23 +61,31 @@ async function token() {
   return { shopId: Number(row.shop_id), tok: String(j.access_token) };
 }
 
-async function goi(path: string, shopId: number, tok: string, p: Record<string, unknown>) {
+async function goi(path: string, shopId: number, tok: string, p: Record<string, unknown>,
+                   kieuMang: "json" | "lap" | "phay" = "json") {
   const ts = Math.floor(Date.now() / 1000);
   const q = new URLSearchParams({
     partner_id: String(PARTNER_ID), timestamp: String(ts), access_token: tok,
     shop_id: String(shopId), sign: await hmac(`${PARTNER_ID}${path}${ts}${tok}${shopId}`),
   });
-  // Tham số kiểu mảng phải LẶP LẠI khoá, không phải nối bằng dấu phẩy. Nối phẩy
-  // thì get_escrow_detail_batch trả về error_param — đã thử.
   for (const [k, v] of Object.entries(p)) {
-    if (Array.isArray(v)) for (const x of v) q.append(k, String(x));
-    else q.append(k, String(v));
+    if (Array.isArray(v)) {
+      // Tài liệu chỉ ghi "format should be string[]" mà không nói mã hoá thế
+      // nào trên query string. Ba khuôn có thể: JSON, lặp khoá, nối phẩy.
+      // Chỗ gọi sẽ thử lần lượt cho tới khi có khuôn chạy được.
+      if (kieuMang === "json") q.append(k, JSON.stringify(v.map(String)));
+      else if (kieuMang === "lap") for (const x of v) q.append(k, String(x));
+      else q.append(k, v.map(String).join(","));
+    } else q.append(k, String(v));
   }
   const r = await fetch(`${HOST}${path}?${q}`);
   return await r.json();
 }
 
 type Ket = { order_sn: string; oi: Record<string, unknown> };
+
+/** Khuôn mã hoá mảng mà batch chấp nhận, tự dò ở lô đầu rồi chốt lại. */
+let kieuBatch: "json" | "lap" | "phay" | null = null;
 
 /**
  * Lấy escrow cho một lô đơn.
@@ -89,20 +97,30 @@ type Ket = { order_sn: string; oi: Record<string, unknown> };
 async function motLo(shopId: number, tok: string, dons: string[]) {
   const ra: Ket[] = [];
   const nk: Record<string, unknown> = { so_don: dons.length };
-  const j = await goi("/api/v2/payment/get_escrow_detail_batch", shopId, tok,
-    { order_sn_list: dons });
-  const ds = j?.response;
-  if (!j?.error && Array.isArray(ds) && ds.length) {
-    nk.cach = "batch";
-    for (const x of ds) {
-      const sn = String(x?.order_sn ?? x?.escrow_detail?.order_sn ?? "");
-      const oi = x?.escrow_detail?.order_income ?? x?.order_income;
-      if (sn && oi) ra.push({ order_sn: sn, oi });
+  const thu: string[] = [];
+  for (const kieu of ["json", "lap", "phay"] as const) {
+    if (kieuBatch && kieuBatch !== kieu) continue;
+    const j = await goi("/api/v2/payment/get_escrow_detail_batch", shopId, tok,
+      { order_sn_list: dons }, kieu);
+    const ds = j?.response;
+    if (!j?.error && Array.isArray(ds) && ds.length) {
+      for (const x of ds) {
+        const sn = String(x?.order_sn ?? x?.escrow_detail?.order_sn ?? "");
+        const oi = x?.escrow_detail?.order_income ?? x?.order_income;
+        if (sn && oi) ra.push({ order_sn: sn, oi });
+      }
+      if (ra.length) {
+        kieuBatch = kieu;               // chốt khuôn, các lô sau khỏi thử lại
+        nk.cach = `batch/${kieu}`;
+        return { ra, nk };
+      }
     }
-    if (ra.length) return { ra, nk };
+    thu.push(`${kieu}:${j?.error || "khuôn phản hồi lạ"}`);
+    if (kieuBatch) break;
   }
+  kieuBatch = null;
   nk.cach = "từng đơn";
-  nk.batch_loi = j?.error || "khuôn phản hồi không như mong đợi";
+  nk.batch_da_thu = thu;
   for (const sn of dons) {
     const k = await goi("/api/v2/payment/get_escrow_detail", shopId, tok, { order_sn: sn });
     const oi = k?.response?.order_income;
