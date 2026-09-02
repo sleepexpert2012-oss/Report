@@ -87,3 +87,78 @@ Doanh thu của họ 4,03bn bằng đúng tổng 7 dòng con — trong đó có 
 nhau, rồi trừ *Giảm giá người bán* −2,50bn. Ra biên lợi nhuận **43,09%**, rất
 cao cho thương mại điện tử. Nếu lấy 43% của họ làm mốc so với 33,4% của mình
 thì phải hỏi định nghĩa Doanh thu của họ trước — hai mẫu số khác nhau.
+
+---
+
+## Kéo xong: 2.211/2.211 đơn · độ lệch từ 8,84% xuống 0,38%
+
+Vòng khoá escrow sau khi có đủ trường (1.518 đơn không huỷ, số đã VAT):
+
+| | |
+|---|---|
+| Khách thanh toán | 1.736,9 tr |
+| (−) hoa hồng · hoa hồng sàn · dịch vụ · giao dịch · hạ tầng · bảo hiểm VC | −403,0 tr |
+| (+) Shopee bù phí vận chuyển | +202,9 tr |
+| (+) ưu đãi thanh toán · hoàn điều chỉnh | +50,6 tr |
+| (+) tiền hoàn người bán · điều chỉnh | −72,8 tr |
+| = mô hình tính ra | **1.532,1 tr** |
+| Ký quỹ Shopee thực trả | **1.543,9 tr** |
+| **Độ lệch** | **−11,8 tr = −0,68%** |
+
+Tinh chỉnh công thức còn **−6,6 tr = −0,38%**. Phần dư tập trung ở các đơn có
+trả hàng, nơi `seller_return_refund`, `drc_adjustable_refund` và
+`rsf_seller_protection_fee_claim_amount` tương tác với nhau — chưa mô hình hoá
+hết, nhưng ở mức 0,38% thì đủ để dựng bảng lãi lỗ.
+
+**Khoản quan trọng nhất từng bị bỏ: `shopee_shipping_rebate` = +202,9 tr.**
+Đây là tiền Shopee BÙ cho shop. Bỏ nó là lý do chính khiến mô hình cũ tính ra
+ÍT hơn thực nhận.
+
+## Cạm bẫy: `cost_of_goods_sold` của Shopee KHÔNG phải giá vốn
+
+Trường này có giá trị ở 2.207/2.211 đơn, tổng 3.942 tr — trông rất hấp dẫn vì
+mình đang có 60 SKU chưa có giá vốn, và 48 SKU trong số đó thì Shopee "có".
+
+**Đã kiểm và KHÔNG dùng được.** Trên 1.075 đơn một dòng một cái mà mình đã có
+giá vốn:
+
+| | |
+|---|---|
+| Shopee = giá vốn của mình | **0/1.075** |
+| Shopee = giá vốn × 1,08 | **0/1.075** |
+| Shopee = giá vốn +VAT của mình | **0/1.075** |
+| tỷ lệ Shopee/mình | 1,33x – 2,83x, bình quân **1,80x** |
+
+Bằng chứng dứt điểm — đơn `260617AV9206D9`:
+
+```
+cost_of_goods_sold     = 6.106.500
+order_selling_price    = 6.106.500   ← giống hệt
+order_discounted_price = 6.106.500   ← giống hệt
+```
+
+Trường tên là "cost" nhưng nội dung là **giá bán**. Tin vào tên trường thì giá
+vốn đội lên 1,8 lần và biên lợi nhuận sụp. Giá vốn vẫn chỉ có một nguồn:
+`unit_cost_vnd` trong danh mục SKU, lấy từ đơn mua hàng.
+
+→ 60 SKU chưa có giá vốn vẫn là lỗ hổng thật, phải lấp từ **Mua hàng**, không
+lấp được từ Shopee.
+
+## Hai chỗ dễ tính đôi trong bảng lãi lỗ
+
+**1. `seller_return_refund` gộp cả đơn huỷ.** Trong 141 đơn có trường này,
+**129 là đơn đã huỷ** (−188,2 tr), chỉ 12 đơn không huỷ (−5,7 tr). Doanh thu
+đơn huỷ vốn đã bằng 0, nên dùng thẳng trường này là trừ hai lần.
+
+**2. `seller_transaction_fee` và `credit_card_transaction_fee` là CÙNG một
+khoản dưới hai tên.** Cùng 18,0 tr trên cùng 439 đơn ở mẫu 580 đơn đầu. Phải
+lấy `max` của hai cái, không được cộng.
+
+## Chín khoản luôn bằng 0 ở shop này
+
+`voucher_dong_tai_tro` · `xu_nguoi_ban_bu` · `phi_combo_khuyen_mai` ·
+`phi_giao_dich_nguoi_mua` · `phi_ha_tang` · `nguoi_ban_giam_vc` ·
+`don_vi_vc_giam` · `phi_vc_chieu_nguoc` · `phi_vc_tra_ve_nguoi_ban`
+
+Báo cáo bên kia có các dòng này vì họ nhiều sàn nhiều shop. Màn P&L của mình
+nên ẩn mặc định, có nút mở — thay vì bày bảng mà nửa số dòng bằng 0.
